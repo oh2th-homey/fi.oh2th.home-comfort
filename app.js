@@ -82,14 +82,6 @@ module.exports = class HvacControlApp extends Homey.App {
   }
 
   /**
-   * @description Currency symbol from the HVAC Controller setting (default €).
-   */
-  currencySymbol() {
-    const controller = this.findController();
-    return String((controller && controller.getSetting('currency')) || '€').trim() || '€';
-  }
-
-  /**
    * @description The HVAC Controller device (single instance).
    * @returns {Object} Device
    * @throws when it has not been added

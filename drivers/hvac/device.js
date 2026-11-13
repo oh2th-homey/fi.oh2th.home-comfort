@@ -17,12 +17,11 @@ const OUTDOOR_MAX_AGE_MS = 3 * 60 * 60 * 1000;
 const POWER = 'measure_power';
 const ZONE_POWER = 'measure_power.heating';
 const POWER_OPTIONS = { title: { en: 'Heating power' }, units: { en: 'W' }, decimals: 0 };
-// The zones' energy and cost today, and today's average price (lib/daily.js); shown with POWER.
+// The zones' energy today (lib/daily.js); shown with POWER. Costs are left to the energy app's own devices: the cost
+// capabilities of earlier versions are removed from existing devices by checkCapabilities. The day's cost and average price
+// stay in the history.
 const ENERGY_TODAY = 'meter_power.today';
-const COST_TODAY = 'measure_monetary.cost_today';
-const PRICE_PAID = 'measure_monetary.price_paid';
-const PRICE_AVERAGE = 'measure_monetary.price_average';
-const DAY_CAPS = [ENERGY_TODAY, COST_TODAY, PRICE_PAID, PRICE_AVERAGE];
+const DAY_CAPS = [ENERGY_TODAY];
 // Prices from the Power by the Hour Prices API (the app's only dependency on another app, issue #23).
 const PBTH = 'com.gruijter.powerhour';
 // Pushes come every slot; without one for this long the prices are fetched again.
@@ -81,7 +80,6 @@ module.exports = class hvacDevice extends mainDevice {
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
     if (result.added.includes(ENERGY_TODAY)) await this.setCapabilityOptions(ENERGY_TODAY, { title: { en: 'Energy today' }, units: { en: 'kWh' }, decimals: 2 }).catch(this.error);
-    if (result.added.includes(COST_TODAY)) await this.applyCurrency();
     return result;
   }
 
@@ -125,11 +123,6 @@ module.exports = class hvacDevice extends mainDevice {
     // setCapabilityOptions replaces the manifest's options for this capability: pass title and decimals too.
     const { title, decimals } = this.driver.manifest.capabilitiesOptions.measure_monetary;
     await this.setCapabilityOptions('measure_monetary', { title, decimals, units: { en: `${symbol}/kWh` } }).catch(this.error);
-    const perKwh = { units: { en: `${symbol}/kWh` }, decimals: 4 };
-    if (this.hasCapability(COST_TODAY)) await this.setCapabilityOptions(COST_TODAY, { title: { en: 'Cost today' }, units: { en: symbol }, decimals: 2 }).catch(this.error);
-    if (this.hasCapability(PRICE_PAID)) await this.setCapabilityOptions(PRICE_PAID, { title: { en: 'Price paid today' }, ...perKwh }).catch(this.error);
-    if (this.hasCapability(PRICE_AVERAGE)) await this.setCapabilityOptions(PRICE_AVERAGE, { title: { en: 'Average price today' }, ...perKwh }).catch(this.error);
-    for (const zone of this.meteredZones() || []) await zone.applyCurrency(symbol);
   }
 
   /**
@@ -144,9 +137,6 @@ module.exports = class hvacDevice extends mainDevice {
     const today = daily.summary(day);
     const round = (value, digits) => (typeof value === 'number' && Number.isFinite(value) ? Math.round(value * 10 ** digits) / 10 ** digits : null);
     await this.setValue(ENERGY_TODAY, round(today.kWh, 3));
-    await this.setValue(COST_TODAY, round(today.cost, 4));
-    await this.setValue(PRICE_PAID, round(today.pricePaid, 4));
-    await this.setValue(PRICE_AVERAGE, round(today.priceAverage, 4));
     return finished;
   }
 

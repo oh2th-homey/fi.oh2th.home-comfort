@@ -20,10 +20,9 @@ const ECO_COOL_OPTIONS = { title: { en: 'Eco cool' }, min: 16, max: 32, step: 0.
 const POWER = 'measure_power.heating';
 const POWER_OPTIONS = { title: { en: 'Heating power' }, units: { en: 'W' }, decimals: 0 };
 // Meters report every few seconds with a watt or two of noise: heating power shows changes of at least this (W).
-// Today's energy, cost and price paid, shown with the power meters (lib/daily.js).
+// Today's energy, shown with the power meters (lib/daily.js). The cost capabilities of earlier versions are removed from
+// existing devices by checkCapabilities; the day's cost stays in the history.
 const ENERGY_TODAY = 'meter_power.today';
-const COST_TODAY = 'measure_monetary.cost_today';
-const PRICE_PAID = 'measure_monetary.price_paid';
 const POWER_STEP = 5;
 const FOLLOW_STEP_MS = 24 * 60 * 60 * 1000;
 // Boost from a flow token is capped like the card's own limit.
@@ -51,10 +50,6 @@ function round1(value) {
 
 function round3(value) {
   return typeof value === 'number' && Number.isFinite(value) ? Math.round(value * 1000) / 1000 : null;
-}
-
-function round4(value) {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.round(value * 10000) / 10000 : null;
 }
 
 module.exports = class zoneDevice extends mainDevice {
@@ -94,12 +89,12 @@ module.exports = class zoneDevice extends mainDevice {
 
   /**
    * @description Comfort cool and eco cool are shown only when the zone has cooling, that is an A/C member; heating power,
-   * energy and cost only when it has a power meter; Follow home only while it runs.
+   * energy only when it has a power meter; Follow home only while it runs.
    */
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.hasCooling()) capabilities.push(COOL, ECO_COOL);
-    if (this.hasPower()) capabilities.push(POWER, ENERGY_TODAY, COST_TODAY, PRICE_PAID);
+    if (this.hasPower()) capabilities.push(POWER, ENERGY_TODAY);
     // Follow home shows only while it runs.
     if (this.followUntil(Date.now())) capabilities.push(FOLLOW_CAP);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
@@ -107,7 +102,6 @@ module.exports = class zoneDevice extends mainDevice {
     if (result.added.includes(ECO_COOL)) await this.setCapabilityOptions(ECO_COOL, ECO_COOL_OPTIONS).catch(this.error);
     if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
     if (result.added.includes(ENERGY_TODAY)) await this.setCapabilityOptions(ENERGY_TODAY, { title: { en: 'Energy today' }, units: { en: 'kWh' }, decimals: 2 }).catch(this.error);
-    if (result.added.includes(COST_TODAY)) await this.applyCurrency();
     for (const key of [COOL, ECO_COOL]) {
       if (this.hasCapability(key) && !this.setpointListeners[key]) {
         this.registerCapabilityListener(key, (value) => this.changeSetpoint(key, value));
@@ -123,14 +117,6 @@ module.exports = class zoneDevice extends mainDevice {
 
   hasPower() {
     return this.getMembers().some((member) => member.power);
-  }
-
-  /**
-   * @description Cost today and price paid in the controller's currency.
-   */
-  async applyCurrency(symbol = this.homey.app.currencySymbol()) {
-    if (this.hasCapability(COST_TODAY)) await this.setCapabilityOptions(COST_TODAY, { title: { en: 'Cost today' }, units: { en: symbol }, decimals: 2 }).catch(this.error);
-    if (this.hasCapability(PRICE_PAID)) await this.setCapabilityOptions(PRICE_PAID, { title: { en: 'Price paid today' }, units: { en: `${symbol}/kWh` }, decimals: 4 }).catch(this.error);
   }
 
   async setCapabilityListeners() {
@@ -605,8 +591,6 @@ module.exports = class zoneDevice extends mainDevice {
     await this.setStoreValue('day', day).catch(this.error);
     const today = daily.summary(day);
     await this.setValue(ENERGY_TODAY, round3(today.kWh));
-    await this.setValue(COST_TODAY, round4(today.cost));
-    await this.setValue(PRICE_PAID, round4(today.pricePaid));
     return finished;
   }
 
