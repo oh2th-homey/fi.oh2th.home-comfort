@@ -206,7 +206,8 @@
     },
     "model": {
       "learned": "Learned: heats ahead in cheap hours",
-      "learning": "Learning (__hours__ h of heating seen): heats just in time"
+      "learning": "Learning (__hours__ h of heating seen): heats just in time",
+      "power": "Heating __heating__ kW, base load __base__ kW"
     },
     "weekday": {
       "0": "Sun",

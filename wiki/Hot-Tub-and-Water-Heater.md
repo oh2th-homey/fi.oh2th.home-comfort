@@ -30,9 +30,11 @@ Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choo
   best: it reports all the time, also when the pump doesn't run.
 - **Outdoor temperature** (Hot Tub) or **Room temperature** (Water Heater): another sensor, or
   none to use the HVAC Controller's outdoor sensor or the fixed temperature in the settings.
-- **Power meter** (optional): the heater's power. Recommended: learning then knows when the
-  heater really heats, also when the heater's own thermostat switches it on and off, and it
-  learns the heater's real power.
+- **Power meter** (optional): the power of the heater, or of the whole tub. Recommended:
+  learning then knows when the heater really heats, also when the heater's own thermostat
+  switches it on and off. The device learns two power levels from it: **heating**, and the
+  **base load** such as a circulation pump (for example 3.2 kW and 0.2 kW). A reading above
+  halfway between them counts as heating. Standby below 50 W is left out.
 
 The app reads only standard capabilities. If a reading is only available in a non-standard
 form, a virtual device updated by a flow can pass it on. To change the choices later, use
@@ -42,8 +44,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 - **Control** (on/off): on, the device plans and demands heating. Off, it demands nothing, not
   even Keep, and the heater is left to its own controls.
-- **Water temperature**, the outdoor or room temperature, and **Heating power** when a power
-  meter is chosen.
+- **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
+  chosen.
 - **Ready temperature** (the dial): the temperature to reach for each use.
 - **Heating demand**: on while the heater should heat.
 - **Heating ready** (button): on while the water is held at the ready temperature for a use.
@@ -61,9 +63,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows.
 - **Price limit**: skip a use when heating for it would cost more per kWh. 0 = always heat.
   Keep is held anyway.
-- **Heater power**: the rated power, used until a power meter has shown the real one.
+- **Heater power**: the power while heating, used until a power meter has shown it.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
-  surroundings, and the mixing drop (below).
+  surroundings, the mixing drop (below), and the learned power levels.
 
 ## How it decides
 

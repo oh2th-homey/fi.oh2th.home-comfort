@@ -235,3 +235,35 @@ test('decide: stores heat above ready in cheap hours, up to maximum', () => {
   assert.ok(at(6) > 39 && at(6) <= 40);
   assert.ok(result.expected >= 38);
 });
+
+test('power levels: the circulation pump is base load, the heater is heating, split halfway', () => {
+  let stored = {};
+  const feed = (w) => {
+    const r = water.learnPower(stored, w, 3000);
+    stored = { heatW: r.heatW, baseW: r.baseW };
+    return r.heating;
+  };
+  assert.strictEqual(feed(6), false, 'standby is neither');
+  assert.strictEqual(stored.baseW, undefined);
+  assert.strictEqual(feed(205), false, 'pump alone is not heating');
+  assert.strictEqual(stored.baseW, 205);
+  assert.strictEqual(feed(3250), true, 'heater and pump');
+  assert.strictEqual(stored.heatW, 3250);
+  for (let i = 0; i < 200; i++) feed(i % 2 ? 3200 : 200);
+  const levels = water.powerLevels(stored, 3000);
+  assert.ok(Math.abs(levels.heatW - 3200) < 30 && Math.abs(levels.baseW - 200) < 10, JSON.stringify(levels));
+  assert.ok(levels.threshold > 1600 && levels.threshold < 1800);
+});
+
+test('power levels: a heater power set far too low still separates the pump once heating is seen', () => {
+  let stored = {};
+  const feed = (w) => {
+    const r = water.learnPower(stored, w, 500);
+    stored = { heatW: r.heatW, baseW: r.baseW };
+    return r.heating;
+  };
+  feed(200);
+  for (let i = 0; i < 100; i++) feed(3200);
+  assert.strictEqual(feed(200), false, 'pump after the heater has been learned');
+  assert.ok(water.powerLevels(stored, 500).heatW > 3000);
+});

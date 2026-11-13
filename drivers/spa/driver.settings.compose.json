@@ -212,7 +212,7 @@
           "en": "W"
         },
         "hint": {
-          "en": "Rated power. With a power meter the real power is learned."
+          "en": "Power while heating. With a power meter, the power while heating and the base load (such as a circulation pump) are learned."
         }
       }
     ]
@@ -262,6 +262,17 @@
         "value": "-",
         "hint": {
           "en": "How much higher the water temperature reads while the water stands still. Planned with the reading minus this."
+        }
+      },
+      {
+        "id": "learned_power",
+        "type": "label",
+        "label": {
+          "en": "Power"
+        },
+        "value": "-",
+        "hint": {
+          "en": "Learned from the power meter: heating, and the base load such as a circulation pump. Above halfway between them counts as heating."
         }
       }
     ]

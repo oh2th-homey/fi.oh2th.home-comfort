@@ -10,15 +10,11 @@ const READY = 'heating_ready';
 const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
 const SURROUNDINGS = 'measure_temperature.surroundings';
 const POWER = 'measure_power';
-const POWER_OPTIONS = { title: { en: 'Heating power' }, units: { en: 'W' }, decimals: 0 };
 // A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
 const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const SURROUNDINGS_MAX_AGE_MS = 3 * 60 * 60 * 1000;
 // Re-plan at least this often (minutes); temperature, price and setting changes re-plan sooner.
 const PLAN_MINUTES = 5;
-// With a power meter, heating means drawing more than this share of the heater power (at least MIN_HEATING_W).
-const HEATING_SHARE = 0.2;
-const MIN_HEATING_W = 50;
 // Segments for learning: a long wait or heating is closed and learned from now and then.
 const MAX_IDLE_HOURS = 6;
 const MAX_HEAT_HOURS = 3;
@@ -30,8 +26,6 @@ const PROBLEM_RISE = 0.3;
 const SETTLE_MS = 15 * 60000;
 // After this long without heating the water counts as standing still: it is planned with the learned mixing drop.
 const STILL_MS = 60 * 60000;
-// Learned heater power from the meter (W): a slow average.
-const POWER_WEIGHT = 0.05;
 
 /**
  * Shared device base of the Hot Tub and the Water Heater (issue #1): reads the water temperature, the surroundings and
@@ -74,13 +68,22 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Heating power is shown only when a power meter is chosen.
+   * @description Power is shown only when a power meter is chosen.
    */
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.getStoreValue('power')) capabilities.push(POWER);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
-    if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
+    // Homey's own title for measure_power: clear the custom one that earlier versions set.
+    if (this.hasCapability(POWER)) {
+      let options = {};
+      try {
+        options = this.getCapabilityOptions(POWER) || {};
+      } catch (error) {
+        options = {};
+      }
+      if (options.title) await this.setCapabilityOptions(POWER, {}).catch(this.error);
+    }
     return result;
   }
 
@@ -231,11 +234,11 @@ module.exports = class waterDevice extends mainDevice {
     } else if (key === 'power') {
       const watts = this.powerReading();
       await this.setValue(POWER, watts);
-      // The heater's real power, learned while it heats.
-      if (typeof watts === 'number' && watts > Math.max(MIN_HEATING_W, HEATING_SHARE * this.ratedPower())) {
-        const learned = this.getStoreValue('powerW');
-        await this.setStoreValue('powerW', typeof learned === 'number' ? learned + POWER_WEIGHT * (watts - learned) : watts).catch(this.error);
-      }
+      // The power levels, learned from the meter: heating and the base load (circulation pump).
+      const learned = water.learnPower(this.powerStore(), watts, this.ratedSetting());
+      if (learned.heatW !== this.getStoreValue('powerW')) await this.setStoreValue('powerW', learned.heatW).catch(this.error);
+      if (learned.baseW !== this.getStoreValue('baseW')) await this.setStoreValue('baseW', learned.baseW).catch(this.error);
+      this.showPower();
     }
   }
 
@@ -281,12 +284,21 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Heater power (W): learned from the meter, else the setting.
+   * @description Heater power (W) from the settings, used until the meter has shown heating.
+   */
+  ratedSetting() {
+    return this.getSetting('heater_power') || 3000;
+  }
+
+  powerStore() {
+    return { heatW: this.getStoreValue('powerW'), baseW: this.getStoreValue('baseW') };
+  }
+
+  /**
+   * @description Power while heating (W), for the cost of a quarter: learned from the meter, else the setting.
    */
   ratedPower() {
-    const learned = this.getStoreValue('powerW');
-    if (typeof learned === 'number' && learned > 0) return learned;
-    return this.getSetting('heater_power') || 3000;
+    return water.powerLevels(this.powerStore(), this.ratedSetting()).heatW;
   }
 
   /**
@@ -296,7 +308,7 @@ module.exports = class waterDevice extends mainDevice {
   isHeating() {
     if (this.getStoreValue('power')) {
       const watts = this.powerReading();
-      if (watts !== null) return watts > Math.max(MIN_HEATING_W, HEATING_SHARE * this.ratedPower());
+      if (watts !== null) return watts > water.powerLevels(this.powerStore(), this.ratedSetting()).threshold;
     }
     return this.getCapabilityValue(DEMAND) === true;
   }
@@ -384,6 +396,18 @@ module.exports = class waterDevice extends mainDevice {
   /**
    * @description The learned curve in the device settings (labels).
    */
+  /**
+   * @description The learned power levels in the device settings (label), when they change by more than rounding.
+   */
+  showPower() {
+    if (!this.getStoreValue('power')) return;
+    const { heatW, baseW } = this.powerStore();
+    if (typeof heatW !== 'number' && typeof baseW !== 'number') return;
+    const kW = (w) => (typeof w === 'number' ? (w / 1000).toFixed(1) : '-');
+    const text = this.homey.__('water.model.power', { heating: kW(heatW), base: kW(baseW) });
+    if (text !== this.getSetting('learned_power')) this.setSettings({ learned_power: text }).catch(this.error);
+  }
+
   async showModel(stored) {
     const m = water.model(stored);
     const learned = water.confident(m) ? this.homey.__('water.model.learned') : this.homey.__('water.model.learning', { hours: Math.round(m.heatHours * 10) / 10 });
