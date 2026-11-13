@@ -159,13 +159,18 @@ immediately); use `.then(() => this.log(…))`.
 
 - Homey Apps SDK v3, Homey Pro only. Needs `homey:manager:api` to read/control other apps' devices.
 - Generic first: nothing installation-specific in code.
-- No dependency on any specific app, PbtH (Power by the Hour) included: no app-specific code
-  paths, names, capability lists or settings. The app never calls another app's flow cards;
-  users build the flows they need (our triggers → their app's actions). Member
-  devices (thermostats, relays, A/C, sensors) are read and written only through standard
-  Homey capabilities, whatever app owns them. Data sources such as prices come in only as
-  tokens on this app's own action cards (e.g. Import prices takes a JSON text token). Other
-  apps may appear in wiki examples only.
+- No dependency on any specific app: no app-specific code paths, names, capability lists or
+  settings. The app never calls another app's flow cards; users build the flows they need (our
+  triggers → their app's actions). Member devices (thermostats, relays, A/C, sensors) are read
+  and written only through standard Homey capabilities, whatever app owns them. Other data
+  sources come in only as tokens on this app's own action cards (e.g. a forecast). Other apps
+  may appear in wiki examples only.
+- **The only exception: prices from the Power by the Hour Prices API** (issue #23, user's decision
+  2026-11-13). The HVAC Controller reads `GET /prices` and the `prices-updated` realtime event of
+  `com.gruijter.powerhour` (permission `homey:app:com.gruijter.powerhour`). Prices stay optional:
+  without Power by the Hour the app works on occupancy alone. The Import prices card is deprecated
+  when the API arrives and removed in a later major version. Make no other exceptions without
+  asking.
 - Inputs are **facts, not modes** (occupancy, long absence, prices, forecast). Never make the user
   translate facts into modes in flows; that is what made Homey Heating Scheduler too complex.
 - Few concepts: Heating Zone devices, one required HVAC Controller device (shared state), per zone
