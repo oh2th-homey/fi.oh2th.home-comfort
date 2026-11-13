@@ -4,9 +4,9 @@ Smart HVAC Control for Homey Pro sets the temperature of each heating zone. It d
 three things: whether someone is home, the energy price and the outdoor temperature. There is
 no weekly schedule. Your flows only tell the app what is going on.
 
-> Status: test version in the Homey App Store, waiting for approval:
-> <https://homey.app/a/fi.oh2th.hvac-control/test/>. Discuss it in the
-> [community topic](https://community.homey.app/t/161500).
+> Status: not in the Homey App Store for now. Install it from this repository with the Homey CLI
+> (see [Install](https://github.com/oh2th-homey/fi.oh2th.hvac-control/wiki/Home#install)). Discuss
+> it in the [community topic](https://community.homey.app/t/161500).
 
 ## How to use
 
