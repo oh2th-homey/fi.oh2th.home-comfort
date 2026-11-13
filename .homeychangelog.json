@@ -4,5 +4,8 @@
   },
   "1.1.0": {
     "en": "Energy and cost per zone, cooling with A/Cs, outdoor sensor, auxiliary heaters, fewer price peaks and fixes."
+  },
+  "1.2.0": {
+    "en": "NEW: Energy prices come straight from Power by the Hour without an import flow, and the Cost today, Price paid today and Average price today capabilities are removed."
   }
 }
