@@ -21,6 +21,8 @@ In short:
 2. Add a **Heating Zone** for each room or area, and pick its devices.
 3. Make flows that tell the controller who is home. Energy prices come from Power by the Hour,
    chosen when you add the controller.
+4. Optionally add a **Hot Tub** or a **Water Heater**: it heats the water in the cheapest hours
+   before you need it, and your flows switch the heater on its Heating demand cards.
 
 ## License
 

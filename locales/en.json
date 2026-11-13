@@ -63,6 +63,23 @@
       "no_api": "Update Power by the Hour to version 9 or later to use its prices.",
       "no_power": "Add an energy price device in Power by the Hour to use its prices.",
       "missing": "That price device is no longer in Power by the Hour. Choose another one."
+    },
+    "water": {
+      "subtitle": "Heats in the cheapest hours on the HVAC Controller's prices. Your flows switch the heater on the Heating demand cards.",
+      "name": "Name",
+      "name_spa": "Hot Tub",
+      "name_water_heater": "Water Heater",
+      "water": "Water temperature",
+      "surroundings_spa": "Outdoor temperature",
+      "surroundings_water_heater": "Room temperature",
+      "surroundings_controller": "HVAC Controller's outdoor sensor",
+      "surroundings_fixed": "Fixed temperature (device settings)",
+      "power": "Power meter (optional)",
+      "none": "None",
+      "choose": "Choose…",
+      "save": "Save",
+      "no_water": "Choose the water temperature.",
+      "no_prices": "Choose the prices to follow on the HVAC Controller first (Repair)."
     }
   },
   "error": {
@@ -154,5 +171,51 @@
     "device_missing": "price device __name__ not found",
     "interval": "__minutes__-minute prices are not supported",
     "no_slots": "no prices"
+  },
+  "water": {
+    "reason": {
+      "no_controller": "No HVAC Controller",
+      "no_temperature": "No water temperature",
+      "at_max": "At maximum __max__",
+      "below_keep": "Below keep __keep__: heating",
+      "in_use": "In use until __until__",
+      "in_use_heat": "In use until __until__: heating",
+      "ready_hold": "Ready for __ready__: held until __until__",
+      "ready_hold_heat": "Ready for __ready__: held until __until__, heating",
+      "learning": "Ready __ready__: starts __start__ (learning)",
+      "learning_heat": "Ready __ready__: heating (learning)",
+      "learning_idle": "Learning: holds keep __keep__",
+      "no_prices": "No prices: starts __start__ for __ready__",
+      "no_prices_heat": "No prices: heating for __ready__",
+      "no_prices_idle": "No prices: holds keep __keep__",
+      "idle": "No use planned: holds keep __keep__",
+      "safe_start": "Ready __ready__: must start now",
+      "skipped": "Use __ready__ skipped: over the price limit",
+      "heating": "Ready __ready__: heating in cheap hours",
+      "heating_keep": "Holds keep __keep__: heating in a cheap hour",
+      "waiting": "Ready __ready__: starts __start__",
+      "waiting_warm": "Ready __ready__: warm enough",
+      "off": "Control off"
+    },
+    "error": {
+      "keep_max": "Keep must be lower than Maximum.",
+      "ready_max": "The ready temperature is above Maximum: lower it first.",
+      "ready_range": "The ready temperature must be above keep (__keep__) and at most the maximum (__max__).",
+      "time": "Enter the time as HH:mm, for example 18:00",
+      "off": "Turn the control on first."
+    },
+    "model": {
+      "learned": "Learned: heats ahead in cheap hours",
+      "learning": "Learning (__hours__ h of heating seen): heats just in time"
+    },
+    "weekday": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    }
   }
 }

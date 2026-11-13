@@ -1,0 +1,39 @@
+{
+  "title": {
+    "en": "Turn heating ready on or off"
+  },
+  "titleFormatted": {
+    "en": "Turn heating ready [[state]]"
+  },
+  "hint": {
+    "en": "Off ends the use now (back to keep). On heats to the ready temperature now and holds it until turned off, at most as long as set in the device settings."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    },
+    {
+      "type": "dropdown",
+      "name": "state",
+      "title": {
+        "en": "State"
+      },
+      "values": [
+        {
+          "id": "on",
+          "title": {
+            "en": "on"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "off"
+          }
+        }
+      ]
+    }
+  ]
+}

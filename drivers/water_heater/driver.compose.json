@@ -1,0 +1,60 @@
+{
+  "name": {
+    "en": "Water Heater"
+  },
+  "class": "other",
+  "capabilities": [
+    "onoff",
+    "measure_temperature",
+    "measure_temperature.surroundings",
+    "target_temperature",
+    "is_heating_demand",
+    "heating_ready",
+    "text_reason",
+    "alarm_problem"
+  ],
+  "capabilitiesOptions": {
+    "measure_temperature": {
+      "title": {
+        "en": "Water temperature"
+      }
+    },
+    "measure_temperature.surroundings": {
+      "title": {
+        "en": "Room temperature"
+      }
+    },
+    "target_temperature": {
+      "title": {
+        "en": "Ready temperature"
+      },
+      "min": 30,
+      "max": 85,
+      "step": 1,
+      "decimals": 1
+    },
+    "alarm_problem": {
+      "title": {
+        "en": "Heater problem"
+      }
+    },
+    "onoff": {
+      "title": {
+        "en": "Control"
+      }
+    }
+  },
+  "$extends": [
+    "device"
+  ],
+  "pair": [
+    {
+      "id": "water"
+    }
+  ],
+  "repair": [
+    {
+      "id": "water"
+    }
+  ]
+}

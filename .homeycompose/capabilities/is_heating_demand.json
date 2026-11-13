@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Heating demand"
+  },
+  "hint": {
+    "en": "The heater should heat now. Turn it into the heater's own actions with the Heating demand started and stopped cards."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Heating demand started"
+  },
+  "insightsTitleFalse": {
+    "en": "Heating demand stopped"
+  },
+  "icon": "./assets/capabilities/is_heating_demand.svg"
+}

@@ -4,6 +4,7 @@ const { localTime, strToMins, localDate, addDays, isDate, isTime, updateCapabili
 const mainDevice = require('../main-device');
 const prices = require('../../lib/prices');
 const daily = require('../../lib/daily');
+const water = require('../../lib/water');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
 const SEASONS = ['heating', 'cooling', 'off'];
@@ -524,6 +525,18 @@ module.exports = class hvacDevice extends mainDevice {
     const timeZone = this.homey.clock.getTimezone();
     const entry = (this.getStoreValue('prices') || {})[localDate(timeZone, Date.now())];
     return entry ? entry.resolution : 15;
+  }
+
+  /**
+   * @description The known prices from now as quarters, for the water devices' planner: [{ start, price }], unknown null.
+   */
+  priceQuarters(now = Date.now()) {
+    const timeZone = this.homey.clock.getTimezone();
+    const resolution = this.priceResolution();
+    const t = prices.timeline(this.getStoreValue('prices') || {}, timeZone, now, resolution);
+    // The timeline starts at yesterday's midnight.
+    const start = t.today.start - prices.dayInfo(timeZone, addDays(localDate(timeZone, now), -1), resolution).slots * resolution * 60000;
+    return water.quarterPrices(t.prices, start, resolution, now);
   }
 
   reasonText(reasons) {

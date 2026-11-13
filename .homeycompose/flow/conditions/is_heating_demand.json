@@ -1,0 +1,15 @@
+{
+  "title": {
+    "en": "Heating demand is active"
+  },
+  "titleFormatted": {
+    "en": "Heating demand !{{is|isn't}} active"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    }
+  ]
+}

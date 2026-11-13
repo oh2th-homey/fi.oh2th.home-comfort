@@ -1,0 +1,286 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Temperatures"
+    },
+    "children": [
+      {
+        "id": "keep_temperature",
+        "type": "number",
+        "label": {
+          "en": "Keep"
+        },
+        "value": 45,
+        "min": 5,
+        "max": 80,
+        "step": 0.5,
+        "units": {
+          "en": "°C"
+        },
+        "hint": {
+          "en": "Never below, whatever the price: enough hot water at any time."
+        }
+      },
+      {
+        "id": "max_temperature",
+        "type": "number",
+        "label": {
+          "en": "Maximum"
+        },
+        "value": 75,
+        "min": 10,
+        "max": 90,
+        "step": 0.5,
+        "units": {
+          "en": "°C"
+        },
+        "hint": {
+          "en": "Hard limit: heating demand always stops here."
+        }
+      },
+      {
+        "id": "surroundings_temperature",
+        "type": "number",
+        "label": {
+          "en": "Room temperature"
+        },
+        "value": 20,
+        "min": -20,
+        "max": 40,
+        "step": 0.5,
+        "units": {
+          "en": "°C"
+        },
+        "hint": {
+          "en": "Used when no room temperature sensor was chosen."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Use"
+    },
+    "children": [
+      {
+        "id": "use_time",
+        "type": "text",
+        "label": {
+          "en": "Ready at"
+        },
+        "value": "06:00",
+        "hint": {
+          "en": "HH:mm, empty for none. One-offs and skips come from flows."
+        }
+      },
+      {
+        "id": "use_minutes",
+        "type": "number",
+        "label": {
+          "en": "Use lasts"
+        },
+        "value": 60,
+        "min": 15,
+        "max": 720,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "Kept at the ready temperature this long."
+        }
+      },
+      {
+        "id": "hold_before",
+        "type": "number",
+        "label": {
+          "en": "Hold before use"
+        },
+        "value": 120,
+        "min": 0,
+        "max": 720,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+        }
+      },
+      {
+        "id": "manual_ready_hours",
+        "type": "number",
+        "label": {
+          "en": "Ready by hand at most"
+        },
+        "value": 12,
+        "min": 1,
+        "max": 48,
+        "step": 1,
+        "units": {
+          "en": "h"
+        },
+        "hint": {
+          "en": "Heating ready turned on by hand or by a flow is held until turned off, at most this long."
+        }
+      },
+      {
+        "id": "use_mon",
+        "type": "checkbox",
+        "label": {
+          "en": "Monday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_tue",
+        "type": "checkbox",
+        "label": {
+          "en": "Tuesday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_wed",
+        "type": "checkbox",
+        "label": {
+          "en": "Wednesday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_thu",
+        "type": "checkbox",
+        "label": {
+          "en": "Thursday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_fri",
+        "type": "checkbox",
+        "label": {
+          "en": "Friday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_sat",
+        "type": "checkbox",
+        "label": {
+          "en": "Saturday"
+        },
+        "value": true
+      },
+      {
+        "id": "use_sun",
+        "type": "checkbox",
+        "label": {
+          "en": "Sunday"
+        },
+        "value": true
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Prices"
+    },
+    "children": [
+      {
+        "id": "price_limit",
+        "type": "number",
+        "label": {
+          "en": "Price limit"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 10,
+        "step": 0.01,
+        "units": {
+          "en": "/kWh"
+        },
+        "hint": {
+          "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Heater"
+    },
+    "children": [
+      {
+        "id": "heater_power",
+        "type": "number",
+        "label": {
+          "en": "Heater power"
+        },
+        "value": 2000,
+        "min": 100,
+        "max": 30000,
+        "step": 100,
+        "units": {
+          "en": "W"
+        },
+        "hint": {
+          "en": "Rated power. With a power meter the real power is learned."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Learned heating curve"
+    },
+    "children": [
+      {
+        "id": "learned_state",
+        "type": "label",
+        "label": {
+          "en": "State"
+        },
+        "value": "Learning",
+        "hint": {
+          "en": "Heats just in time until the curve is learned, then also ahead in cheap hours."
+        }
+      },
+      {
+        "id": "learned_heat_rate",
+        "type": "label",
+        "label": {
+          "en": "Heating rate"
+        },
+        "value": "-"
+      },
+      {
+        "id": "learned_loss",
+        "type": "label",
+        "label": {
+          "en": "Heat loss"
+        },
+        "value": "-",
+        "hint": {
+          "en": "Share of the difference to the surroundings lost per hour."
+        }
+      },
+      {
+        "id": "learned_mix",
+        "type": "label",
+        "label": {
+          "en": "Mixing drop"
+        },
+        "value": "-",
+        "hint": {
+          "en": "How much higher the water temperature reads while the water stands still. Planned with the reading minus this."
+        }
+      }
+    ]
+  }
+]

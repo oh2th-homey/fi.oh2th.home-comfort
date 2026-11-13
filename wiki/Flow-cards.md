@@ -19,3 +19,10 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
   occupancy setting**.
 - Conditions: **Zone mode is**, **Zone is in eco**.
 - Triggers: **Eco changed**, **Target changed** (with the reason), **Member write failed**.
+
+## Hot Tub and Water Heater
+
+- Actions: **Ready at a time**, **Skip the next use**, **Turn heating ready on or off**.
+- Conditions: **Heating demand is active**, **Heating ready is on**.
+- Triggers: **Heating demand started** and **Heating demand stopped**, with the ready temperature
+  and the reason. Homey's own cards cover the control (on/off) and the ready temperature.

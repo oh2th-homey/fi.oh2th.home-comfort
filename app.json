@@ -104,6 +104,78 @@
       },
       {
         "title": {
+          "en": "Heating demand started"
+        },
+        "hint": {
+          "en": "Turn the heater on here, for example set its own heater mode or thermostat to the ready temperature."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "target_temperature",
+            "type": "number",
+            "title": {
+              "en": "Ready temperature"
+            },
+            "example": 38
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason"
+            },
+            "example": {
+              "en": "Ready 18:00: heats until 15:30"
+            }
+          }
+        ],
+        "id": "heating_demand_started"
+      },
+      {
+        "title": {
+          "en": "Heating demand stopped"
+        },
+        "hint": {
+          "en": "Turn the heater back to rest here."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "target_temperature",
+            "type": "number",
+            "title": {
+              "en": "Ready temperature"
+            },
+            "example": 38
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason"
+            },
+            "example": {
+              "en": "Ready 18:00: heats until 15:30"
+            }
+          }
+        ],
+        "id": "heating_demand_stopped"
+      },
+      {
+        "title": {
           "en": "Eco changed"
         },
         "hint": {
@@ -392,6 +464,22 @@
       },
       {
         "title": {
+          "en": "Heating ready is on"
+        },
+        "titleFormatted": {
+          "en": "Heating ready !{{is|isn't}} on"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          }
+        ],
+        "id": "heating_ready"
+      },
+      {
+        "title": {
           "en": "Zone is in eco"
         },
         "titleFormatted": {
@@ -421,6 +509,22 @@
           }
         ],
         "id": "is_expensive"
+      },
+      {
+        "title": {
+          "en": "Heating demand is active"
+        },
+        "titleFormatted": {
+          "en": "Heating demand !{{is|isn't}} active"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          }
+        ],
+        "id": "is_heating_demand"
       },
       {
         "title": {
@@ -659,6 +763,46 @@
       },
       {
         "title": {
+          "en": "Turn heating ready on or off"
+        },
+        "titleFormatted": {
+          "en": "Turn heating ready [[state]]"
+        },
+        "hint": {
+          "en": "Off ends the use now (back to keep). On heats to the ready temperature now and holds it until turned off, at most as long as set in the device settings."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "title": {
+              "en": "State"
+            },
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_heating_ready"
+      },
+      {
+        "title": {
           "en": "Boost zone"
         },
         "titleFormatted": {
@@ -805,6 +949,61 @@
           }
         ],
         "id": "set_target_temperature_eco_cool"
+      },
+      {
+        "title": {
+          "en": "Ready at a time"
+        },
+        "titleFormatted": {
+          "en": "Ready at [[time]] for [[minutes]] minutes"
+        },
+        "hint": {
+          "en": "A one-off use: the next time it is this time of day. 0 minutes = as long as in the settings."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          },
+          {
+            "type": "time",
+            "name": "time",
+            "title": {
+              "en": "Time"
+            }
+          },
+          {
+            "type": "number",
+            "name": "minutes",
+            "title": {
+              "en": "Minutes"
+            },
+            "min": 0,
+            "max": 720,
+            "step": 15,
+            "placeholder": {
+              "en": "0"
+            }
+          }
+        ],
+        "id": "water_ready_at"
+      },
+      {
+        "title": {
+          "en": "Skip the next use"
+        },
+        "hint": {
+          "en": "The next use is not heated for; keep is still held."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water_heater"
+          }
+        ],
+        "id": "water_skip_next"
       }
     ]
   },
@@ -1004,6 +1203,693 @@
               "value": "",
               "hint": {
                 "en": "Last day of a long absence as YYYY-MM-DD. Setting a day starts long absence; it ends after that day. Empty: no end date."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
+        "small": "/drivers/spa/assets/images/small.png",
+        "large": "/drivers/spa/assets/images/large.png"
+      },
+      "name": {
+        "en": "Hot Tub"
+      },
+      "class": "other",
+      "capabilities": [
+        "onoff",
+        "measure_temperature",
+        "measure_temperature.surroundings",
+        "target_temperature",
+        "is_heating_demand",
+        "heating_ready",
+        "text_reason",
+        "alarm_problem"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Water temperature"
+          }
+        },
+        "measure_temperature.surroundings": {
+          "title": {
+            "en": "Outdoor temperature"
+          }
+        },
+        "target_temperature": {
+          "title": {
+            "en": "Ready temperature"
+          },
+          "min": 20,
+          "max": 40,
+          "step": 0.5,
+          "decimals": 1
+        },
+        "alarm_problem": {
+          "title": {
+            "en": "Heater problem"
+          }
+        },
+        "onoff": {
+          "title": {
+            "en": "Control"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "water"
+        }
+      ],
+      "repair": [
+        {
+          "id": "water"
+        }
+      ],
+      "id": "spa",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Temperatures"
+          },
+          "children": [
+            {
+              "id": "keep_temperature",
+              "type": "number",
+              "label": {
+                "en": "Keep"
+              },
+              "value": 30,
+              "min": 5,
+              "max": 80,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Never below, whatever the price: frost protection."
+              }
+            },
+            {
+              "id": "max_temperature",
+              "type": "number",
+              "label": {
+                "en": "Maximum"
+              },
+              "value": 40,
+              "min": 10,
+              "max": 90,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Hard limit: heating demand always stops here."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Use"
+          },
+          "children": [
+            {
+              "id": "use_time",
+              "type": "text",
+              "label": {
+                "en": "Ready at"
+              },
+              "value": "18:00",
+              "hint": {
+                "en": "HH:mm, empty for none. One-offs and skips come from flows."
+              }
+            },
+            {
+              "id": "use_minutes",
+              "type": "number",
+              "label": {
+                "en": "Use lasts"
+              },
+              "value": 120,
+              "min": 15,
+              "max": 720,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Kept at the ready temperature this long."
+              }
+            },
+            {
+              "id": "hold_before",
+              "type": "number",
+              "label": {
+                "en": "Hold before use"
+              },
+              "value": 120,
+              "min": 0,
+              "max": 720,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+              }
+            },
+            {
+              "id": "manual_ready_hours",
+              "type": "number",
+              "label": {
+                "en": "Ready by hand at most"
+              },
+              "value": 12,
+              "min": 1,
+              "max": 48,
+              "step": 1,
+              "units": {
+                "en": "h"
+              },
+              "hint": {
+                "en": "Heating ready turned on by hand or by a flow is held until turned off, at most this long."
+              }
+            },
+            {
+              "id": "use_mon",
+              "type": "checkbox",
+              "label": {
+                "en": "Monday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_tue",
+              "type": "checkbox",
+              "label": {
+                "en": "Tuesday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_wed",
+              "type": "checkbox",
+              "label": {
+                "en": "Wednesday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_thu",
+              "type": "checkbox",
+              "label": {
+                "en": "Thursday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_fri",
+              "type": "checkbox",
+              "label": {
+                "en": "Friday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_sat",
+              "type": "checkbox",
+              "label": {
+                "en": "Saturday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_sun",
+              "type": "checkbox",
+              "label": {
+                "en": "Sunday"
+              },
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Prices"
+          },
+          "children": [
+            {
+              "id": "price_limit",
+              "type": "number",
+              "label": {
+                "en": "Price limit"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 10,
+              "step": 0.01,
+              "units": {
+                "en": "/kWh"
+              },
+              "hint": {
+                "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Heater"
+          },
+          "children": [
+            {
+              "id": "heater_power",
+              "type": "number",
+              "label": {
+                "en": "Heater power"
+              },
+              "value": 3000,
+              "min": 100,
+              "max": 30000,
+              "step": 100,
+              "units": {
+                "en": "W"
+              },
+              "hint": {
+                "en": "Rated power. With a power meter the real power is learned."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Learned heating curve"
+          },
+          "children": [
+            {
+              "id": "learned_state",
+              "type": "label",
+              "label": {
+                "en": "State"
+              },
+              "value": "Learning",
+              "hint": {
+                "en": "Heats just in time until the curve is learned, then also ahead in cheap hours."
+              }
+            },
+            {
+              "id": "learned_heat_rate",
+              "type": "label",
+              "label": {
+                "en": "Heating rate"
+              },
+              "value": "-"
+            },
+            {
+              "id": "learned_loss",
+              "type": "label",
+              "label": {
+                "en": "Heat loss"
+              },
+              "value": "-",
+              "hint": {
+                "en": "Share of the difference to the surroundings lost per hour."
+              }
+            },
+            {
+              "id": "learned_mix",
+              "type": "label",
+              "label": {
+                "en": "Mixing drop"
+              },
+              "value": "-",
+              "hint": {
+                "en": "How much higher the water temperature reads while the water stands still. Planned with the reading minus this."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
+        "small": "/drivers/water_heater/assets/images/small.png",
+        "large": "/drivers/water_heater/assets/images/large.png"
+      },
+      "name": {
+        "en": "Water Heater"
+      },
+      "class": "other",
+      "capabilities": [
+        "onoff",
+        "measure_temperature",
+        "measure_temperature.surroundings",
+        "target_temperature",
+        "is_heating_demand",
+        "heating_ready",
+        "text_reason",
+        "alarm_problem"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Water temperature"
+          }
+        },
+        "measure_temperature.surroundings": {
+          "title": {
+            "en": "Room temperature"
+          }
+        },
+        "target_temperature": {
+          "title": {
+            "en": "Ready temperature"
+          },
+          "min": 30,
+          "max": 85,
+          "step": 1,
+          "decimals": 1
+        },
+        "alarm_problem": {
+          "title": {
+            "en": "Heater problem"
+          }
+        },
+        "onoff": {
+          "title": {
+            "en": "Control"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "water"
+        }
+      ],
+      "repair": [
+        {
+          "id": "water"
+        }
+      ],
+      "id": "water_heater",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Temperatures"
+          },
+          "children": [
+            {
+              "id": "keep_temperature",
+              "type": "number",
+              "label": {
+                "en": "Keep"
+              },
+              "value": 45,
+              "min": 5,
+              "max": 80,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Never below, whatever the price: enough hot water at any time."
+              }
+            },
+            {
+              "id": "max_temperature",
+              "type": "number",
+              "label": {
+                "en": "Maximum"
+              },
+              "value": 75,
+              "min": 10,
+              "max": 90,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Hard limit: heating demand always stops here."
+              }
+            },
+            {
+              "id": "surroundings_temperature",
+              "type": "number",
+              "label": {
+                "en": "Room temperature"
+              },
+              "value": 20,
+              "min": -20,
+              "max": 40,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Used when no room temperature sensor was chosen."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Use"
+          },
+          "children": [
+            {
+              "id": "use_time",
+              "type": "text",
+              "label": {
+                "en": "Ready at"
+              },
+              "value": "06:00",
+              "hint": {
+                "en": "HH:mm, empty for none. One-offs and skips come from flows."
+              }
+            },
+            {
+              "id": "use_minutes",
+              "type": "number",
+              "label": {
+                "en": "Use lasts"
+              },
+              "value": 60,
+              "min": 15,
+              "max": 720,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Kept at the ready temperature this long."
+              }
+            },
+            {
+              "id": "hold_before",
+              "type": "number",
+              "label": {
+                "en": "Hold before use"
+              },
+              "value": 120,
+              "min": 0,
+              "max": 720,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+              }
+            },
+            {
+              "id": "manual_ready_hours",
+              "type": "number",
+              "label": {
+                "en": "Ready by hand at most"
+              },
+              "value": 12,
+              "min": 1,
+              "max": 48,
+              "step": 1,
+              "units": {
+                "en": "h"
+              },
+              "hint": {
+                "en": "Heating ready turned on by hand or by a flow is held until turned off, at most this long."
+              }
+            },
+            {
+              "id": "use_mon",
+              "type": "checkbox",
+              "label": {
+                "en": "Monday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_tue",
+              "type": "checkbox",
+              "label": {
+                "en": "Tuesday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_wed",
+              "type": "checkbox",
+              "label": {
+                "en": "Wednesday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_thu",
+              "type": "checkbox",
+              "label": {
+                "en": "Thursday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_fri",
+              "type": "checkbox",
+              "label": {
+                "en": "Friday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_sat",
+              "type": "checkbox",
+              "label": {
+                "en": "Saturday"
+              },
+              "value": true
+            },
+            {
+              "id": "use_sun",
+              "type": "checkbox",
+              "label": {
+                "en": "Sunday"
+              },
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Prices"
+          },
+          "children": [
+            {
+              "id": "price_limit",
+              "type": "number",
+              "label": {
+                "en": "Price limit"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 10,
+              "step": 0.01,
+              "units": {
+                "en": "/kWh"
+              },
+              "hint": {
+                "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Heater"
+          },
+          "children": [
+            {
+              "id": "heater_power",
+              "type": "number",
+              "label": {
+                "en": "Heater power"
+              },
+              "value": 2000,
+              "min": 100,
+              "max": 30000,
+              "step": 100,
+              "units": {
+                "en": "W"
+              },
+              "hint": {
+                "en": "Rated power. With a power meter the real power is learned."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Learned heating curve"
+          },
+          "children": [
+            {
+              "id": "learned_state",
+              "type": "label",
+              "label": {
+                "en": "State"
+              },
+              "value": "Learning",
+              "hint": {
+                "en": "Heats just in time until the curve is learned, then also ahead in cheap hours."
+              }
+            },
+            {
+              "id": "learned_heat_rate",
+              "type": "label",
+              "label": {
+                "en": "Heating rate"
+              },
+              "value": "-"
+            },
+            {
+              "id": "learned_loss",
+              "type": "label",
+              "label": {
+                "en": "Heat loss"
+              },
+              "value": "-",
+              "hint": {
+                "en": "Share of the difference to the surroundings lost per hour."
+              }
+            },
+            {
+              "id": "learned_mix",
+              "type": "label",
+              "label": {
+                "en": "Mixing drop"
+              },
+              "value": "-",
+              "hint": {
+                "en": "How much higher the water temperature reads while the water stands still. Planned with the reading minus this."
               }
             }
           ]
@@ -1431,6 +2317,26 @@
       "uiComponent": "picker",
       "icon": "./assets/capabilities/enum_zone_mode.svg"
     },
+    "heating_ready": {
+      "type": "boolean",
+      "title": {
+        "en": "Heating ready"
+      },
+      "hint": {
+        "en": "On while the water is held at the ready temperature for a use. Turn off to end the use now; turn on to be ready now."
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "button",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Heating ready on"
+      },
+      "insightsTitleFalse": {
+        "en": "Heating ready off"
+      },
+      "icon": "./assets/capabilities/heating_ready.svg"
+    },
     "is_eco": {
       "type": "boolean",
       "title": {
@@ -1470,6 +2376,26 @@
         "en": "Price became normal"
       },
       "icon": "./assets/capabilities/is_expensive.svg"
+    },
+    "is_heating_demand": {
+      "type": "boolean",
+      "title": {
+        "en": "Heating demand"
+      },
+      "hint": {
+        "en": "The heater should heat now. Turn it into the heater's own actions with the Heating demand started and stopped cards."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Heating demand started"
+      },
+      "insightsTitleFalse": {
+        "en": "Heating demand stopped"
+      },
+      "icon": "./assets/capabilities/is_heating_demand.svg"
     },
     "is_long_absence": {
       "type": "boolean",

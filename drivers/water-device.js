@@ -1,0 +1,558 @@
+'use strict';
+
+const { localTime, isTime, addDays, updateCapabilities } = require('oh2th-homey-helpers');
+const mainDevice = require('./main-device');
+const water = require('../lib/water');
+
+const DEMAND = 'is_heating_demand';
+const READY = 'heating_ready';
+// Reasons while the water is held at ready for a use (lib/water.js decide).
+const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
+const SURROUNDINGS = 'measure_temperature.surroundings';
+const POWER = 'measure_power';
+const POWER_OPTIONS = { title: { en: 'Heating power' }, units: { en: 'W' }, decimals: 0 };
+// A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
+const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+const SURROUNDINGS_MAX_AGE_MS = 3 * 60 * 60 * 1000;
+// Re-plan at least this often (minutes); temperature, price and setting changes re-plan sooner.
+const PLAN_MINUTES = 5;
+// With a power meter, heating means drawing more than this share of the heater power (at least MIN_HEATING_W).
+const HEATING_SHARE = 0.2;
+const MIN_HEATING_W = 50;
+// Segments for learning: a long wait or heating is closed and learned from now and then.
+const MAX_IDLE_HOURS = 6;
+const MAX_HEAT_HOURS = 3;
+// Problem: demanded for this long without the water warming by PROBLEM_RISE.
+const PROBLEM_HOURS = 1.5;
+const PROBLEM_RISE = 0.3;
+// Heating starts the circulation: a sensor in the water first jumps to the mixed temperature. A heating segment is
+// measured from this long after the start, so mixing is not learned as heating.
+const SETTLE_MS = 15 * 60000;
+// After this long without heating the water counts as standing still: it is planned with the learned mixing drop.
+const STILL_MS = 60 * 60000;
+// Learned heater power from the meter (W): a slow average.
+const POWER_WEIGHT = 0.05;
+
+/**
+ * Shared device base of the Hot Tub and the Water Heater (issue #1): reads the water temperature, the surroundings and
+ * an optional power meter from other devices, learns the heating curve (lib/water.js), and demands heating in the cheapest
+ * quarters on the HVAC Controller's prices. The user's flows turn the demand into the heater's own actions.
+ */
+module.exports = class waterDevice extends mainDevice {
+  /**
+   * @description Surroundings when no sensor gives them: overridden per driver.
+   */
+  fallbackSurroundings() {
+    return 5;
+  }
+
+  async onInitDevice() {
+    this.sourceListeners = {};
+    this.segment = this.getStoreValue('segment') || null;
+    this.demandSince = null;
+    await this.subscribeSources();
+  }
+
+  async onDeleted() {
+    this.unsubscribeSources();
+    await super.onDeleted();
+  }
+
+  async onUninit() {
+    this.unsubscribeSources();
+    await super.onUninit();
+  }
+
+  async onSettings({ oldSettings, newSettings, changedKeys }) {
+    this.log(`${this.getName()} - onSettings - changed: ${changedKeys}`);
+    if (newSettings.keep_temperature >= newSettings.max_temperature) throw new Error(this.homey.__('water.error.keep_max'));
+    if (newSettings.use_time && !isTime(newSettings.use_time)) throw new Error(this.homey.__('water.error.time'));
+    const ready = this.getCapabilityValue('target_temperature');
+    if (typeof ready === 'number' && ready > newSettings.max_temperature) throw new Error(this.homey.__('water.error.ready_max'));
+    // After Homey has saved the settings.
+    this.setTimer('plan', () => this.plan(), 1000);
+  }
+
+  /**
+   * @description Heating power is shown only when a power meter is chosen.
+   */
+  async checkCapabilities() {
+    const capabilities = [...(this.driver.manifest.capabilities || [])];
+    if (this.getStoreValue('power')) capabilities.push(POWER);
+    const result = await updateCapabilities(this, capabilities, this.getCapabilities());
+    if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
+    return result;
+  }
+
+  async setCapabilityListeners() {
+    this.registerCapabilityListener('target_temperature', this.onCapability_TARGET_TEMPERATURE.bind(this));
+    this.registerCapabilityListener(READY, this.onCapability_HEATING_READY.bind(this));
+    this.registerCapabilityListener('onoff', this.onCapability_ONOFF.bind(this));
+  }
+
+  /**
+   * @description Control on or off. Off: no demand and no keep; the heater is left to its own controls.
+   */
+  async onCapability_ONOFF(value) {
+    this.log(`${this.getName()} - onCapability_ONOFF - ${value}`);
+    try {
+      if (value === this.getCapabilityValue('onoff')) return Promise.resolve(false);
+      // Homey stores the value when the listener resolves; plan right after.
+      this.setTimer('plan', () => this.plan(), 500);
+      return Promise.resolve(true);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  isOn() {
+    return this.getCapabilityValue('onoff') !== false;
+  }
+
+  /**
+   * @description Heating ready: off ends the use being held now (back to keep); on is ready now, held until turned off.
+   */
+  async onCapability_HEATING_READY(value) {
+    this.log(`${this.getName()} - onCapability_HEATING_READY - ${value}`);
+    try {
+      if (value && !this.isOn()) throw new Error(this.homey.__('water.error.off'));
+      const now = Date.now();
+      const active = this.activeUse(now);
+      if (value && !active) {
+        const oneOffs = [...(this.getStoreValue('oneOffs') || []), { start: now, minutes: (this.getSetting('manual_ready_hours') || 12) * 60 }];
+        await this.setStoreValue('oneOffs', oneOffs);
+      } else if (!value && active) {
+        await this.setStoreValue('skipped', [...(this.getStoreValue('skipped') || []), active.start]);
+      }
+      await this.setValue(READY, value);
+      this.setTimer('plan', () => this.plan(), 500);
+      return Promise.resolve(true);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  /**
+   * @description The use whose ready temperature is held now: running, or reached shortly before it.
+   */
+  activeUse(now) {
+    const [use] = this.useList(now);
+    if (!use) return null;
+    return use.start <= now || this.getStoreValue('reachedFor') === use.start ? use : null;
+  }
+
+  async onCapability_TARGET_TEMPERATURE(value) {
+    this.log(`${this.getName()} - onCapability_TARGET_TEMPERATURE - ${value}`);
+    try {
+      const { keep_temperature: keep, max_temperature: max } = this.getSettings();
+      if (typeof value !== 'number' || !Number.isFinite(value) || value <= keep || value > max) throw new Error(this.homey.__('water.error.ready_range', { keep, max }));
+      // Homey stores the value when the listener resolves; plan right after.
+      this.setTimer('plan', () => this.plan(), 1000);
+      return Promise.resolve(true);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  async setCapabilityValues(check = false) {
+    try {
+      if (typeof this.getCapabilityValue('target_temperature') !== 'number') await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
+      await this.setValue('measure_temperature', this.waterTemperature(), check);
+      await this.setValue(SURROUNDINGS, this.surroundingsTemperature(), check);
+      if (this.hasCapability(POWER)) await this.setValue(POWER, this.powerReading(), check);
+      if (typeof this.getCapabilityValue('onoff') !== 'boolean') await this.setValue('onoff', true, check);
+      if (typeof this.getCapabilityValue(DEMAND) !== 'boolean') await this.setValue(DEMAND, false, check);
+      if (typeof this.getCapabilityValue(READY) !== 'boolean') await this.setValue(READY, false, check);
+      if (typeof this.getCapabilityValue('alarm_problem') !== 'boolean') await this.setValue('alarm_problem', false, check);
+    } catch (error) {
+      this.error(`${this.getName()} - setCapabilityValues - ${error}`);
+    }
+  }
+
+  async onReady() {
+    await this.plan();
+  }
+
+  async onInterval(now) {
+    const local = localTime(this, now);
+    // Sources missed at start (their app started later) are retried.
+    if (local.minutes % 5 === 0) await this.subscribeSources();
+    await this.track(now.getTime());
+    if (local.minutes % PLAN_MINUTES === 0) await this.plan(now.getTime());
+  }
+
+  /**
+   * @description Prices or the surroundings on the controller changed.
+   */
+  async onSharedStateChanged() {
+    this.setTimer('plan', () => this.plan(), 2000);
+  }
+
+  /**
+   * Sources: other devices' capabilities chosen at pairing or repair, store { id, cap, name }.
+   */
+  sources() {
+    const list = [];
+    const waterSource = this.getStoreValue('water');
+    const surroundings = this.getStoreValue('surroundings');
+    const power = this.getStoreValue('power');
+    if (waterSource) list.push({ key: 'water', ...waterSource });
+    if (surroundings) list.push({ key: 'surroundings', ...surroundings });
+    if (power) list.push({ key: 'power', ...power, cap: 'measure_power' });
+    return list;
+  }
+
+  async subscribeSources() {
+    for (const source of this.sources()) {
+      if (this.sourceListeners[source.key]) continue;
+      const listener = (value) => this.onSource(source.key, value).catch(this.error);
+      try {
+        await this.homey.app.members.subscribe(source.id, source.cap, listener);
+        this.sourceListeners[source.key] = { id: source.id, cap: source.cap, listener };
+      } catch (error) {
+        // Retried from onInterval, e.g. when the source's app starts later.
+        this.error(`${this.getName()} - subscribeSources - ${source.key} - ${error}`);
+      }
+    }
+  }
+
+  unsubscribeSources() {
+    for (const { id, cap, listener } of Object.values(this.sourceListeners || {})) this.homey.app.members.unsubscribe(id, cap, listener);
+    this.sourceListeners = {};
+  }
+
+  async onSource(key) {
+    if (key === 'water') {
+      const changed = await this.setValue('measure_temperature', this.waterTemperature());
+      // Reaching keep, ready or max should not wait for the next plan.
+      if (changed && !this.initializing) this.setTimer('plan', () => this.plan(), 2000);
+    } else if (key === 'surroundings') {
+      await this.setValue(SURROUNDINGS, this.surroundingsTemperature());
+    } else if (key === 'power') {
+      const watts = this.powerReading();
+      await this.setValue(POWER, watts);
+      // The heater's real power, learned while it heats.
+      if (typeof watts === 'number' && watts > Math.max(MIN_HEATING_W, HEATING_SHARE * this.ratedPower())) {
+        const learned = this.getStoreValue('powerW');
+        await this.setStoreValue('powerW', typeof learned === 'number' ? learned + POWER_WEIGHT * (watts - learned) : watts).catch(this.error);
+      }
+    }
+  }
+
+  read(key, maxAge) {
+    const source = this.sourceListeners[key];
+    const reading = source ? this.homey.app.members.read(source.id, source.cap) : null;
+    if (!reading || !reading.available || typeof reading.value !== 'number' || !Number.isFinite(reading.value)) return null;
+    if (maxAge && reading.lastUpdated && Date.now() - reading.lastUpdated.getTime() > maxAge) return null;
+    return reading.value;
+  }
+
+  waterTemperature() {
+    const value = this.read('water', WATER_MAX_AGE_MS);
+    return value === null || value < -5 || value > 100 ? null : Math.round(value * 10) / 10;
+  }
+
+  /**
+   * @description The water temperature to plan and learn with: while the water stands still, minus the mixing drop.
+   */
+  planTemperature(now = Date.now()) {
+    return water.mixedTemperature(this.waterTemperature(), this.getStoreValue('model'), this.isStill(now));
+  }
+
+  isStill(now) {
+    if (this.isHeating()) return false;
+    const stillSince = this.getStoreValue('stillSince');
+    // Unknown after a restart: still, the safe side.
+    return typeof stillSince !== 'number' || now - stillSince >= STILL_MS;
+  }
+
+  /**
+   * @description Surroundings: the own sensor, else the driver's fallback (overridden).
+   */
+  surroundingsTemperature() {
+    const value = this.read('surroundings', SURROUNDINGS_MAX_AGE_MS);
+    if (value !== null && value >= -60 && value <= 60) return Math.round(value * 10) / 10;
+    return this.fallbackSurroundings();
+  }
+
+  powerReading() {
+    const value = this.read('power');
+    return value === null || value < 0 ? null : Math.round(value);
+  }
+
+  /**
+   * @description Heater power (W): learned from the meter, else the setting.
+   */
+  ratedPower() {
+    const learned = this.getStoreValue('powerW');
+    if (typeof learned === 'number' && learned > 0) return learned;
+    return this.getSetting('heater_power') || 3000;
+  }
+
+  /**
+   * @description The heater heats now: by the power meter when there is one (right also when the device's own thermostat
+   * cycles), else by the demand.
+   */
+  isHeating() {
+    if (this.getStoreValue('power')) {
+      const watts = this.powerReading();
+      if (watts !== null) return watts > Math.max(MIN_HEATING_W, HEATING_SHARE * this.ratedPower());
+    }
+    return this.getCapabilityValue(DEMAND) === true;
+  }
+
+  /**
+   * @description Learning, every minute: a segment runs while the heater heats or waits; when it changes (or after
+   * MAX_*_HOURS) it is learned from and a new one starts.
+   */
+  async track(now) {
+    // Off without a power meter: the heater is run by something else and the device can't tell when it heats.
+    if (!this.isOn() && !(this.getStoreValue('power') && this.powerReading() !== null)) {
+      if (this.segment) await this.saveSegment(null);
+      return;
+    }
+    const raw = this.waterTemperature();
+    // Heating segments measure the mixed water (raw), waiting ones the planned temperature.
+    const temperature = this.isHeating() ? raw : this.planTemperature(now);
+    const surroundings = this.surroundingsTemperature();
+    if (temperature === null) {
+      if (this.segment) await this.saveSegment(null);
+      return;
+    }
+    const heating = this.isHeating();
+    const seg = this.segment;
+    if (!seg || (seg.from === null && heating !== seg.heating)) {
+      await this.startSegment(heating, now, raw, surroundings, seg);
+      return;
+    }
+    if (seg.from === null) {
+      // Heating: the water is still mixing. Once mixed, learn how much the still water read too high.
+      if (now < seg.start) return;
+      if (typeof seg.before === 'number') {
+        const mix = water.learnMix(this.getStoreValue('model'), { before: seg.before, after: raw, heatedHours: SETTLE_MS / 3600000 });
+        if (mix.value !== null) {
+          this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C: average ${mix.model.mixDrop.toFixed(2)} °C`);
+          await this.setStoreValue('model', mix.model).catch(this.error);
+          await this.showModel(mix.model);
+        }
+      }
+      await this.saveSegment({ ...seg, from: raw, outSum: surroundings, outN: 1 });
+      return;
+    }
+    seg.outSum += surroundings;
+    seg.outN += 1;
+    const hours = (now - seg.start) / 3600000;
+    if (heating === seg.heating && hours < (seg.heating ? MAX_HEAT_HOURS : MAX_IDLE_HOURS)) {
+      // Kept in memory; written each quarter so a restart doesn't lose much.
+      if (Math.round(hours * 60) % 15 === 0) await this.saveSegment(seg);
+      return;
+    }
+    const result = water.learn(this.getStoreValue('model'), { heating: seg.heating, hours, from: seg.from, to: temperature, outdoor: seg.outSum / seg.outN });
+    if (result.learned) {
+      this.log(`${this.getName()} - learned ${result.learned} ${result.value.toFixed(4)} from ${hours.toFixed(2)} h: heat ${result.model.heatRate.toFixed(2)} °C/h, loss ${result.model.loss.toFixed(4)}/h`);
+      await this.setStoreValue('model', result.model).catch(this.error);
+      await this.showModel(result.model);
+    }
+    await this.startSegment(heating, now, raw, surroundings, seg);
+  }
+
+  /**
+   * @description A new learning segment. Heating is measured only after SETTLE_MS of mixing; when the water stood still
+   * before, the reading now is kept to learn the mixing drop. Waiting starts from the mixed water.
+   */
+  async startSegment(heating, now, raw, surroundings, previous) {
+    if (heating) {
+      const before = previous && !previous.heating && this.isStillBefore(now) ? raw : null;
+      await this.saveSegment({ heating, start: now + SETTLE_MS, from: null, before, outSum: 0, outN: 0 });
+      return;
+    }
+    // Heating (circulation) stopped now: the water starts standing still.
+    if (previous && previous.heating) await this.setStoreValue('stillSince', now).catch(this.error);
+    await this.saveSegment({ heating, start: now, from: this.planTemperature(now), outSum: surroundings, outN: 1 });
+  }
+
+  isStillBefore(now) {
+    const stillSince = this.getStoreValue('stillSince');
+    return typeof stillSince === 'number' && now - stillSince >= STILL_MS;
+  }
+
+  async saveSegment(seg) {
+    this.segment = seg;
+    await this.setStoreValue('segment', seg).catch(this.error);
+  }
+
+  /**
+   * @description The learned curve in the device settings (labels).
+   */
+  async showModel(stored) {
+    const m = water.model(stored);
+    const learned = water.confident(m) ? this.homey.__('water.model.learned') : this.homey.__('water.model.learning', { hours: Math.round(m.heatHours * 10) / 10 });
+    await this.setSettings({
+      learned_heat_rate: `${m.heatRate.toFixed(1)} °C/h`,
+      learned_loss: `${(m.loss * 100).toFixed(2)} %/h`,
+      learned_mix: `${m.mixDrop.toFixed(1)} °C`,
+      learned_state: learned
+    }).catch(this.error);
+  }
+
+  /**
+   * @description The uses from now: weekly use time from the settings, one-offs from flows, minus skipped ones.
+   */
+  useList(now) {
+    const settings = this.getSettings();
+    const days = Object.fromEntries(water.DAYS.map((day) => [day, settings[`use_${day}`] !== false]));
+    return water.uses({
+      now,
+      timeZone: this.homey.clock.getTimezone(),
+      schedule: { time: settings.use_time || '', minutes: settings.use_minutes, days },
+      oneOffs: this.getStoreValue('oneOffs') || [],
+      skipped: this.getStoreValue('skipped') || []
+    });
+  }
+
+  /**
+   * @description Decide the heating demand now (lib/water.js decide) and show it.
+   */
+  async plan(now = Date.now()) {
+    if (this.planning) return;
+    this.planning = true;
+    try {
+      if (!this.isOn()) {
+        const reason = this.homey.__('water.reason.off');
+        await this.setValue('text_reason', reason);
+        await this.setDemand(false, reason);
+        await this.setValue(READY, false);
+        await this.setValue('alarm_problem', false);
+        this.demandSince = null;
+        return;
+      }
+      const settings = this.getSettings();
+      const controller = this.homey.app.findController();
+      const result = water.decide({
+        now,
+        temperature: this.planTemperature(now),
+        outdoor: this.surroundingsTemperature(),
+        model: this.getStoreValue('model'),
+        quarters: controller ? controller.priceQuarters(now) : [],
+        useList: this.useList(now),
+        keep: settings.keep_temperature,
+        ready: this.getCapabilityValue('target_temperature'),
+        max: settings.max_temperature,
+        powerW: this.ratedPower(),
+        priceLimit: settings.price_limit > 0 ? settings.price_limit : null,
+        heatingNow: this.getCapabilityValue(DEMAND) === true,
+        holdBefore: settings.hold_before,
+        reachedFor: this.getStoreValue('reachedFor')
+      });
+      if (result.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', result.reachedFor).catch(this.error);
+      let reason = this.reasonText(result.reason);
+      if (!controller) reason = `${this.homey.__('water.reason.no_controller')}; ${reason}`;
+      await this.setValue('text_reason', reason);
+      await this.setDemand(result.demand, reason);
+      await this.setValue(READY, READY_CODES.includes(result.reason.code));
+      await this.checkProblem(now, result);
+      await this.pruneUses(now);
+    } catch (error) {
+      this.error(`${this.getName()} - plan - ${error}`);
+    } finally {
+      this.planning = false;
+    }
+  }
+
+  async setDemand(demand, reason) {
+    const changed = await this.setValue(DEMAND, demand);
+    if (!changed || this.initializing) return;
+    const tokens = { target_temperature: this.getCapabilityValue('target_temperature'), reason };
+    await this.triggerFlow(demand ? 'heating_demand_started' : 'heating_demand_stopped', tokens);
+  }
+
+  /**
+   * @description Problem: no water temperature, or demanded for a while without the water warming.
+   */
+  async checkProblem(now, result) {
+    const temperature = this.waterTemperature();
+    let problem = temperature === null;
+    if (result.demand && temperature !== null) {
+      if (!this.demandSince || temperature < this.demandSince.temperature) this.demandSince = { at: now, temperature };
+      else if (temperature - this.demandSince.temperature >= PROBLEM_RISE) this.demandSince = { at: now, temperature };
+      else if (now - this.demandSince.at >= PROBLEM_HOURS * 3600000) problem = true;
+    } else {
+      this.demandSince = null;
+    }
+    await this.setValue('alarm_problem', problem);
+  }
+
+  /**
+   * @description Drop one-offs and skips of uses that are over.
+   */
+  async pruneUses(now) {
+    const oneOffs = (this.getStoreValue('oneOffs') || []).filter((use) => use.start + (use.minutes || 60) * 60000 > now);
+    const skipped = (this.getStoreValue('skipped') || []).filter((start) => start > now - 24 * 3600000);
+    if (oneOffs.length !== (this.getStoreValue('oneOffs') || []).length) await this.setStoreValue('oneOffs', oneOffs).catch(this.error);
+    if (skipped.length !== (this.getStoreValue('skipped') || []).length) await this.setStoreValue('skipped', skipped).catch(this.error);
+  }
+
+  formatTime(ms) {
+    if (typeof ms !== 'number') return '';
+    const local = localTime(this, new Date(ms));
+    const today = localTime(this, new Date()).date;
+    return local.date === today ? local.time : `${this.homey.__(`water.weekday.${local.weekday}`)} ${local.time}`;
+  }
+
+  reasonText({ code: planned, args }) {
+    // Waiting with no start planned: the water is warm enough for the use already.
+    const code = planned === 'waiting' && typeof args.start !== 'number' ? 'waiting_warm' : planned;
+    const formatted = { ...args };
+    for (const key of ['ready', 'start', 'until']) if (key in formatted) formatted[key] = this.formatTime(formatted[key]);
+    for (const key of ['keep', 'max']) if (typeof formatted[key] === 'number') formatted[key] = `${formatted[key]} °C`;
+    return this.homey.__(`water.reason.${code}`, formatted);
+  }
+
+  /**
+   * @description Flow: be ready at a time (the next one coming), for minutes.
+   */
+  async onAction_WATER_READY_AT(time, minutes) {
+    this.log(`${this.getName()} - onAction_WATER_READY_AT - ${time} ${minutes}`);
+    if (!isTime(time)) throw new Error(this.homey.__('water.error.time'));
+    const now = Date.now();
+    const timeZone = this.homey.clock.getTimezone();
+    const today = localTime(this, new Date(now)).date;
+    const [hours, mins] = time.split(':').map(Number);
+    let start = water.localMs(timeZone, today, hours * 60 + mins);
+    if (start <= now) start = water.localMs(timeZone, addDays(today, 1), hours * 60 + mins);
+    const oneOffs = [...(this.getStoreValue('oneOffs') || []), { start, minutes: minutes > 0 ? minutes : this.getSetting('use_minutes') }];
+    await this.setStoreValue('oneOffs', oneOffs);
+    await this.plan(now);
+    return true;
+  }
+
+  /**
+   * @description Flow: skip the next use (keep still holds).
+   */
+  async onAction_WATER_SKIP_NEXT() {
+    const now = Date.now();
+    const [next] = this.useList(now).filter((use) => use.start > now);
+    this.log(`${this.getName()} - onAction_WATER_SKIP_NEXT - ${next ? new Date(next.start).toISOString() : 'none'}`);
+    if (!next) return false;
+    await this.setStoreValue('skipped', [...(this.getStoreValue('skipped') || []), next.start]);
+    await this.plan(now);
+    return true;
+  }
+
+  /**
+   * @description Repair: new sources; listeners and capabilities follow.
+   */
+  async onRepairSources({ water: waterSource, surroundings, power }) {
+    this.log(`${this.getName()} - onRepairSources - water ${waterSource && waterSource.name}, surroundings ${surroundings ? surroundings.name : 'none'}, power ${power ? power.name : 'none'}`);
+    this.unsubscribeSources();
+    await this.setStoreValue('water', waterSource);
+    await this.setStoreValue('surroundings', surroundings);
+    await this.setStoreValue('power', power);
+    await this.saveSegment(null);
+    await this.checkCapabilities();
+    await this.subscribeSources();
+    await this.setCapabilityValues();
+    await this.plan();
+    return true;
+  }
+};

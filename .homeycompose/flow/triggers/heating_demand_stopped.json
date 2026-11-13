@@ -1,0 +1,35 @@
+{
+  "title": {
+    "en": "Heating demand stopped"
+  },
+  "hint": {
+    "en": "Turn the heater back to rest here."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "target_temperature",
+      "type": "number",
+      "title": {
+        "en": "Ready temperature"
+      },
+      "example": 38
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Reason"
+      },
+      "example": {
+        "en": "Ready 18:00: heats until 15:30"
+      }
+    }
+  ]
+}

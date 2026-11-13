@@ -1,0 +1,15 @@
+{
+  "title": {
+    "en": "Heating ready is on"
+  },
+  "titleFormatted": {
+    "en": "Heating ready !{{is|isn't}} on"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    }
+  ]
+}

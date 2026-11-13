@@ -1,0 +1,38 @@
+{
+  "title": {
+    "en": "Ready at a time"
+  },
+  "titleFormatted": {
+    "en": "Ready at [[time]] for [[minutes]] minutes"
+  },
+  "hint": {
+    "en": "A one-off use: the next time it is this time of day. 0 minutes = as long as in the settings."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    },
+    {
+      "type": "time",
+      "name": "time",
+      "title": {
+        "en": "Time"
+      }
+    },
+    {
+      "type": "number",
+      "name": "minutes",
+      "title": {
+        "en": "Minutes"
+      },
+      "min": 0,
+      "max": 720,
+      "step": 15,
+      "placeholder": {
+        "en": "0"
+      }
+    }
+  ]
+}

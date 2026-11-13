@@ -1,0 +1,15 @@
+{
+  "title": {
+    "en": "Skip the next use"
+  },
+  "hint": {
+    "en": "The next use is not heated for; keep is still held."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water_heater"
+    }
+  ]
+}
