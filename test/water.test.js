@@ -126,6 +126,16 @@ test('decide: without prices, just in time with the no prices reason', () => {
   assert.strictEqual(result.reason.code, 'no_prices_heat');
 });
 
+test('decide: heating only to hold keep says so, also with a use ahead', () => {
+  const now = midnight(TZ, '2026-11-13') + 6 * H;
+  const start = now + 30 * H;
+  const result = water.decide({ ...base, now, temperature: 30.2, outdoor: 0, quarters: [], useList: [{ start, end: start + H }], heatingNow: true });
+  assert.strictEqual(result.demand, true);
+  assert.strictEqual(result.reason.code, 'keep_heat');
+  const none = water.decide({ ...base, now, temperature: 30.2, outdoor: 0, quarters: [], useList: [], heatingNow: true });
+  assert.strictEqual(none.reason.code, 'keep_heat');
+});
+
 // Night cheap (0.02), day expensive (0.30): a use at 18:00.
 function dayPrices(now) {
   const start = midnight(TZ, '2026-11-13');
@@ -162,7 +172,7 @@ test('decide: a price limit skips an expensive use but still holds keep', () => 
   const useList = [{ start: day + 18 * H, end: day + 19 * H }];
   const result = water.decide({ ...base, now, temperature: 31, outdoor: 0, quarters: dayPrices(now), useList, priceLimit: 0.1 });
   assert.strictEqual(result.skip, true);
-  assert.strictEqual(result.reason.code, 'skipped');
+  assert.strictEqual(result.reason.code, result.demand ? 'skipped_heat' : 'skipped');
   assert.ok(result.plan.temps.every((t) => t >= 29.9));
   const always = water.decide({ ...base, now, temperature: 31, outdoor: 0, quarters: dayPrices(now), useList });
   assert.strictEqual(always.skip, false);
@@ -266,4 +276,28 @@ test('power levels: a heater power set far too low still separates the pump once
   for (let i = 0; i < 100; i++) feed(3200);
   assert.strictEqual(feed(200), false, 'pump after the heater has been learned');
   assert.ok(water.powerLevels(stored, 500).heatW > 3000);
+});
+
+test('state: heating whenever demanded, ready while held, stopped without a temperature or at maximum', () => {
+  assert.strictEqual(water.state({ demand: true, reason: { code: 'in_use_heat' } }), 'heating');
+  assert.strictEqual(water.state({ demand: true, reason: { code: 'below_keep' } }), 'heating');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'in_use' } }), 'ready');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'ready_hold' } }), 'ready');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'no_temperature' } }), 'stopped');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'at_max' } }), 'stopped');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'waiting' } }), 'waiting');
+  assert.strictEqual(water.state({ demand: false, reason: { code: 'skipped' } }), 'waiting');
+});
+
+test('problemCheck: cooling water under demand raises the problem, warming restarts the clock', () => {
+  let r = water.problemCheck(null, 0, 38, true);
+  for (let t = 1; t <= 6; t++) r = water.problemCheck(r.since, t * 15 * 60000, 38 - t * 0.1, true);
+  assert.strictEqual(r.problem, true);
+  let w = water.problemCheck(null, 0, 36, true);
+  w = water.problemCheck(w.since, H, 35.8, true);
+  w = water.problemCheck(w.since, 1.25 * H, 36.2, true);
+  w = water.problemCheck(w.since, 2 * H, 36.3, true);
+  assert.strictEqual(w.problem, false);
+  assert.deepStrictEqual(water.problemCheck(r.since, 7 * H, 37, false), { since: null, problem: false });
+  assert.strictEqual(water.problemCheck(null, 0, null, false).problem, true);
 });

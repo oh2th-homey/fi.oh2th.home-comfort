@@ -1,0 +1,45 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "State"
+  },
+  "hint": {
+    "en": "Heating: heating demand is on. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the control is off."
+  },
+  "values": [
+    {
+      "id": "heating",
+      "title": {
+        "en": "Heating"
+      }
+    },
+    {
+      "id": "ready",
+      "title": {
+        "en": "Ready"
+      }
+    },
+    {
+      "id": "waiting",
+      "title": {
+        "en": "Waiting"
+      }
+    },
+    {
+      "id": "stopped",
+      "title": {
+        "en": "Stopped"
+      }
+    },
+    {
+      "id": "off",
+      "title": {
+        "en": "Off"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/enum_water_state.svg"
+}

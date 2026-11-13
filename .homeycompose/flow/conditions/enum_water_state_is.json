@@ -1,0 +1,54 @@
+{
+  "title": {
+    "en": "State is"
+  },
+  "titleFormatted": {
+    "en": "State !{{is|is not}} [[state]]"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    },
+    {
+      "type": "dropdown",
+      "name": "state",
+      "title": {
+        "en": "State"
+      },
+      "values": [
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating"
+          }
+        },
+        {
+          "id": "ready",
+          "title": {
+            "en": "Ready"
+          }
+        },
+        {
+          "id": "waiting",
+          "title": {
+            "en": "Waiting"
+          }
+        },
+        {
+          "id": "stopped",
+          "title": {
+            "en": "Stopped"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        }
+      ]
+    }
+  ]
+}

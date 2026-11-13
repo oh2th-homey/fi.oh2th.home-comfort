@@ -6,6 +6,7 @@ const water = require('../lib/water');
 
 const DEMAND = 'is_heating_demand';
 const READY = 'heating_ready';
+const STATE = 'enum_water_state';
 // Reasons while the water is held at ready for a use (lib/water.js decide).
 const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
 const SURROUNDINGS = 'measure_temperature.surroundings';
@@ -18,9 +19,6 @@ const PLAN_MINUTES = 5;
 // Segments for learning: a long wait or heating is closed and learned from now and then.
 const MAX_IDLE_HOURS = 6;
 const MAX_HEAT_HOURS = 3;
-// Problem: demanded for this long without the water warming by PROBLEM_RISE.
-const PROBLEM_HOURS = 1.5;
-const PROBLEM_RISE = 0.3;
 // Heating starts the circulation: a sensor in the water first jumps to the mixed temperature. A heating segment is
 // measured from this long after the start, so mixing is not learned as heating.
 const SETTLE_MS = 15 * 60000;
@@ -199,7 +197,8 @@ module.exports = class waterDevice extends mainDevice {
     const waterSource = this.getStoreValue('water');
     const surroundings = this.getStoreValue('surroundings');
     const power = this.getStoreValue('power');
-    if (waterSource) list.push({ key: 'water', ...waterSource });
+    // From a flow: the Set water temperature card feeds it, nothing to subscribe to.
+    if (waterSource && !waterSource.flow) list.push({ key: 'water', ...waterSource });
     if (surroundings) list.push({ key: 'surroundings', ...surroundings });
     if (power) list.push({ key: 'power', ...power, cap: 'measure_power' });
     return list;
@@ -251,7 +250,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   waterTemperature() {
-    const value = this.read('water', WATER_MAX_AGE_MS);
+    const value = this.isFlowWater() ? this.flowWater() : this.read('water', WATER_MAX_AGE_MS);
     return value === null || value < -5 || value > 100 ? null : Math.round(value * 10) / 10;
   }
 
@@ -443,6 +442,7 @@ module.exports = class waterDevice extends mainDevice {
     try {
       if (!this.isOn()) {
         const reason = this.homey.__('water.reason.off');
+        await this.setValue(STATE, 'off');
         await this.setValue('text_reason', reason);
         await this.setDemand(false, reason);
         await this.setValue(READY, false);
@@ -470,7 +470,8 @@ module.exports = class waterDevice extends mainDevice {
       });
       if (result.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', result.reachedFor).catch(this.error);
       let reason = this.reasonText(result.reason);
-      if (!controller) reason = `${this.homey.__('water.reason.no_controller')}; ${reason}`;
+      if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
+      await this.setValue(STATE, water.state(result));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
       await this.setValue(READY, READY_CODES.includes(result.reason.code));
@@ -494,15 +495,8 @@ module.exports = class waterDevice extends mainDevice {
    * @description Problem: no water temperature, or demanded for a while without the water warming.
    */
   async checkProblem(now, result) {
-    const temperature = this.waterTemperature();
-    let problem = temperature === null;
-    if (result.demand && temperature !== null) {
-      if (!this.demandSince || temperature < this.demandSince.temperature) this.demandSince = { at: now, temperature };
-      else if (temperature - this.demandSince.temperature >= PROBLEM_RISE) this.demandSince = { at: now, temperature };
-      else if (now - this.demandSince.at >= PROBLEM_HOURS * 3600000) problem = true;
-    } else {
-      this.demandSince = null;
-    }
+    const { since, problem } = water.problemCheck(this.demandSince, now, this.waterTemperature(), result.demand);
+    this.demandSince = since;
     await this.setValue('alarm_problem', problem);
   }
 
@@ -550,6 +544,32 @@ module.exports = class waterDevice extends mainDevice {
     return true;
   }
 
+  isFlowWater() {
+    const waterSource = this.getStoreValue('water');
+    return !!(waterSource && waterSource.flow);
+  }
+
+  /**
+   * @description The water temperature last set by the flow card, while not older than the sources' max age.
+   */
+  flowWater() {
+    const fed = this.getStoreValue('flowWater');
+    if (!fed || typeof fed.value !== 'number' || Date.now() - fed.at > WATER_MAX_AGE_MS) return null;
+    return fed.value;
+  }
+
+  /**
+   * @description Flow: the water temperature, when it comes from a flow (e.g. MQTT) instead of a device.
+   */
+  async onAction_SET_WATER_TEMPERATURE(value) {
+    this.log(`${this.getName()} - onAction_SET_WATER_TEMPERATURE - ${value}`);
+    if (!this.isFlowWater()) throw new Error(this.homey.__('water.error.not_flow'));
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < -5 || value > 100) throw new Error(this.homey.__('error.invalid_value', { value }));
+    await this.setStoreValue('flowWater', { value, at: Date.now() });
+    await this.onSource('water');
+    return true;
+  }
+
   /**
    * @description Flow: skip the next use (keep still holds).
    */
@@ -567,7 +587,7 @@ module.exports = class waterDevice extends mainDevice {
    * @description Repair: new sources; listeners and capabilities follow.
    */
   async onRepairSources({ water: waterSource, surroundings, power }) {
-    this.log(`${this.getName()} - onRepairSources - water ${waterSource && waterSource.name}, surroundings ${surroundings ? surroundings.name : 'none'}, power ${power ? power.name : 'none'}`);
+    this.log(`${this.getName()} - onRepairSources - water ${waterSource && (waterSource.flow ? 'flow' : waterSource.name)}, surroundings ${surroundings ? surroundings.name : 'none'}, power ${power ? power.name : 'none'}`);
     this.unsubscribeSources();
     await this.setStoreValue('water', waterSource);
     await this.setStoreValue('surroundings', surroundings);

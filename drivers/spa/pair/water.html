@@ -44,6 +44,8 @@
   (function () {
     // Own scope: Homey loads pairing views into one document, so top-level const/let would clash between pages.
     let view = null;
+    // Water temperature set by the Set water temperature flow card instead of a device.
+    const FLOW = '_flow';
     const el = (id) => document.getElementById(id);
     const errorEl = el('wh-error');
 
@@ -77,6 +79,7 @@
     }
 
     function pick(selectEl, capEl) {
+      if (selectEl.value === FLOW) return { flow: true };
       return selectEl.value ? { id: selectEl.value, cap: capEl.value || null } : null;
     }
 
@@ -123,6 +126,8 @@
         el('wh-name').value = Homey.__(`pair.water.name_${view.driver}`);
         el('wh-surroundings-label').textContent = Homey.__(`pair.water.surroundings_${view.driver}`);
         fillSensors(el('wh-water'), Homey.__('pair.water.choose'), current.water);
+        el('wh-water').insertBefore(option(FLOW, Homey.__('pair.water.from_flow')), el('wh-water').options[1] || null);
+        if (current.water && current.water.flow) el('wh-water').value = FLOW;
         showCaps(el('wh-water'), el('wh-water-cap'), el('wh-water-cap-group'), current.water && current.water.cap);
         fillSensors(el('wh-surroundings'), view.surroundingsNone, current.surroundings);
         showCaps(el('wh-surroundings'), el('wh-surroundings-cap'), el('wh-surroundings-cap-group'), current.surroundings && current.surroundings.cap);

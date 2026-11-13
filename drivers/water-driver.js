@@ -68,7 +68,7 @@ module.exports = class waterDriver extends mainDriver {
   }
 
   /**
-   * @description Picked sources as stored: { water: { id, cap, name }, surroundings: … | null, power: { id, name } | null }.
+   * @description Picked sources as stored: { water: { id, cap, name } | { flow: true }, surroundings: … | null, power: { id, name } | null }.
    * The water temperature is required; a capability must exist on its device.
    */
   async checkSources(sources = {}) {
@@ -80,7 +80,7 @@ module.exports = class waterDriver extends mainDriver {
       const cap = device.temperatures.some((t) => t.id === pick.cap) ? pick.cap : device.temperatures[0].id;
       return { id: device.id, cap, name: device.name };
     };
-    const waterSource = temperature(sources.water);
+    const waterSource = sources.water && sources.water.flow ? { flow: true } : temperature(sources.water);
     if (!waterSource) throw new Error(this.homey.__('pair.water.no_water'));
     const meter = sources.power && candidates.find((d) => d.id === sources.power.id && d.power);
     return { water: waterSource, surroundings: temperature(sources.surroundings), power: meter ? { id: meter.id, name: meter.name } : null };

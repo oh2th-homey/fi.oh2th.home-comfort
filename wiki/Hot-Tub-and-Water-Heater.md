@@ -27,7 +27,12 @@ just in time for each use, without looking at prices.
 Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choose:
 
 - **Water temperature**: a temperature of another device. A separate sensor in the water is
-  best: it reports all the time, also when the pump doesn't run.
+  best: it reports all the time, also when the pump doesn't run, and in 0.1 °C steps or finer.
+  A tub's own reading often comes in 0.5 °C steps, which makes learning slower and rougher. Or
+  **From a flow**: your flow sets it with the **Set water temperature** card, for a temperature
+  that comes from MQTT (the MQTT Client app) or another app without a device, for example a
+  DS18B20 probe on an ESP32 board. Set it at least every few hours: a value older than 6 hours
+  counts as no water temperature.
 - **Outdoor temperature** (Hot Tub) or **Room temperature** (Water Heater): another sensor, or
   none to use the HVAC Controller's outdoor sensor or the fixed temperature in the settings.
 - **Power meter** (optional): the power of the heater, or of the whole tub. Recommended:
@@ -43,7 +48,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 ## What it shows
 
 - **Control** (on/off): on, the device plans and demands heating. Off, it demands nothing, not
-  even Keep, and the heater is left to its own controls.
+  even Keep, and the heater is left to its own controls. Turn it off when you run the heater by
+  hand, or **Heater problem** turns on after 1.5 hours of demand without heating.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
 - **Ready temperature** (the dial): the temperature to reach for each use.
@@ -51,8 +57,11 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Heating ready** (button): on while the water is held at the ready temperature for a use.
   Turn it off to end the use now; turn it on to be ready now (held until you turn it off, at most
   as long as set in the settings).
-- **Reason**: what it does and why, for example `Ready 18:00: starts 15:30` or
-  `Ready for 18:00: held until 20:00`.
+- **State**: **Heating** (heating demand is on), **Ready** (at the ready temperature for a use,
+  not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
+  Maximum) or **Off** (the control is off).
+- **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
+  `In use until 20:00`.
 - **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the
   water getting warmer.
 
@@ -88,9 +97,12 @@ after the water stood still, and plans still water with the reading minus the dr
 
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready
   temperature** and the **Reason** as tokens.
-- Conditions **Heating demand is active** and **Heating ready is on**.
+- Trigger **State changed**, with the state as a token (`heating`, `ready`, `waiting`,
+  `stopped` or `off`).
+- Conditions **Heating demand is active**, **Heating ready is on** and **State is**.
 - Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Skip the
-  next use** and **Turn heating ready on or off**.
+  next use**, **Turn heating ready on or off** and **Set water temperature** (when the water
+  temperature comes from a flow).
 - Homey's own cards for the control (turn on or off) and the ready temperature.
 
 A typical pair of flows for a hot tub:

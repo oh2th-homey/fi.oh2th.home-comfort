@@ -10,6 +10,7 @@
     "target_temperature",
     "is_heating_demand",
     "heating_ready",
+    "enum_water_state",
     "text_reason",
     "alarm_problem"
   ],

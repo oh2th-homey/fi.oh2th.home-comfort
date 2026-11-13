@@ -22,7 +22,8 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## Hot Tub and Water Heater
 
-- Actions: **Ready at a time**, **Skip the next use**, **Turn heating ready on or off**.
-- Conditions: **Heating demand is active**, **Heating ready is on**.
+- Actions: **Ready at a time**, **Skip the next use**, **Turn heating ready on or off**,
+  **Set water temperature** (when the water temperature comes from a flow, e.g. MQTT).
+- Conditions: **Heating demand is active**, **Heating ready is on**, **State is**.
 - Triggers: **Heating demand started** and **Heating demand stopped**, with the ready temperature
-  and the reason. Homey's own cards cover the control (on/off) and the ready temperature.
+  and the reason; **State changed**, with the state. Homey's own cards cover the control (on/off) and the ready temperature.
