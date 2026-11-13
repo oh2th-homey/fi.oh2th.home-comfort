@@ -20,7 +20,7 @@ test('package.json matches the app manifest', () => {
 });
 
 test('pair and repair views are the same file', () => {
-  for (const driver of ['hvac', 'zone', 'spa', 'water_heater']) {
+  for (const driver of ['hvac', 'zone', 'spa', 'water-heater']) {
     const dir = path.join(__dirname, '..', 'drivers', driver);
     for (const view of fs.readdirSync(path.join(dir, 'repair'))) {
       const pair = fs.readFileSync(path.join(dir, 'pair', view), 'utf8');
@@ -32,5 +32,5 @@ test('pair and repair views are the same file', () => {
 
 test('the Hot Tub and the Water Heater share one pairing page', () => {
   const read = (driver) => fs.readFileSync(path.join(__dirname, '..', 'drivers', driver, 'pair', 'water.html'), 'utf8');
-  assert.strictEqual(read('water_heater'), read('spa'), 'copy drivers/spa/pair/water.html to water_heater (pair and repair)');
+  assert.strictEqual(read('water-heater'), read('spa'), 'copy drivers/spa/pair/water.html to water-heater (pair and repair)');
 });

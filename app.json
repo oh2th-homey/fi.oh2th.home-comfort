@@ -113,7 +113,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           }
         ],
         "tokens": [
@@ -149,7 +149,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           }
         ],
         "tokens": [
@@ -473,7 +473,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           }
         ],
         "id": "heating_ready"
@@ -521,7 +521,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           }
         ],
         "id": "is_heating_demand"
@@ -775,7 +775,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           },
           {
             "type": "dropdown",
@@ -964,7 +964,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           },
           {
             "type": "time",
@@ -1000,7 +1000,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=spa|water_heater"
+            "filter": "driver_id=spa|water-heater"
           }
         ],
         "id": "water_skip_next"
@@ -1550,8 +1550,8 @@
       ],
       "connectivity": [],
       "images": {
-        "small": "/drivers/water_heater/assets/images/small.png",
-        "large": "/drivers/water_heater/assets/images/large.png"
+        "small": "/drivers/water-heater/assets/images/small.png",
+        "large": "/drivers/water-heater/assets/images/large.png"
       },
       "name": {
         "en": "Water Heater"
@@ -1608,7 +1608,7 @@
           "id": "water"
         }
       ],
-      "id": "water_heater",
+      "id": "water-heater",
       "settings": [
         {
           "type": "group",
