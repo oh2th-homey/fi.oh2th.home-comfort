@@ -19,7 +19,8 @@
     "energy"
   ],
   "permissions": [
-    "homey:manager:api"
+    "homey:manager:api",
+    "homey:app:com.gruijter.powerhour"
   ],
   "api": {
     "getHistory": {
@@ -242,6 +243,7 @@
         "id": "member_write_failed"
       },
       {
+        "deprecated": true,
         "title": {
           "en": "Prices imported"
         },
@@ -471,6 +473,7 @@
         "id": "end_long_absence"
       },
       {
+        "deprecated": true,
         "title": {
           "en": "Import prices"
         },

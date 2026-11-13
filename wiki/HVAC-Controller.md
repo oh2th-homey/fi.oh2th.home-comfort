@@ -10,9 +10,10 @@ The controller holds what all zones share. You can add only one.
   all heating and cooling, set the season to Off.
 - **Price now**, in the currency set in the settings (default €).
 - **Expensive now**: on during a price peak.
-- **Prices until**: the last imported price.
+- **Prices until**: the end of the last known price.
 - **Outdoor temperature**, from the sensor you picked. Zones with an outdoor limit use it. To pick
-  another sensor, use **Repair** in the controller's device settings.
+  another sensor, or other prices to follow (see [Prices](Prices)), use **Repair** in the
+  controller's device settings.
 - **Heating power**, only when a zone has power meters: the sum of the zones' heating power.
   In Homey Energy, count either the controller, the zones or the meters, not more than one (see
   [Setup](Setup)).
@@ -25,7 +26,7 @@ The controller holds what all zones share. You can add only one.
 
 ## Settings
 
-- **Currency**, **Price model**, **Minimum price difference** and the **Percentage above
+- **Currency** (follows the Power by the Hour price device), **Price model**, **Minimum price difference** and the **Percentage above
   average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
 - **Check tomorrow's prices at** (default 16:00): the time of the daily check that fires
   **Prices missing for tomorrow**.

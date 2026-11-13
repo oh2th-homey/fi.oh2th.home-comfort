@@ -45,13 +45,24 @@
       "power_picked": "Power meters"
     },
     "outdoor": {
-      "title": "Outdoor temperature",
-      "subtitle": "Optional. Zones with an outdoor limit use it.",
-      "sensor": "Sensor",
+      "title": "HVAC Controller",
+      "subtitle": "Both optional: an outdoor sensor for zones with an outdoor limit, and the prices to follow.",
+      "sensor": "Outdoor temperature sensor",
       "none": "None",
       "exists": "You already have the HVAC Controller \"__name__\". One is enough for the whole home, so keep using it.",
       "exists_next": "Next, add a Heating Zone for each room: Add device → Smart HVAC Control → Heating Zone.",
       "close": "Close"
+    },
+    "prices": {
+      "label": "Prices (Power by the Hour)",
+      "none": "No prices",
+      "dynamic": "Dynamic",
+      "fixed": "Fixed",
+      "current": "Current price device (not found now)",
+      "not_installed": "Install Power by the Hour to use energy prices.",
+      "no_api": "Update Power by the Hour to version 9 or later to use its prices.",
+      "no_power": "Add an energy price device in Power by the Hour to use its prices.",
+      "missing": "That price device is no longer in Power by the Hour. Choose another one."
     }
   },
   "error": {
@@ -78,11 +89,12 @@
     "none": "No prices",
     "off": "Price model off",
     "unknown": "No price now",
-    "hourly_fallback": "Hourly prices: above average",
+    "hourly_fallback": "__minutes__-minute prices: above average",
     "peak": "Peak (over __threshold__)",
     "not_peak": "Normal",
     "above_average": "Expensive (over __threshold__)",
-    "not_above_average": "Normal"
+    "not_above_average": "Normal",
+    "source_error": "Power by the Hour: __detail__"
   },
   "import": {
     "today": "today",
@@ -135,5 +147,12 @@
     "fan": "fan",
     "fan_warm": "fan (room warm)",
     "no_off_switch": "no off switch, left as is"
+  },
+  "prices_api": {
+    "not_installed": "Power by the Hour is not installed",
+    "no_api": "Power by the Hour has no Prices API, update it to version 9 or later",
+    "device_missing": "price device __name__ not found",
+    "interval": "__minutes__-minute prices are not supported",
+    "no_slots": "no prices"
   }
 }

@@ -23,20 +23,27 @@ const COST_TODAY = 'measure_monetary.cost_today';
 const PRICE_PAID = 'measure_monetary.price_paid';
 const PRICE_AVERAGE = 'measure_monetary.price_average';
 const DAY_CAPS = [ENERGY_TODAY, COST_TODAY, PRICE_PAID, PRICE_AVERAGE];
+// Prices from the Power by the Hour Prices API (the app's only dependency on another app, issue #23).
+const PBTH = 'com.gruijter.powerhour';
+// Pushes come every slot; without one for this long the prices are fetched again.
+const PRICES_REFRESH_MS = 60 * 60 * 1000;
 
 module.exports = class hvacDevice extends mainDevice {
   async onInitDevice() {
     await this.subscribeOutdoor();
+    await this.subscribePrices();
   }
 
   async onDeleted() {
     await super.onDeleted();
     this.unsubscribeOutdoor();
+    this.unsubscribePrices();
   }
 
   async onUninit() {
     await super.onUninit();
     this.unsubscribeOutdoor();
+    this.unsubscribePrices();
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
@@ -159,6 +166,7 @@ module.exports = class hvacDevice extends mainDevice {
   async onInterval(now) {
     const local = localTime(this, now);
     if (!this.outdoorListener && local.minutes % 5 === 0) await this.subscribeOutdoor();
+    if (local.minutes % 5 === 0) await this.refreshPrices(now.getTime());
     await this.checkAbsence(local);
     if (local.minutes % 15 === 0) await this.evaluatePrices();
     if (local.minutesOfDay === strToMins(this.getSettings().tomorrow_check_time)) await this.checkTomorrow(now.getTime());
@@ -303,6 +311,124 @@ module.exports = class hvacDevice extends mainDevice {
   }
 
   /**
+   * @description Prices from the Power by the Hour price device chosen at pairing or repair: fetched now, then pushed by
+   * Power by the Hour on every slot and when new prices are published.
+   */
+  async subscribePrices() {
+    const source = this.getStoreValue('priceSource');
+    if (!source || this.pricesApi) return;
+    const api = this.homey.api.getApiApp(PBTH);
+    // Called as (name, data) or ({ name, data }), depending on the Homey version.
+    this.pricesListener = (first, second) => {
+      const name = typeof first === 'string' ? first : first && first.name;
+      const data = typeof first === 'string' ? second : first && first.data;
+      if (name === 'prices-updated') this.onPricesPayload(data, false).catch(this.error);
+    };
+    this.pricesInstallListener = () => this.fetchPrices().catch(this.error);
+    api.on('realtime', this.pricesListener);
+    api.on('install', this.pricesInstallListener);
+    this.pricesApi = api;
+    await this.fetchPrices();
+  }
+
+  unsubscribePrices() {
+    if (this.pricesApi) {
+      this.pricesApi.removeListener('realtime', this.pricesListener);
+      this.pricesApi.removeListener('install', this.pricesInstallListener);
+    }
+    this.pricesApi = null;
+    this.pricesListener = null;
+    this.pricesInstallListener = null;
+  }
+
+  /**
+   * @description Fetch all known prices (GET /prices). A failure keeps the stored prices and shows why in the reason.
+   * @returns {Promise<boolean>} true when prices were read
+   */
+  async fetchPrices() {
+    if (!this.pricesApi) return false;
+    try {
+      if (!(await this.pricesApi.getInstalled())) throw new Error(this.homey.__('prices_api.not_installed'));
+      const response = await this.pricesApi.get('/prices');
+      return await this.onPricesPayload(response, true);
+    } catch (error) {
+      // An older Power by the Hour without the Prices API answers "not found".
+      const message = /not.?found|404/i.test(String(error && error.message)) ? this.homey.__('prices_api.no_api') : error.message || String(error);
+      await this.setPricesError(message);
+      return false;
+    }
+  }
+
+  /**
+   * @description Fetch again when no prices arrived for PRICES_REFRESH_MS (missed pushes, Power by the Hour restarted).
+   */
+  async refreshPrices(now) {
+    if (!this.getStoreValue('priceSource')) return;
+    if (!this.pricesApi) await this.subscribePrices();
+    else if (!this.pricesAt || now - this.pricesAt >= PRICES_REFRESH_MS) await this.fetchPrices();
+  }
+
+  /**
+   * @description Prices from a GET response or a push: merged into the stored days (lib/prices.js), then evaluated.
+   * @param {Object} data - { prices: [entry] }
+   * @param {boolean} full - A GET response: the chosen device must be in it
+   */
+  async onPricesPayload(data, full) {
+    const source = this.getStoreValue('priceSource');
+    if (!source) return false;
+    const entry = prices.apiEntry(data, source.id);
+    if (!entry) {
+      // A push of another price device.
+      if (full) await this.setPricesError(this.homey.__('prices_api.device_missing', { name: source.name }));
+      return false;
+    }
+    if (entry.commodity && entry.commodity !== 'power') return false;
+    const timeZone = this.homey.clock.getTimezone();
+    const parsed = prices.apiDays(entry, timeZone);
+    if (parsed.error) {
+      await this.setPricesError(this.homey.__(`prices_api.${parsed.error}`, { minutes: entry.priceInterval }));
+      return false;
+    }
+    const now = Date.now();
+    const days = prices.mergeApiDays(this.getStoreValue('prices') || {}, parsed, now);
+    await this.setStoreValue('prices', prices.pruneDays(days, localDate(timeZone, now)));
+    this.pricesAt = now;
+    this.pricesError = null;
+    if (full || (data && data.reason === 'new-prices-fetched')) this.log(`${this.getName()} - onPricesPayload - ${entry.deviceName}: ${parsed.count} slots of ${parsed.resolution} min`);
+    // The currency follows the price device.
+    const currency = typeof entry.currency === 'string' ? entry.currency.trim() : '';
+    if (currency && currency.length <= 5 && currency !== this.getSetting('currency')) {
+      await this.setSettings({ currency });
+      await this.applyCurrency(currency);
+    }
+    await this.evaluatePrices();
+    return true;
+  }
+
+  async setPricesError(message) {
+    if (message !== this.pricesError) this.log(`${this.getName()} - prices - ${message}`);
+    this.pricesError = message;
+    await this.evaluatePrices();
+  }
+
+  /**
+   * @description Pairing or repair: follow another price device, or none (null).
+   * @param {Object|null} source - { id, name }
+   */
+  async onRepairPrices(source) {
+    const current = this.getStoreValue('priceSource');
+    if ((current && current.id) === (source && source.id)) return false;
+    this.log(`${this.getName()} - onRepairPrices - ${source ? source.name : 'none'}`);
+    this.unsubscribePrices();
+    this.pricesAt = null;
+    this.pricesError = null;
+    await this.setStoreValue('priceSource', source);
+    await this.subscribePrices();
+    await this.evaluatePrices();
+    return true;
+  }
+
+  /**
    * @description End long absence now (flow action).
    */
   async onAction_END_LONG_ABSENCE() {
@@ -328,6 +454,11 @@ module.exports = class hvacDevice extends mainDevice {
    * @param {string} input - JSON array of prices from local midnight
    */
   async onAction_IMPORT_PRICES(day, input) {
+    // Deprecated: while prices come from Power by the Hour, imports are ignored (the flow still succeeds).
+    if (this.getStoreValue('priceSource')) {
+      this.log(`${this.getName()} - onAction_IMPORT_PRICES - ignored, prices come from Power by the Hour`);
+      return false;
+    }
     const timeZone = this.homey.clock.getTimezone();
     const now = Date.now();
     const today = localDate(timeZone, now);
@@ -383,6 +514,8 @@ module.exports = class hvacDevice extends mainDevice {
       pct: settings.price_above_average_pct,
       minDelta: settings.price_min_delta
     });
+    // Prices from Power by the Hour that could not be read: say why, before the price reason.
+    if (this.getStoreValue('priceSource') && this.pricesError) result.reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
     const wasExpensive = this.getCapabilityValue('is_expensive') === true;
 
     await this.setValue('measure_monetary', result.price, firstRun);
@@ -395,7 +528,7 @@ module.exports = class hvacDevice extends mainDevice {
   }
 
   /**
-   * @description Resolution of today's imported prices (15 or 60 minutes), 15 when none.
+   * @description Resolution of today's prices (15, 30 or 60 minutes), 15 when none.
    */
   priceResolution() {
     const timeZone = this.homey.clock.getTimezone();
@@ -406,7 +539,7 @@ module.exports = class hvacDevice extends mainDevice {
   reasonText(reasons) {
     return reasons
       .map(({ code, args }) => {
-        const formatted = Object.fromEntries(Object.entries(args).map(([key, value]) => [key, typeof value === 'number' && key !== 'pct' ? value.toFixed(4) : value]));
+        const formatted = Object.fromEntries(Object.entries(args).map(([key, value]) => [key, typeof value === 'number' && !['pct', 'minutes'].includes(key) ? value.toFixed(4) : value]));
         return this.homey.__(`price.${code}`, formatted);
       })
       .join('; ');
@@ -437,7 +570,7 @@ module.exports = class hvacDevice extends mainDevice {
     const timeZone = this.homey.clock.getTimezone();
     const tomorrow = addDays(localDate(timeZone, now), 1);
     const entry = (this.getStoreValue('prices') || {})[tomorrow];
-    const count = entry && entry.resolution === resolution ? entry.values.length : 0;
+    const count = entry && entry.resolution === resolution ? prices.knownCount(entry) : 0;
     const { slots } = prices.dayInfo(timeZone, tomorrow, resolution);
     if (count < slots) {
       this.log(`${this.getName()} - checkTomorrow - ${tomorrow}: ${count}/${slots}`);

@@ -1,7 +1,9 @@
-<!-- The HVAC Controller's only pairing page: the optional outdoor temperature sensor.
+<!-- The HVAC Controller's only pairing page: the optional outdoor temperature sensor and the prices to follow
+     (Power by the Hour price devices).
      The same file serves pair and repair (drivers/hvac/repair/outdoor.html, kept identical by a test). -->
 <style>
   .hz-error { color: var(--homey-color-red-500, #d33); margin: 0.8em 0; }
+  .hz-note { margin: 0.4em 0 0; opacity: 0.8; }
 </style>
 
 <header class="homey-header">
@@ -17,6 +19,11 @@
   <div class="homey-form-group" id="out-cap-group" style="display: none">
     <label class="homey-form-label" for="out-cap" data-i18n="pair.members.temperature_cap"></label>
     <select class="homey-form-select" id="out-cap"></select>
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="out-prices" data-i18n="pair.prices.label"></label>
+    <select class="homey-form-select" id="out-prices"></select>
+    <p class="hz-note" id="out-prices-note"></p>
   </div>
   <p class="hz-error" id="out-error"></p>
   <button class="homey-button-primary-full" id="out-save" data-i18n="pair.members.save"></button>
@@ -39,6 +46,8 @@
     const capGroup = document.getElementById('out-cap-group');
     const errorEl = document.getElementById('out-error');
     const saveEl = document.getElementById('out-save');
+    const pricesEl = document.getElementById('out-prices');
+    const pricesNoteEl = document.getElementById('out-prices-note');
     let sensors = [];
 
     function option(value, text) {
@@ -64,16 +73,27 @@
 
     sensorEl.addEventListener('change', () => showCaps(null));
 
+    // Power by the Hour's electricity price devices as "name (tariff type)", plus No prices.
+    function showPrices({ devices, note, selected }) {
+      pricesEl.appendChild(option('', Homey.__('pair.prices.none')));
+      for (const device of devices) pricesEl.appendChild(option(device.id, `${device.name} (${Homey.__(`pair.prices.${device.tariffType}`)})`));
+      // The current device may be missing while Power by the Hour is not running (repair): keep it.
+      if (selected && !devices.some((device) => device.id === selected)) pricesEl.appendChild(option(selected, Homey.__('pair.prices.current')));
+      pricesEl.value = selected || '';
+      pricesNoteEl.textContent = note ? Homey.__(`pair.prices.${note}`) : '';
+    }
+
     saveEl.addEventListener('click', async () => {
       errorEl.textContent = '';
       const outdoor = sensorEl.value ? { id: sensorEl.value, cap: capEl.value || null } : null;
+      const priceSource = pricesEl.value;
       try {
         if (repair) {
-          await Homey.emit('save_outdoor', { outdoor });
+          await Homey.emit('save_outdoor', { outdoor, priceSource });
           Homey.done();
           return;
         }
-        const device = await Homey.emit('create_controller', { outdoor });
+        const device = await Homey.emit('create_controller', { outdoor, priceSource });
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
@@ -104,6 +124,7 @@
         }
         sensorEl.value = result.outdoor ? result.outdoor.id : '';
         showCaps(result.outdoor ? result.outdoor.cap : null);
+        showPrices(result.prices);
       } catch (error) {
         errorEl.textContent = error.message || String(error);
         saveEl.disabled = true;

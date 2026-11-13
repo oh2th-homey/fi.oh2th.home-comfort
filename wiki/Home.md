@@ -13,7 +13,7 @@ waiting for approval). Discuss it in the [community topic](https://community.hom
 - [HVAC Controller](HVAC-Controller): the shared state for all zones.
 - [Heating Zone](Heating-Zone): one room or area.
 - [Zone devices](Zone-devices): thermostats, relays, air conditioners, sensors, windows.
-- [Prices](Prices): importing energy prices.
+- [Prices](Prices): energy prices from Power by the Hour.
 - [Flow cards](Flow-cards): the cards the app adds.
 - [How to](How-to): presence, guests, price peaks, relays, air conditioners and more.
 - [Troubleshooting](Troubleshooting)

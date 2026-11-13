@@ -5,11 +5,11 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## HVAC Controller
 
-- Actions: **Set occupancy**, **Set long absence until**, **End long absence**, **Import
-  prices**.
+- Actions: **Set occupancy**, **Set long absence until**, **End long absence**. **Import
+  prices** is deprecated (see [Prices](Prices#import-prices-card-deprecated)).
 - Conditions: **Occupancy is**, **Long absence is on**, **Price is expensive**.
 - Triggers: **Occupancy changed**, **Long absence changed**, **Expensive now changed**, **Prices
-  imported**, **Prices missing for tomorrow** (once a day at the check time). The **Occupancy
+  missing for tomorrow** (once a day at the check time). **Prices imported** is deprecated. The **Occupancy
   changed** token is `present`, `coming_home` or `away`.
 
 ## Heating Zone
