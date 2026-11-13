@@ -28,6 +28,8 @@ The zone shows:
 - With power meters also **Energy today**, **Cost today** (from the price of each quarter) and
   **Price paid today**: cost per kWh. Compare it with the controller's **Average price today**:
   lower means the zone heated in cheaper hours. They start again at midnight.
+- Graphs of yesterday, today and tomorrow as camera images: temperature, target, heating and
+  the expensive quarters, with the expected target ahead. See [Graphs](Graphs).
 
 <img src="images/zone-device.png" alt="A zone in eco during a price peak" width="300">
 

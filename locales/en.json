@@ -135,5 +135,28 @@
     "fan": "fan",
     "fan_warm": "fan (room warm)",
     "no_off_switch": "no off switch, left as is"
+  },
+  "chart": {
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "label_temperature": "temp",
+    "label_target": "target",
+    "label_expected": "expected",
+    "label_band": "eco–comfort",
+    "label_energy": "heating",
+    "label_price": "price",
+    "label_expensive": "expensive",
+    "label_outdoor": "outdoor",
+    "kwh": "__kwh__ kWh",
+    "paid": "paid __price__",
+    "mean": "mean __temperature__",
+    "average": "average __price__",
+    "eco_time": "eco __time__",
+    "prices_until": "prices until __time__",
+    "outdoor_now": "outdoor __temperature__",
+    "outdoor_mean": "outdoor mean __temperature__",
+    "no_data": "No data yet",
+    "no_prices": "Prices not known yet"
   }
 }

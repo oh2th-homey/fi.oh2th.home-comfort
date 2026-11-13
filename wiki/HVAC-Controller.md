@@ -21,6 +21,9 @@ The controller holds what all zones share. You can add only one.
   heating was moved to cheaper hours.
 - **Reason**: why the price is expensive or not, for example `Normal`.
 
+The controller also shows graphs of yesterday, today and tomorrow as camera images: prices,
+outdoor temperature and the zones' heating. See [Graphs](Graphs).
+
 <img src="images/controller-device.png" alt="HVAC Controller during a price peak" width="300">
 
 ## Settings
@@ -31,3 +34,4 @@ The controller holds what all zones share. You can add only one.
   **Prices missing for tomorrow**.
 - **Long absence until**: the last day of a long absence. See
   [Leave for days](How-to#leave-for-days).
+- **Graphs**: Automatic (default), On or Off. See [Graphs](Graphs#memory).

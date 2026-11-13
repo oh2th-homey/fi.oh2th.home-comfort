@@ -14,9 +14,9 @@ test('app.json is in sync with .homeycompose/app.json', () => {
   assert.strictEqual(app.version, compose.version);
 });
 
+// No version check: homey app version updates only the manifest, never package.json.
 test('package.json matches the app manifest', () => {
   assert.strictEqual(pkg.name, app.id);
-  assert.strictEqual(pkg.version, app.version);
 });
 
 test('pair and repair views are the same file', () => {

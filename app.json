@@ -1004,6 +1004,45 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Graphs"
+          },
+          "children": [
+            {
+              "id": "graphs",
+              "type": "dropdown",
+              "label": {
+                "en": "Graphs"
+              },
+              "value": "auto",
+              "hint": {
+                "en": "Yesterday, today and tomorrow as camera images on the zones and this controller. Drawing them needs about 45 MB of memory. Automatic: on, except on Homey Pro (Early 2019) and older. After turning them off, restart the app to free the memory."
+              },
+              "values": [
+                {
+                  "id": "auto",
+                  "label": {
+                    "en": "Automatic"
+                  }
+                },
+                {
+                  "id": "on",
+                  "label": {
+                    "en": "On"
+                  }
+                },
+                {
+                  "id": "off",
+                  "label": {
+                    "en": "Off"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },

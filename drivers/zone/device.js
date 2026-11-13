@@ -637,46 +637,63 @@ module.exports = class zoneDevice extends mainDevice {
     return this.runEvaluate(opts);
   }
 
-  async evaluateNow({ urgent = false, firstRun = false } = {}) {
-    const ms = Date.now();
+  /**
+   * @description The controller's shared state now (live), and the one to decide with (lib/zone.js sharedState).
+   * @returns {Object} { live, shared, source }
+   */
+  sharedNow(ms) {
     const controller = this.homey.app.findController();
     // A controller still initializing after an app restart is present: its capability values persist.
     const live = controller && (controller.getAvailable() || controller.initializing) ? controller.getSharedState() : null;
+    return { live, ...zone.sharedState(live, this.lastShared, ms) };
+  }
+
+  /**
+   * @description The zone's own inputs to lib/zone.js decide(): setpoints, mode and settings now.
+   */
+  zoneInput(ms, windowOpen) {
+    return {
+      mode: this.getCapabilityValue('enum_zone_mode'),
+      boostUntil: this.getCapabilityValue('power_boost') === true ? this.getStoreValue('boostUntil') : null,
+      heat: this.getCapabilityValue(HEAT),
+      eco: this.getCapabilityValue(ECO),
+      cool: this.getCapabilityValue(COOL),
+      ecoCool: this.getCapabilityValue(ECO_COOL),
+      hasCooling: this.hasCooling(),
+      lowAlarm: this.getSetting('low_temp_alarm'),
+      boostDelta: this.getSetting('boost_delta'),
+      occupancyRule: this.getSetting('occupancy_rule'),
+      followUntil: this.followUntil(ms),
+      windowOpen,
+      heatAllYear: this.getSetting('heat_all_year') === true,
+      auxiliary: this.getSetting('auxiliary') === true,
+      auxiliaryComfort: this.getStoreValue('auxiliaryComfort'),
+      pricePeak: this.pricePeak(),
+      outdoorLimit: { enabled: this.getSetting('outdoor_limit') === true, onBelow: this.getSetting('outdoor_on_below'), offAbove: this.getSetting('outdoor_off_above') },
+      outdoorAllowed: this.getStoreValue('outdoorAllowed')
+    };
+  }
+
+  /**
+   * @description The decide() arguments as of the last evaluation, for the expected target in the camera images.
+   */
+  decisionInput(ms) {
+    const { shared, source } = this.sharedNow(ms);
+    return { shared, source, zone: this.zoneInput(ms, this.windowWasOpen), temperature: this.getCapabilityValue(TEMPERATURE) };
+  }
+
+  async evaluateNow({ urgent = false, firstRun = false } = {}) {
+    const ms = Date.now();
+    const { live, shared, source } = this.sharedNow(ms);
     if (live) {
       this.lastShared = live;
       await this.setStoreValue('lastShared', live).catch(this.error);
     }
-    const { shared, source } = zone.sharedState(live, this.lastShared, ms);
 
     const windowOpen = this.windowOpen(ms);
     if (windowOpen !== this.windowWasOpen) this.log(`${this.getName()} - evaluate - door or window open past the delay: ${windowOpen}`);
     this.windowWasOpen = windowOpen;
-    const decision = zone.decide({
-      shared,
-      source,
-      zone: {
-        mode: this.getCapabilityValue('enum_zone_mode'),
-        boostUntil: this.getCapabilityValue('power_boost') === true ? this.getStoreValue('boostUntil') : null,
-        heat: this.getCapabilityValue(HEAT),
-        eco: this.getCapabilityValue(ECO),
-        cool: this.getCapabilityValue(COOL),
-        ecoCool: this.getCapabilityValue(ECO_COOL),
-        hasCooling: this.hasCooling(),
-        lowAlarm: this.getSetting('low_temp_alarm'),
-        boostDelta: this.getSetting('boost_delta'),
-        occupancyRule: this.getSetting('occupancy_rule'),
-        followUntil: this.followUntil(ms),
-        windowOpen,
-        heatAllYear: this.getSetting('heat_all_year') === true,
-        auxiliary: this.getSetting('auxiliary') === true,
-        auxiliaryComfort: this.getStoreValue('auxiliaryComfort'),
-        pricePeak: this.pricePeak(),
-        outdoorLimit: { enabled: this.getSetting('outdoor_limit') === true, onBelow: this.getSetting('outdoor_on_below'), offAbove: this.getSetting('outdoor_off_above') },
-        outdoorAllowed: this.getStoreValue('outdoorAllowed')
-      },
-      temperature: this.getCapabilityValue(TEMPERATURE),
-      now: ms
-    });
+    const decision = zone.decide({ shared, source, zone: this.zoneInput(ms, windowOpen), temperature: this.getCapabilityValue(TEMPERATURE), now: ms });
     this.decision = decision;
     if (decision.outdoorAllowed !== this.getStoreValue('outdoorAllowed')) await this.setStoreValue('outdoorAllowed', decision.outdoorAllowed).catch(this.error);
     if (decision.auxiliaryComfort !== this.getStoreValue('auxiliaryComfort')) await this.setStoreValue('auxiliaryComfort', decision.auxiliaryComfort).catch(this.error);

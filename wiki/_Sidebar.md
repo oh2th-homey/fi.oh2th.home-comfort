@@ -5,6 +5,7 @@
 - [Heating Zone](Heating-Zone)
 - [Zone devices](Zone-devices)
 - [Prices](Prices)
+- [Graphs](Graphs)
 - [Flow cards](Flow-cards)
 - [How to](How-to)
 - [Troubleshooting](Troubleshooting)

@@ -24,3 +24,6 @@ In short:
 ## License
 
 GPL-3.0
+
+The graphs are drawn with [resvg](https://github.com/linebender/resvg) (MPL-2.0) and the
+[Inter](https://rsms.me/inter/) font (SIL Open Font License, `assets/fonts/OFL.txt`).

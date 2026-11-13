@@ -1,7 +1,11 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { Device } = require('homey');
 const { checkCapabilities, setValue } = require('oh2th-homey-helpers');
+
+const IMAGE_DIR = '/userdata/images';
 
 module.exports = class mainDevice extends Device {
   /**
@@ -72,6 +76,45 @@ module.exports = class mainDevice extends Device {
   async onDeleted() {
     this.log(`${this.getName()} - onDeleted`);
     this.clearTimers();
+    await this.removeCameraImages();
+  }
+
+  /**
+   * @description Camera image file of this device (in /userdata, kept over restarts).
+   */
+  cameraFile(id) {
+    return path.join(IMAGE_DIR, `${this.getData().id}-${id}.png`);
+  }
+
+  /**
+   * @description Show a new image as camera image id; the image is registered on its first update.
+   * @param {string} id - e.g. 'today'
+   * @param {string} title - Shown in the app
+   * @param {Buffer} data - PNG file contents
+   */
+  async updateCameraImage(id, title, data) {
+    if (!this.cameraImages) this.cameraImages = {};
+    await fs.promises.mkdir(IMAGE_DIR, { recursive: true });
+    await fs.promises.writeFile(this.cameraFile(id), data);
+    if (this.cameraImages[id]) {
+      await this.cameraImages[id].update();
+      return;
+    }
+    const image = await this.homey.images.createImage();
+    image.setPath(this.cameraFile(id));
+    await this.setCameraImage(id, title, image);
+    this.cameraImages[id] = image;
+  }
+
+  /**
+   * @description Unregister the camera images and delete their files, also ones written before an app restart.
+   */
+  async removeCameraImages() {
+    for (const image of Object.values(this.cameraImages || {})) await image.unregister().catch(this.error);
+    this.cameraImages = {};
+    const prefix = `${this.getData().id}-`;
+    const names = await fs.promises.readdir(IMAGE_DIR).catch(() => []);
+    for (const name of names.filter((n) => n.startsWith(prefix))) await fs.promises.unlink(path.join(IMAGE_DIR, name)).catch(() => {});
   }
 
   /**

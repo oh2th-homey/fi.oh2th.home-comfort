@@ -4,6 +4,7 @@ const { localTime, strToMins, localDate, addDays, isDate, isTime, updateCapabili
 const mainDevice = require('../main-device');
 const prices = require('../../lib/prices');
 const daily = require('../../lib/daily');
+const views = require('../../lib/views');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
 const SEASONS = ['heating', 'cooling', 'off'];
@@ -51,6 +52,7 @@ module.exports = class hvacDevice extends mainDevice {
       if (newSettings.absence_until !== '') await this.changeLongAbsence(true);
       else await this.changeLongAbsence(false);
     }
+    if (changedKeys.includes('graphs')) await this.homey.app.applyGraphs(newSettings.graphs);
     // Settings are saved after this returns; evaluate with the new ones.
     await this.evaluatePrices(newSettings);
   }
@@ -358,6 +360,8 @@ module.exports = class hvacDevice extends mainDevice {
     }
     await this.triggerFlow('prices_imported', { day, count: parsed.values.length });
     await this.evaluatePrices();
+    // New prices change today's and tomorrow's camera images: draw them on the next minute.
+    this.homey.app.imagesDue = true;
     return true;
   }
 
@@ -392,6 +396,23 @@ module.exports = class hvacDevice extends mainDevice {
 
     if (!firstRun && wasExpensive !== result.expensive) await this.homey.app.onSharedStateChanged();
     return result;
+  }
+
+  /**
+   * @description Stored prices from yesterday to tomorrow, each slot with the price model's expensive flag (camera images).
+   * @returns {Array} [{ time, end, price, expensive }]
+   */
+  priceSlots(now) {
+    const settings = this.getSettings();
+    return views.priceSlots({
+      days: this.getStoreValue('prices') || {},
+      timeZone: this.homey.clock.getTimezone(),
+      now,
+      resolution: this.priceResolution(),
+      model: settings.price_model,
+      pct: settings.price_above_average_pct,
+      minDelta: settings.price_min_delta
+    });
   }
 
   /**
