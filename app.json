@@ -1427,7 +1427,8 @@
         "onoff": {
           "title": {
             "en": "Heating"
-          }
+          },
+          "uiComponent": "button"
         },
         "thermostat_mode": {
           "title": {
@@ -1966,7 +1967,8 @@
         "onoff": {
           "title": {
             "en": "Heating"
-          }
+          },
+          "uiComponent": "button"
         },
         "thermostat_mode": {
           "title": {

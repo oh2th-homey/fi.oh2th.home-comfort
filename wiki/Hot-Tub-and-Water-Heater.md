@@ -51,14 +51,16 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   temperature all the time, whatever the price, like an ordinary thermostat. **Off**, it never
   demands heating and the heater runs on its own controls (a tub's own controller keeps its
   frost protection). Use Heat or Off when you run the heater by hand for a longer time.
-- **Heating** (on/off): the heating demand, on while the heater should heat. In Automatic, turn
+- **Heating** (button): the heating demand, on while the heater should heat. In Automatic, turn
   it on by hand to heat to the ready temperature now, whatever the price; then the device
   carries on by itself. Turn it off by hand to stop the heating going on now; the device starts
   again at its next planned start or latest safe start. Keep and Maximum always win. In Heat or
   Off, turning it on or off switches the mode to Heat or Off.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
-- **Ready temperature** (the dial): the temperature to reach for each use.
+- **Ready temperature** (the dial): the temperature to reach for each use. The dial's text
+  follows the mode (heating towards it in Automatic and Heat), not whether the heater heats now:
+  that is the **Heating** button and the **State**.
 - **Heating ready** (button): on while the water is held at the ready temperature for a use.
   Turn it off to end the use now; turn it on to be ready now (held until you turn it off, at most
   as long as set in the settings).
