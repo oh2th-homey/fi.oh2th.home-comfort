@@ -1,0 +1,38 @@
+{
+  "title": {
+    "en": "Set ready time"
+  },
+  "titleFormatted": {
+    "en": "Ready daily at [[time]], [[ahead]] minutes ahead"
+  },
+  "hint": {
+    "en": "The daily Ready at time, and how many minutes before it the water is ready. Days of the week stay as in the settings."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    },
+    {
+      "type": "time",
+      "name": "time",
+      "title": {
+        "en": "Time"
+      }
+    },
+    {
+      "type": "number",
+      "name": "ahead",
+      "title": {
+        "en": "Minutes ahead"
+      },
+      "min": 0,
+      "max": 30,
+      "step": 5,
+      "placeholder": {
+        "en": "15"
+      }
+    }
+  ]
+}

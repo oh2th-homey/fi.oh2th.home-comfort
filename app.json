@@ -1157,6 +1157,45 @@
       },
       {
         "title": {
+          "en": "Set ready time"
+        },
+        "titleFormatted": {
+          "en": "Ready daily at [[time]], [[ahead]] minutes ahead"
+        },
+        "hint": {
+          "en": "The daily Ready at time, and how many minutes before it the water is ready. Days of the week stay as in the settings."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          },
+          {
+            "type": "time",
+            "name": "time",
+            "title": {
+              "en": "Time"
+            }
+          },
+          {
+            "type": "number",
+            "name": "ahead",
+            "title": {
+              "en": "Minutes ahead"
+            },
+            "min": 0,
+            "max": 30,
+            "step": 5,
+            "placeholder": {
+              "en": "15"
+            }
+          }
+        ],
+        "id": "water_set_ready_time"
+      },
+      {
+        "title": {
           "en": "Skip the next use"
         },
         "hint": {
@@ -1525,6 +1564,23 @@
               "value": "18:00",
               "hint": {
                 "en": "HH:mm, empty for none. One-offs and skips come from flows."
+              }
+            },
+            {
+              "id": "ready_ahead",
+              "type": "number",
+              "label": {
+                "en": "Ready ahead"
+              },
+              "value": 15,
+              "min": 0,
+              "max": 30,
+              "step": 5,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Ready this long before the use starts."
               }
             },
             {
@@ -2082,6 +2138,23 @@
               "value": "06:00",
               "hint": {
                 "en": "HH:mm, empty for none. One-offs and skips come from flows."
+              }
+            },
+            {
+              "id": "ready_ahead",
+              "type": "number",
+              "label": {
+                "en": "Ready ahead"
+              },
+              "value": 15,
+              "min": 0,
+              "max": 30,
+              "step": 5,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "Ready this long before the use starts."
               }
             },
             {

@@ -76,8 +76,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 ## Settings
 
 - **Keep**: never below, whatever the price. **Maximum**: heating demand always stops here.
-- **Use**: **Ready at** (a time of day, empty for none), **Use lasts**, the days of the week,
-  **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows.
+- **Use**: **Ready at** (a time of day, empty for none), **Ready ahead** (0–30 minutes: be
+  ready this long before the use starts, default 15), **Use lasts**, the days of the week,
+  **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows;
+  the **Set ready time** card sets Ready at and Ready ahead together.
 - **Price limit**: skip a use when heating for it would cost more per kWh. 0 = always heat.
   Keep is held anyway.
 - **Heater power**: the power while heating, used until a power meter has shown it.
@@ -95,7 +97,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
    just in time instead of ahead.
 4. **Latest safe start**: when waiting longer would miss the ready time, it heats now, whatever
    the price. This covers a wrong model and late prices. It counts the water cooling until the
-   start and aims to be ready 15 minutes early. While little is learned it assumes a slower
+   start and aims to be ready **Ready ahead** minutes early. While little is learned it assumes a slower
    heater (80 %) and faster heat loss while heating (125 %) than learned; this margin shrinks as
    heating and waiting are seen, and after about 6 hours of heating and 24 hours of waiting it
    times by the learned curve.
@@ -156,8 +158,8 @@ so on a day with a filter cycle before the use, heating starts later or not at a
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating ready is on** and **State is**.
-- Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Skip the
-  next use**, **Turn heating ready on or off** and **Set water temperature** (when the water
+- Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Set ready
+  time** (the daily Ready at and Ready ahead, for example from a calendar), **Skip the next use**, **Turn heating ready on or off** and **Set water temperature** (when the water
   temperature comes from a flow).
 - Homey's own cards for Heating demand (turned on or off, is on, turn on or off, as by hand), the mode
   (changed, is, set) and the ready temperature.

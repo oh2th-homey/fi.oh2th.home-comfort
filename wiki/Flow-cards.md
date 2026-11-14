@@ -22,7 +22,7 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## Hot Tub and Water Heater
 
-- Actions: **Ready at a time**, **Skip the next use**, **Turn heating ready on or off**,
+- Actions: **Ready at a time**, **Set ready time** (daily, with the minutes ahead), **Skip the next use**, **Turn heating ready on or off**,
   **Set water temperature** (when the water temperature comes from a flow, e.g. MQTT).
 - Conditions: **Heating ready is on**, **State is**.
 - Triggers: **Heating demand started** and **Heating demand stopped**, with the ready temperature

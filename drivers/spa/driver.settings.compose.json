@@ -59,6 +59,23 @@
         }
       },
       {
+        "id": "ready_ahead",
+        "type": "number",
+        "label": {
+          "en": "Ready ahead"
+        },
+        "value": 15,
+        "min": 0,
+        "max": 30,
+        "step": 5,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "Ready this long before the use starts."
+        }
+      },
+      {
         "id": "use_minutes",
         "type": "number",
         "label": {

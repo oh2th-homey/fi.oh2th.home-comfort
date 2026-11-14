@@ -200,26 +200,43 @@ test('pessimistic: the doubt shrinks as heating and waiting are seen, to the lea
   assert.strictEqual(exact.loss, 0.01);
 });
 
-test('latestStart: counts the cooling until the start and keeps the safety margin', () => {
+test('latestStart: counts the cooling until the start, ready by the start it is given', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');
   const start = now + 12 * H;
   const latest = water.latestStart(36, 38, 0, m, now, start);
-  // Waiting until then and heating from the cooled water ends 15 minutes before the start.
+  // Waiting until then and heating from the cooled water ends within one check before the start.
   const cooled = water.project(36, 0, (latest - now) / H, false, m);
   const heated = latest + water.hoursToHeat(cooled, 38, 0, m) * H;
-  assert.ok(heated <= start - 15 * 60000 && heated > start - 17 * 60000, new Date(heated).toISOString());
+  assert.ok(heated <= start && heated > start - 5 * 60000, new Date(heated).toISOString());
   // Without the cooling it would start later than this.
-  assert.ok(latest < start - water.hoursToHeat(36, 38, 0, m) * H - 15 * 60000);
+  assert.ok(latest < start - water.hoursToHeat(36, 38, 0, m) * H);
   // While learning: cools by the learned curve, heats by the pessimistic one.
   const fresh = water.model({ heatRate: 2, loss: 0.01 });
   const early = water.latestStart(36, 38, 0, fresh, now, start);
   const freshCooled = water.project(36, 0, (early - now) / H, false, fresh);
   const freshHeated = early + water.hoursToHeat(freshCooled, 38, 0, water.pessimistic(fresh)) * H;
-  assert.ok(freshHeated <= start - 15 * 60000 && freshHeated > start - 17 * 60000, new Date(freshHeated).toISOString());
+  assert.ok(freshHeated <= start && freshHeated > start - 5 * 60000, new Date(freshHeated).toISOString());
   // Too late already, or a heater that can't get there: now.
   assert.strictEqual(water.latestStart(30, 38, 0, m, now, now + H), now);
   assert.strictEqual(water.latestStart(30, 250, 0, m, now, start), now);
+  // The time to be ready by has come: start now.
+  assert.strictEqual(water.mustStart(36, 38, 0, m, now, now), true);
+});
+
+test('decide: ready ahead moves the latest start earlier', () => {
+  const now = midnight(TZ, '2026-11-13') + 6 * H;
+  const start = now + 12 * H;
+  const useList = [{ start, end: start + H }];
+  const at = (readyAhead) => water.decide({ ...base, model: null, now, temperature: 36, outdoor: 0, quarters: [], useList, readyAhead }).nextStart;
+  // Earlier, but by less than the minutes ahead: starting earlier, the water has cooled less.
+  assert.ok(at(0) - at(30) > 0 && at(0) - at(30) <= 30 * 60000);
+  assert.strictEqual(at(undefined), at(water.READY_AHEAD_MINUTES));
+  // Out of range is held to 0–30.
+  assert.strictEqual(at(90), at(30));
+  // Within the minutes ahead, before the use: heats now.
+  const close = water.decide({ ...base, now: start - 10 * 60000, temperature: 37, outdoor: 0, quarters: [], useList, readyAhead: 15 });
+  assert.strictEqual(close.demand, true);
 });
 
 test('learnMix: the still water reads high; learned from the drop when heating mixes it', () => {

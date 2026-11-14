@@ -674,6 +674,7 @@ module.exports = class waterDevice extends mainDevice {
         priceLimit: settings.price_limit > 0 ? settings.price_limit : null,
         heatingNow: this.demanded(),
         holdBefore: settings.hold_before,
+        readyAhead: settings.ready_ahead,
         reachedFor: this.getStoreValue('reachedFor'),
         filters: this.filterList(now),
         filterTarget: this.getStoreValue('filterTarget')
@@ -767,6 +768,19 @@ module.exports = class waterDevice extends mainDevice {
     const oneOffs = [...(this.getStoreValue('oneOffs') || []), { start, minutes: minutes > 0 ? minutes : this.getSetting('use_minutes') }];
     await this.setStoreValue('oneOffs', oneOffs);
     await this.plan(now);
+    return true;
+  }
+
+  /**
+   * @description Flow: the daily ready time (empty for none) and how long before it to be ready.
+   */
+  async onAction_WATER_SET_READY_TIME(time, ahead) {
+    this.log(`${this.getName()} - onAction_WATER_SET_READY_TIME - ${time} ${ahead}`);
+    const useTime = typeof time === 'string' ? time.trim() : '';
+    if (useTime && !isTime(useTime)) throw new Error(this.homey.__('water.error.time'));
+    if (typeof ahead !== 'number' || !Number.isFinite(ahead) || ahead < 0 || ahead > 30) throw new Error(this.homey.__('error.invalid_value', { value: ahead }));
+    await this.setSettings({ use_time: useTime, ready_ahead: ahead });
+    await this.plan();
     return true;
   }
 
