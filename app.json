@@ -1829,6 +1829,17 @@
               "hint": {
                 "en": "The last planned filter cycles."
               }
+            },
+            {
+              "id": "filter_target",
+              "type": "label",
+              "label": {
+                "en": "Filter heats to"
+              },
+              "value": "-",
+              "hint": {
+                "en": "Learned where the tub's own heater stops during a filter cycle (needs a power meter). The heating plan counts this heat; until it is seen, filter cycles count as adding none."
+              }
             }
           ]
         },

@@ -528,3 +528,41 @@ test('stillStep: a short still stretch gives the loss but not the mixing drop', 
   assert.ok(learned[0].loss);
   assert.strictEqual(learned[0].mix, null);
 });
+
+test('filter heating: the tub heats on its own in a filter cycle up to the filter temperature', () => {
+  const m = water.model(LEARNED);
+  assert.strictEqual(water.filterShare([{ start: 0, end: 30 * 60000 }], 15 * 60000, 30 * 60000), 1);
+  assert.strictEqual(water.filterShare([{ start: 0, end: 20 * 60000 }], 15 * 60000, 30 * 60000), 1 / 3);
+  // Unknown filter temperature, or the water already there: only cooling.
+  assert.strictEqual(water.idleStep(35, 0, m, 0.25, 1, null).heatedHours, 0);
+  assert.strictEqual(water.idleStep(37, 0, m, 0.25, 1, 36.5).heatedHours, 0);
+  // Below it: heats, but not past it.
+  const warm = water.idleStep(36.4, 0, m, 0.25, 1, 36.5);
+  assert.strictEqual(warm.after, 36.5);
+  assert.ok(warm.heatedHours > 0 && warm.heatedHours < 0.25);
+  // Two hours of filter cycle from 34: up to 36.5, then cooling.
+  const day = midnight(TZ, '2026-11-14');
+  const after = water.projectIdle(34, 0, day, day + 4 * H, m, [{ start: day + H, end: day + 3 * H }], 36.5);
+  assert.ok(after > 36 && after < 36.5, String(after));
+  assert.strictEqual(water.learnFilterTarget(null, 36.4), 36.4);
+  assert.ok(Math.abs(water.learnFilterTarget(36, 37) - 36.3) < 1e-9);
+});
+
+test('latestStart and the plan count a filter cycle before the use', () => {
+  const m = water.model(LEARNED);
+  const day = midnight(TZ, '2026-11-14');
+  const start = day + 18 * H;
+  const filters = [{ start: day + 14 * H, end: day + 15 * H }];
+  const without = water.latestStart(34, 37.5, 0, m, day + 8 * H, start);
+  const withFilter = water.latestStart(34, 37.5, 0, m, day + 8 * H, start, filters, 37);
+  assert.ok(withFilter > without, `${new Date(without).toISOString()} ${new Date(withFilter).toISOString()}`);
+  assert.ok(withFilter >= filters[0].end);
+  // The price plan buys less heat when the filter cycle adds some, and the water is still ready.
+  const now = day + 8 * H;
+  const useList = [{ start, end: start + H }];
+  const quarters = water.quarterPrices(Array(96 * 2).fill(0.1), day, 15, now, 30 * H);
+  const plain = water.decide({ ...base, ready: 37.5, now, temperature: 34, outdoor: 0, quarters, useList });
+  const filtered = water.decide({ ...base, ready: 37.5, now, temperature: 34, outdoor: 0, quarters, useList, filters, filterTarget: 37 });
+  assert.ok(filtered.plan.kWh < plain.plan.kWh, `${filtered.plan.kWh} < ${plain.plan.kWh}`);
+  assert.ok(filtered.expected >= 37.5);
+});

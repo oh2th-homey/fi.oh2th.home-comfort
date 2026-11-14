@@ -192,6 +192,18 @@ module.exports = class waterDevice extends mainDevice {
   async planFilters() {}
 
   /**
+   * @description The heater's own filter cycles ahead, [{ start, end }] (ms): only the Hot Tub has them (overridden).
+   */
+  filterList() {
+    return [];
+  }
+
+  /**
+   * @description The heater stopped on its own while the pump runs on: what its own thermostat heats to (overridden).
+   */
+  async onOwnHeatingStopped() {}
+
+  /**
    * @description Prices or the surroundings on the controller changed.
    */
   async onSharedStateChanged() {
@@ -428,6 +440,9 @@ module.exports = class waterDevice extends mainDevice {
       }
     }
     await this.saveStill(step.state, now);
+    // The heater stopped while the pump runs on, without demand from this device: its own thermostat was satisfied.
+    if (this.lastFlow === 'heating' && flow === 'circulating' && this.getCapabilityValue(DEMAND) !== true && raw !== null && !inUse) await this.onOwnHeatingStopped(raw);
+    this.lastFlow = flow;
 
     // Heating segments: the heating rate.
     const seg = this.segment;
@@ -560,6 +575,8 @@ module.exports = class waterDevice extends mainDevice {
       inUse: water.inUse(this.useList(now - water.AFTER_USE_MS), now),
       water: this.waterTemperature(),
       planTemperature: this.planTemperature(now),
+      filterTarget: this.getStoreValue('filterTarget'),
+      filters: this.filterList(now).map((f) => ({ start: iso(f.start), end: iso(f.end) })),
       surroundings: this.surroundingsTemperature(),
       reason: this.getCapabilityValue('text_reason')
     };
@@ -613,7 +630,9 @@ module.exports = class waterDevice extends mainDevice {
         priceLimit: settings.price_limit > 0 ? settings.price_limit : null,
         heatingNow: this.getCapabilityValue(DEMAND) === true,
         holdBefore: settings.hold_before,
-        reachedFor: this.getStoreValue('reachedFor')
+        reachedFor: this.getStoreValue('reachedFor'),
+        filters: this.filterList(now),
+        filterTarget: this.getStoreValue('filterTarget')
       });
       if (result.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', result.reachedFor).catch(this.error);
       let reason = this.reasonText(result.reason);

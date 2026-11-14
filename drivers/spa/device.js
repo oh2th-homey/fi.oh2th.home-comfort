@@ -1,6 +1,6 @@
 'use strict';
 
-const { localTime, isTime, strToMins } = require('oh2th-homey-helpers');
+const { localTime, isTime, strToMins, addDays } = require('oh2th-homey-helpers');
 const waterDevice = require('../water-device');
 const water = require('../../lib/water');
 
@@ -84,6 +84,38 @@ module.exports = class spaDevice extends waterDevice {
       cycle2_runs: second ? second.runs : false,
       summary
     });
+  }
+
+  /**
+   * @description The filter cycles ahead from the last plan: the tub repeats them daily until a new plan comes.
+   */
+  filterList(now = Date.now()) {
+    if (this.filterCycles().length === 0) return [];
+    const stored = this.getStoreValue('filterPlan');
+    if (!stored || !Array.isArray(stored.cycles)) return [];
+    const timeZone = this.homey.clock.getTimezone();
+    const list = [];
+    for (let k = 0; k < 4; k++) {
+      // The same local times k days later (DST safe: shifted by the local midnights).
+      const shift = water.localMs(timeZone, addDays(stored.date, k), 0) - water.localMs(timeZone, stored.date, 0);
+      for (const cycle of stored.cycles) {
+        if (!cycle.runs || typeof cycle.start !== 'number') continue;
+        if (cycle.end + shift > now) list.push({ start: cycle.start + shift, end: cycle.end + shift });
+      }
+    }
+    return list.sort((a, b) => a.start - b.start);
+  }
+
+  /**
+   * @description The temperature the tub's own filter cycles heat to, learned where its heater stops on its own.
+   */
+  async onOwnHeatingStopped(temperature) {
+    const before = this.getStoreValue('filterTarget');
+    const target = water.learnFilterTarget(before, temperature);
+    this.log(`${this.getName()} - own heating stopped at ${temperature} °C: filter heats to ${target.toFixed(1)} °C`);
+    await this.setStoreValue('filterTarget', target).catch(this.error);
+    this.setSettings({ filter_target: `${target.toFixed(1)} °C` }).catch(this.error);
+    this.setTimer('plan', () => this.plan(), 2000);
   }
 
   /**

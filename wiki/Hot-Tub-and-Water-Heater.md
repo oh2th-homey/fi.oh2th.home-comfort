@@ -134,8 +134,12 @@ A typical flow: **Filter cycles planned** → set the tub's filter cycle 1 to **
 then **Cycle 2 runs** is yes? → set cycle 2 to **Cycle 2 start**, else disable cycle 2 (length
 0 on the tub's card). Add a notification with the **Summary** if you like.
 
-The heating plan doesn't yet count the heat the tub adds in its filter cycles; it re-plans from
-the water temperature afterwards.
+The heating plan counts the heat the tub adds in its filter cycles: during each planned cycle
+(and the same times on the following days, as the tub repeats them) the water warms up to
+**Filter heats to**, shown in the settings. With a power meter the device learns it where the
+tub's own heater stops while the pump runs on and the device isn't demanding heat. Until it has
+been seen, filter cycles count as adding no heat. The latest safe start counts the cycles too,
+so on a day with a filter cycle before the use, heating starts later or not at all.
 
 ## Flows
 
