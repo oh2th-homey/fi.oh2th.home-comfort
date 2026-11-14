@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Automatic"
+  },
+  "hint": {
+    "en": "On: the device decides when to heat, on prices and use times. Off: heating only by hand with on/off; Maximum still stops it."
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "button",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Automatic on"
+  },
+  "insightsTitleFalse": {
+    "en": "Automatic off"
+  },
+  "icon": "./assets/capabilities/is_automatic.svg"
+}

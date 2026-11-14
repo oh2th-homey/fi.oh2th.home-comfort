@@ -1,9 +1,9 @@
 {
   "title": {
-    "en": "Heating demand is active"
+    "en": "Automatic is on"
   },
   "titleFormatted": {
-    "en": "Heating demand !{{is|isn't}} active"
+    "en": "Automatic !{{is|isn't}} on"
   },
   "args": [
     {

@@ -566,3 +566,31 @@ test('latestStart and the plan count a filter cycle before the use', () => {
   assert.ok(filtered.plan.kWh < plain.plan.kWh, `${filtered.plan.kWh} < ${plain.plan.kWh}`);
   assert.ok(filtered.expected >= 37.5);
 });
+
+test('applyManual: on heats to ready then lets go; off skips the heating going on; keep and max win', () => {
+  const opts = { ready: 37.5, keep: 30, max: 40 };
+  const waiting = { demand: false, reason: { code: 'waiting', args: {} } };
+  const heating = { demand: true, reason: { code: 'heating', args: {} } };
+  // On by hand: heats until ready, then the automation decides again.
+  const on = water.applyManual(waiting, { on: true, at: 0 }, { ...opts, temperature: 35 });
+  assert.strictEqual(on.result.demand, true);
+  assert.strictEqual(on.result.reason.code, 'manual_on');
+  assert.ok(on.manual);
+  const done = water.applyManual(waiting, { on: true, at: 0 }, { ...opts, temperature: 37.5 });
+  assert.strictEqual(done.result.demand, false);
+  assert.strictEqual(done.manual, null);
+  // Off by hand while heating: off while the automation still wants this heating, released when it stops wanting it.
+  const off = water.applyManual(heating, { on: false, at: 0 }, { ...opts, temperature: 35 });
+  assert.strictEqual(off.result.demand, false);
+  assert.strictEqual(off.result.reason.code, 'manual_off');
+  assert.ok(off.manual);
+  const over = water.applyManual(waiting, { on: false, at: 0 }, { ...opts, temperature: 35 });
+  assert.strictEqual(over.manual, null);
+  // Below keep or at max: the safety rules, not the button.
+  const cold = water.applyManual({ demand: true, reason: { code: 'below_keep', args: {} } }, { on: false, at: 0 }, { ...opts, temperature: 29 });
+  assert.strictEqual(cold.result.demand, true);
+  assert.strictEqual(cold.manual, null);
+  assert.strictEqual(water.applyManual(waiting, { on: true, at: 0 }, { ...opts, ready: 41, temperature: 40 }).result.demand, false);
+  assert.strictEqual(water.state(on.result), 'heating');
+  assert.strictEqual(water.state(off.result), 'waiting');
+});

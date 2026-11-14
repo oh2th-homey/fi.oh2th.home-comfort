@@ -561,7 +561,7 @@
               {
                 "id": "off",
                 "title": {
-                  "en": "Off"
+                  "en": "Manual"
                 }
               }
             ]
@@ -630,6 +630,22 @@
       },
       {
         "title": {
+          "en": "Automatic is on"
+        },
+        "titleFormatted": {
+          "en": "Automatic !{{is|isn't}} on"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "id": "is_automatic"
+      },
+      {
+        "title": {
           "en": "Zone is in eco"
         },
         "titleFormatted": {
@@ -659,22 +675,6 @@
           }
         ],
         "id": "is_expensive"
-      },
-      {
-        "title": {
-          "en": "Heating demand is active"
-        },
-        "titleFormatted": {
-          "en": "Heating demand !{{is|isn't}} active"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=spa|water-heater"
-          }
-        ],
-        "id": "is_heating_demand"
       },
       {
         "title": {
@@ -950,6 +950,46 @@
           }
         ],
         "id": "set_heating_ready"
+      },
+      {
+        "title": {
+          "en": "Turn automatic on or off"
+        },
+        "titleFormatted": {
+          "en": "Turn automatic [[state]]"
+        },
+        "hint": {
+          "en": "Off: heating only by hand with on/off, Keep isn't held. On: the device decides again."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "title": {
+              "en": "State"
+            },
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_is_automatic"
       },
       {
         "title": {
@@ -1406,10 +1446,10 @@
       "class": "other",
       "capabilities": [
         "onoff",
+        "is_automatic",
         "measure_temperature",
         "measure_temperature.surroundings",
         "target_temperature",
-        "is_heating_demand",
         "heating_ready",
         "enum_water_state",
         "text_reason",
@@ -1442,7 +1482,7 @@
         },
         "onoff": {
           "title": {
-            "en": "Control"
+            "en": "Heating"
           }
         }
       },
@@ -1920,10 +1960,10 @@
       "class": "other",
       "capabilities": [
         "onoff",
+        "is_automatic",
         "measure_temperature",
         "measure_temperature.surroundings",
         "target_temperature",
-        "is_heating_demand",
         "heating_ready",
         "enum_water_state",
         "text_reason",
@@ -1956,7 +1996,7 @@
         },
         "onoff": {
           "title": {
-            "en": "Control"
+            "en": "Heating"
           }
         }
       },
@@ -2663,7 +2703,7 @@
         "en": "State"
       },
       "hint": {
-        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the control is off."
+        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Manual: Automatic is off, heating only by hand."
       },
       "values": [
         {
@@ -2699,7 +2739,7 @@
         {
           "id": "off",
           "title": {
-            "en": "Off"
+            "en": "Manual"
           }
         }
       ],
@@ -2761,6 +2801,26 @@
       },
       "icon": "./assets/capabilities/heating_ready.svg"
     },
+    "is_automatic": {
+      "type": "boolean",
+      "title": {
+        "en": "Automatic"
+      },
+      "hint": {
+        "en": "On: the device decides when to heat, on prices and use times. Off: heating only by hand with on/off; Maximum still stops it."
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "button",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Automatic on"
+      },
+      "insightsTitleFalse": {
+        "en": "Automatic off"
+      },
+      "icon": "./assets/capabilities/is_automatic.svg"
+    },
     "is_eco": {
       "type": "boolean",
       "title": {
@@ -2800,26 +2860,6 @@
         "en": "Price became normal"
       },
       "icon": "./assets/capabilities/is_expensive.svg"
-    },
-    "is_heating_demand": {
-      "type": "boolean",
-      "title": {
-        "en": "Heating demand"
-      },
-      "hint": {
-        "en": "The heater should heat now. Turn it into the heater's own actions with the Heating demand started and stopped cards."
-      },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "insightsTitleTrue": {
-        "en": "Heating demand started"
-      },
-      "insightsTitleFalse": {
-        "en": "Heating demand stopped"
-      },
-      "icon": "./assets/capabilities/is_heating_demand.svg"
     },
     "is_long_absence": {
       "type": "boolean",

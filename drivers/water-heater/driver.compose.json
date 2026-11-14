@@ -5,10 +5,10 @@
   "class": "other",
   "capabilities": [
     "onoff",
+    "is_automatic",
     "measure_temperature",
     "measure_temperature.surroundings",
     "target_temperature",
-    "is_heating_demand",
     "heating_ready",
     "enum_water_state",
     "text_reason",
@@ -41,7 +41,7 @@
     },
     "onoff": {
       "title": {
-        "en": "Control"
+        "en": "Heating"
       }
     }
   },
