@@ -28,9 +28,6 @@
       }
     },
     "target_temperature": {
-      "title": {
-        "en": "Ready temperature"
-      },
       "min": 20,
       "max": 40,
       "step": 0.5,

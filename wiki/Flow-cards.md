@@ -25,8 +25,8 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 - Actions: **Ready at a time**, **Set ready time** (daily, with the minutes ahead), **Skip the next ready time**, **Turn heating ready on or off**,
   **Set water temperature** (when the water temperature comes from a flow, e.g. MQTT).
 - Conditions: **Heating ready is on**, **State is**.
-- Triggers: **Heating demand started** and **Heating demand stopped**, with the ready temperature
+- Triggers: **Heating demand started** and **Heating demand stopped**, with the target temperature
   and the reason; **State changed**, with the state; **Filter cycles planned** (Hot Tub, see
   [Filter cycles](Hot-Tub-and-Water-Heater#filter-cycles-hot-tub)), with each cycle's start and
   whether it runs. Homey's own cards cover Heating demand (on/off, also by hand), the
-  mode (Automatic, Heat, Off) and the ready temperature.
+  mode (Automatic, Heat, Off) and the target temperature.

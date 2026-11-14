@@ -100,7 +100,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Heating on or off by hand. In mode Automatic: on heats to the ready temperature, off stops the heating
+   * @description Heating on or off by hand. In mode Automatic: on heats to the target temperature, off stops the heating
    * going on now (lib/water.js applyManual). In mode Heat or Off: switches the mode (on: Heat, off: Off).
    */
   async onCapability_ONOFF(value) {
@@ -118,7 +118,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Mode: Automatic (the device decides), Heat (holds the ready temperature, whatever the price) or Off (no
+   * @description Mode: Automatic (the device decides), Heat (holds the target temperature, whatever the price) or Off (no
    * heating demand; the heater is left to its own controls, Keep isn't held).
    */
   async onCapability_THERMOSTAT_MODE(value) {
@@ -174,7 +174,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description The use whose ready temperature is held now: running, or reached shortly before it.
+   * @description The use whose target temperature is held now: running, or reached shortly before it.
    */
   activeUse(now) {
     const [use] = this.useList(now);
@@ -646,7 +646,7 @@ module.exports = class waterDevice extends mainDevice {
       const settings = this.getSettings();
       const mode = this.mode();
       if (mode !== 'auto') {
-        // Heat: holds the ready temperature, whatever the price. Off: no demand.
+        // Heat: holds the target temperature, whatever the price. Off: no demand.
         let held = { demand: false, reason: { code: 'mode_off', args: {} } };
         if (mode === 'heat') {
           held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.getCapabilityValue('target_temperature'), max: settings.max_temperature, heatingNow: this.demanded() });

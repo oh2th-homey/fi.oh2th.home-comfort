@@ -4,7 +4,7 @@
     "en": "Heating ready"
   },
   "hint": {
-    "en": "On while the water is held at the ready temperature. Turn off to end it now; turn on to be ready now."
+    "en": "On while the water is held at the target temperature. Turn off to end it now; turn on to be ready now."
   },
   "getable": true,
   "setable": true,

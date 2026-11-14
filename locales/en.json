@@ -211,8 +211,8 @@
     "error": {
       "keep_max": "Keep must be lower than Maximum.",
       "not_flow": "The water temperature comes from a device. To set it from a flow, choose From a flow in Repair.",
-      "ready_max": "The ready temperature is above Maximum: lower it first.",
-      "ready_range": "The ready temperature must be above keep (__keep__) and at most the maximum (__max__).",
+      "ready_max": "The target temperature is above Maximum: lower it first.",
+      "ready_range": "The target temperature must be above keep (__keep__) and at most the maximum (__max__).",
       "time": "Enter the time as HH:mm, for example 18:00",
       "off": "Set the mode to Automatic first.",
       "filter_window": "Filter cycle __n__: enter the window as HH:mm within one day (from before to), at least as long as the cycle."

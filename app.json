@@ -196,7 +196,7 @@
           "en": "Heating demand started"
         },
         "hint": {
-          "en": "Turn the heater on here, for example set its own heater mode or thermostat to the ready temperature."
+          "en": "Turn the heater on here, for example set its own heater mode or thermostat to the target temperature."
         },
         "args": [
           {
@@ -210,7 +210,7 @@
             "name": "target_temperature",
             "type": "number",
             "title": {
-              "en": "Ready temperature"
+              "en": "Target temperature"
             },
             "example": 38
           },
@@ -246,7 +246,7 @@
             "name": "target_temperature",
             "type": "number",
             "title": {
-              "en": "Ready temperature"
+              "en": "Target temperature"
             },
             "example": 38
           },
@@ -903,7 +903,7 @@
           "en": "Turn heating ready [[state]]"
         },
         "hint": {
-          "en": "Off ends the ready time now (back to keep). On heats to the ready temperature now and holds it until turned off, at most as long as set in the device settings."
+          "en": "Off ends the ready time now (back to keep). On heats to the target temperature now and holds it until turned off, at most as long as set in the device settings."
         },
         "args": [
           {
@@ -1452,9 +1452,6 @@
           }
         },
         "target_temperature": {
-          "title": {
-            "en": "Ready temperature"
-          },
           "min": 20,
           "max": 40,
           "step": 0.5,
@@ -1599,7 +1596,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Kept at the ready temperature this long."
+                "en": "Kept at the target temperature this long."
               }
             },
             {
@@ -2011,9 +2008,6 @@
           }
         },
         "target_temperature": {
-          "title": {
-            "en": "Ready temperature"
-          },
           "min": 30,
           "max": 85,
           "step": 1,
@@ -2175,7 +2169,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Kept at the ready temperature this long."
+                "en": "Kept at the target temperature this long."
               }
             },
             {
@@ -2776,7 +2770,7 @@
         "en": "State"
       },
       "hint": {
-        "en": "Pre-heating: heating ahead of a ready time in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a ready time. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
+        "en": "Pre-heating: heating ahead of a ready time in cheap hours. Heating: heating demand is on otherwise. Ready: at the target temperature for a ready time. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
       },
       "values": [
         {
@@ -2860,7 +2854,7 @@
         "en": "Heating ready"
       },
       "hint": {
-        "en": "On while the water is held at the ready temperature. Turn off to end it now; turn on to be ready now."
+        "en": "On while the water is held at the target temperature. Turn off to end it now; turn on to be ready now."
       },
       "getable": true,
       "setable": true,

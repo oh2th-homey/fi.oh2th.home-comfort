@@ -52,20 +52,20 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   demands heating and the heater runs on its own controls (a tub's own controller keeps its
   frost protection). Use Heat or Off when you run the heater by hand for a longer time.
 - **Heating demand** (button): on while the heater should heat. In Automatic, turn
-  it on by hand to heat to the ready temperature now, whatever the price; then the device
+  it on by hand to heat to the target temperature now, whatever the price; then the device
   carries on by itself. Turn it off by hand to stop the heating going on now; the device starts
   again at its next planned start or latest safe start. Keep and Maximum always win. In Heat or
   Off, turning it on or off switches the mode to Heat or Off.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
-- **Ready temperature** (the dial): the temperature to reach for each ready time. The dial's text
+- **Target temperature** (the dial): the temperature to reach for each ready time. The dial's text
   follows the mode (heating towards it in Automatic and Heat), not whether the heater heats now:
   that is the **Heating demand** button and the **State**.
-- **Heating ready** (button): on while the water is held at the ready temperature.
+- **Heating ready** (button): on while the water is held at the target temperature.
   Turn it off to end it now; turn it on to be ready now (held until you turn it off, at most
   as long as set in the settings).
 - **State**: **Pre-heating** (heating ahead of a ready time in cheap hours), **Heating** (heating
-  demand is on otherwise), **Ready** (at the ready temperature for a ready time,
+  demand is on otherwise), **Ready** (at the target temperature for a ready time,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
   Maximum) or **Off** (the mode is Off).
 - **Expected start**: when heating starts next, for example `16:05` or `Sun 16:05`; `Now` while
@@ -96,7 +96,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 ## How it decides
 
 1. **Safety first**: below Keep it heats, at Maximum it stops.
-2. **From the ready time** it holds the ready temperature for **Keep ready for**. Ready reached
+2. **From the ready time** it holds the target temperature for **Keep ready for**. Ready reached
    within **Hold before ready time** of it is held too, so the water doesn't cool again before
    you need it.
 3. **Before a ready time** it picks the cheapest quarters, counting the heat lost while waiting. Until
@@ -170,12 +170,12 @@ so on a day with a filter cycle before the ready time, heating starts later or n
   time** (the daily Ready at and Ready ahead, for example from a calendar), **Skip the next ready time**, **Turn heating ready on or off** and **Set water temperature** (when the water
   temperature comes from a flow).
 - Homey's own cards for Heating demand (turned on or off, is on, turn on or off, as by hand), the mode
-  (changed, is, set) and the ready temperature.
+  (changed, is, set) and the target temperature.
 
 A typical pair of flows for a hot tub:
 
 - **Heating demand started** → set the tub's heater mode to Ready, then set its target
-  temperature to the **Ready temperature** token.
+  temperature to the **Target temperature** token.
 - **Heating demand stopped** → set the tub's heater mode to Rest.
 
 The tub's own thermostat measures in a different place than your sensor. If it stops a little

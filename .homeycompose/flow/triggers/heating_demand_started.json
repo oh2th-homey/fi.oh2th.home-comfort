@@ -3,7 +3,7 @@
     "en": "Heating demand started"
   },
   "hint": {
-    "en": "Turn the heater on here, for example set its own heater mode or thermostat to the ready temperature."
+    "en": "Turn the heater on here, for example set its own heater mode or thermostat to the target temperature."
   },
   "args": [
     {
@@ -17,7 +17,7 @@
       "name": "target_temperature",
       "type": "number",
       "title": {
-        "en": "Ready temperature"
+        "en": "Target temperature"
       },
       "example": 38
     },
