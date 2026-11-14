@@ -186,6 +186,36 @@ test('mustStart: latest safe start with the pessimistic model', () => {
   assert.strictEqual(water.mustStart(30, 38, 0, m, now, now + 4 * H), true);
 });
 
+test('pessimistic: the doubt shrinks as heating and waiting are seen, to the learned curve', () => {
+  const fresh = water.pessimistic(water.model({ heatRate: 2, loss: 0.01 }));
+  assert.ok(Math.abs(fresh.heatRate - 1.6) < 1e-9);
+  assert.ok(Math.abs(fresh.loss - 0.0125) < 1e-9);
+  // Half way: 5 h of heating, plenty of waiting.
+  const half = water.pessimistic(water.model({ heatRate: 2, loss: 0.01, heatHours: 5, idleHours: 100 }));
+  assert.ok(Math.abs(half.heatRate - 1.8) < 1e-9);
+  // The least learned part counts: plenty of heating, no waiting.
+  assert.strictEqual(water.exactness(water.model({ heatHours: 50, idleHours: 0 })), 0);
+  const exact = water.pessimistic(water.model(LEARNED));
+  assert.strictEqual(exact.heatRate, 2);
+  assert.strictEqual(exact.loss, 0.01);
+});
+
+test('latestStart: counts the cooling until the start and keeps the safety margin', () => {
+  const m = water.model(LEARNED);
+  const now = midnight(TZ, '2026-11-13');
+  const start = now + 12 * H;
+  const latest = water.latestStart(36, 38, 0, m, now, start);
+  // Waiting until then and heating from the cooled water ends 15 minutes before the start.
+  const cooled = water.project(36, 0, (latest - now) / H, false, m);
+  const heated = latest + water.hoursToHeat(cooled, 38, 0, m) * H;
+  assert.ok(heated <= start - 15 * 60000 && heated > start - 17 * 60000, new Date(heated).toISOString());
+  // Without the cooling it would start later than this.
+  assert.ok(latest < start - water.hoursToHeat(36, 38, 0, m) * H - 15 * 60000);
+  // Too late already, or a heater that can't get there: now.
+  assert.strictEqual(water.latestStart(30, 38, 0, m, now, now + H), now);
+  assert.strictEqual(water.latestStart(30, 250, 0, m, now, start), now);
+});
+
 test('learnMix: the still water reads high; learned from the drop when heating mixes it', () => {
   const m = water.model({ heatRate: 2 });
   // 38.0 still, 37.2 after 15 minutes of heating (which added 0.5): the mixing drop is 1.3.

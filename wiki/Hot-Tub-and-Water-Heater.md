@@ -85,8 +85,12 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 3. **Before a use** it picks the cheapest quarters, counting the heat lost while waiting. Until
    it has learned the heating curve (about a day or two of heating and waiting), it heats only
    just in time instead of ahead.
-4. **Latest safe start**: when waiting longer would miss the ready time at a slower heater than
-   learned, it heats now, whatever the price. This covers a wrong model and late prices.
+4. **Latest safe start**: when waiting longer would miss the ready time, it heats now, whatever
+   the price. This covers a wrong model and late prices. It counts the water cooling until the
+   start and aims to be ready 15 minutes early. While little is learned it also assumes a slower
+   heater (80 %) and faster heat loss (125 %) than learned; this margin shrinks as heating and
+   waiting are seen, and after about 10 hours of heating and 48 hours of waiting it times by
+   the learned curve.
 
 In standing water the warm water rises, so a sensor near the surface reads high until the
 circulation mixes the water. The device learns this **mixing drop** each time heating starts
