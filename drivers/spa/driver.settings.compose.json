@@ -44,7 +44,7 @@
   {
     "type": "group",
     "label": {
-      "en": "Use"
+      "en": "Ready time"
     },
     "children": [
       {
@@ -72,7 +72,7 @@
           "en": "min"
         },
         "hint": {
-          "en": "Ready this long before the use starts."
+          "en": "Ready this long before the ready time."
         }
       },
       {
@@ -96,7 +96,7 @@
         "id": "hold_before",
         "type": "number",
         "label": {
-          "en": "Hold before use"
+          "en": "Hold before ready time"
         },
         "value": 120,
         "min": 0,
@@ -106,7 +106,7 @@
           "en": "min"
         },
         "hint": {
-          "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+          "en": "Ready reached this close to the ready time is held to the end of Keep ready for. Reached earlier, the plan may let it cool and heat again in cheaper hours."
         }
       },
       {
@@ -204,7 +204,7 @@
           "en": "/kWh"
         },
         "hint": {
-          "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+          "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
         }
       }
     ]

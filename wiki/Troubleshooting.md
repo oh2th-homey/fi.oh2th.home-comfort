@@ -23,7 +23,7 @@
   in time with a slow starting estimate. Its settings show the learned values; after a day or two
   of heating and waiting it heats ahead in cheap hours instead.
 - **Hot Tub or Water Heater: "No prices"**: the HVAC Controller has no prices. It holds Keep and
-  heats just in time for each use until prices come back.
+  heats just in time for each ready time until prices come back.
 
 To see what a zone is doing and why, check its **Reason**
 (see [See why a zone does what it does](How-to#see-why-a-zone-does-what-it-does)).

@@ -4,7 +4,7 @@
     "en": "State"
   },
   "hint": {
-    "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
+    "en": "Pre-heating: heating ahead of a ready time in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a ready time. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
   },
   "values": [
     {

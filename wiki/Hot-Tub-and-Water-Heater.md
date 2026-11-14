@@ -20,7 +20,7 @@ defaults:
 
 The [HVAC Controller](HVAC-Controller) must exist and follow a price device (see
 [Prices](Prices)): the device plans on its prices. Without prices it still holds Keep and heats
-just in time for each use, without looking at prices.
+just in time for each ready time, without looking at prices.
 
 ## Add it
 
@@ -58,29 +58,30 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   Off, turning it on or off switches the mode to Heat or Off.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
-- **Ready temperature** (the dial): the temperature to reach for each use. The dial's text
+- **Ready temperature** (the dial): the temperature to reach for each ready time. The dial's text
   follows the mode (heating towards it in Automatic and Heat), not whether the heater heats now:
   that is the **Heating demand** button and the **State**.
-- **Heating ready** (button): on while the water is held at the ready temperature for a use.
-  Turn it off to end the use now; turn it on to be ready now (held until you turn it off, at most
+- **Heating ready** (button): on while the water is held at the ready temperature.
+  Turn it off to end it now; turn it on to be ready now (held until you turn it off, at most
   as long as set in the settings).
-- **State**: **Pre-heating** (heating ahead of a use in cheap hours), **Heating** (heating
-  demand is on otherwise), **Ready** (at the ready temperature for a use,
+- **State**: **Pre-heating** (heating ahead of a ready time in cheap hours), **Heating** (heating
+  demand is on otherwise), **Ready** (at the ready temperature for a ready time,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
   Maximum) or **Off** (the mode is Off).
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
-  `In use until 20:00`.
+  `Ready until 20:00`.
 - **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the
   water getting warmer.
 
 ## Settings
 
 - **Keep**: never below, whatever the price. **Maximum**: heating demand always stops here.
-- **Use**: **Ready at** (a time of day, empty for none), **Ready ahead** (0–30 minutes: be
-  ready this long before the use starts, default 15), **Keep ready for**, the days of the week,
-  **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows;
+- **Ready time**: **Ready at** (the time of day you want the water ready, empty for none), **Ready
+  ahead** (0–30 minutes: be ready this long before it, default 15), **Keep ready for**, the days
+  of the week, **Hold before ready time** and **Ready by hand at most**. One-off ready times and
+  skipped ones come from flows;
   the **Set ready time** card sets Ready at and Ready ahead together.
-- **Price limit**: skip a use when heating for it would cost more per kWh on average. 0 = always
+- **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. Keep is held anyway.
 - **Heater power**: the power while heating, used until a power meter has shown it.
@@ -90,10 +91,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 ## How it decides
 
 1. **Safety first**: below Keep it heats, at Maximum it stops.
-2. **During a use** it holds the ready temperature until the use ends. Ready reached within
-   **Hold before use** of the start is held too, so the water doesn't cool again before you use
-   it.
-3. **Before a use** it picks the cheapest quarters, counting the heat lost while waiting. Until
+2. **From the ready time** it holds the ready temperature for **Keep ready for**. Ready reached
+   within **Hold before ready time** of it is held too, so the water doesn't cool again before
+   you need it.
+3. **Before a ready time** it picks the cheapest quarters, counting the heat lost while waiting. Until
    it has learned the heating curve (about a day or two of heating and waiting), it heats only
    just in time instead of ahead.
 4. **Latest safe start**: when waiting longer would miss the ready time, it heats now, whatever
@@ -112,13 +113,13 @@ With a **power meter** the device tells three states apart: **still** (standby),
 stretch, from the last reading before the pump stops to the mixed reading 15 minutes after it
 starts again (less what the heater added meanwhile), so the high readings of still water don't
 count. The reading just before the pump starts gives the mixing drop. A pump that stops again
-within those 15 minutes ends the stretch without learning. A use ends a stretch too; the water
+within those 15 minutes ends the stretch without learning. Bathing ends a stretch too; the water
 it stirred starts the next one. Without a power meter it can't see
 the pump: it learns the mixing drop when heating starts after the water stood still, and the
 heat loss from the readings while it waits.
 
-Uses are left out of learning too, from the start of a use until 30 minutes after it ends: with
-the lid open, the jets on and people in the water, the heat loss and heating say nothing about
+Bathing is left out of learning too, from the ready time until 30 minutes after **Keep ready
+for** ends: with the lid open, the jets on and people in the water, the heat loss and heating say nothing about
 the closed tub.
 
 ## Filter cycles (Hot Tub)
@@ -150,7 +151,7 @@ The heating plan counts the heat the tub adds in its filter cycles: during each 
 tub's own heater stops inside a filter window while the pump runs on and the device isn't
 demanding heat. Until it has
 been seen, filter cycles count as adding no heat. The latest safe start counts the cycles too,
-so on a day with a filter cycle before the use, heating starts later or not at all.
+so on a day with a filter cycle before the ready time, heating starts later or not at all.
 
 ## Flows
 
@@ -160,8 +161,8 @@ so on a day with a filter cycle before the use, heating starts later or not at a
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating ready is on** and **State is**.
-- Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Set ready
-  time** (the daily Ready at and Ready ahead, for example from a calendar), **Skip the next use**, **Turn heating ready on or off** and **Set water temperature** (when the water
+- Actions **Ready at a time** (a one-off ready time, the next time it is that time of day), **Set ready
+  time** (the daily Ready at and Ready ahead, for example from a calendar), **Skip the next ready time**, **Turn heating ready on or off** and **Set water temperature** (when the water
   temperature comes from a flow).
 - Homey's own cards for Heating demand (turned on or off, is on, turn on or off, as by hand), the mode
   (changed, is, set) and the ready temperature.

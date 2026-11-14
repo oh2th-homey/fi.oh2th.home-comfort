@@ -1,9 +1,9 @@
 {
   "title": {
-    "en": "Skip the next use"
+    "en": "Skip the next ready time"
   },
   "hint": {
-    "en": "The next use is not heated for; keep is still held."
+    "en": "The next ready time is not heated for; keep is still held."
   },
   "args": [
     {

@@ -903,7 +903,7 @@
           "en": "Turn heating ready [[state]]"
         },
         "hint": {
-          "en": "Off ends the use now (back to keep). On heats to the ready temperature now and holds it until turned off, at most as long as set in the device settings."
+          "en": "Off ends the ready time now (back to keep). On heats to the ready temperature now and holds it until turned off, at most as long as set in the device settings."
         },
         "args": [
           {
@@ -1121,10 +1121,10 @@
           "en": "Ready at a time"
         },
         "titleFormatted": {
-          "en": "Ready at [[time]] for [[minutes]] minutes"
+          "en": "Ready at [[time]], kept ready [[minutes]] minutes"
         },
         "hint": {
-          "en": "A one-off use: the next time it is this time of day. 0 minutes = as long as in the settings."
+          "en": "A one-off ready time: the next time it is this time of day. 0 minutes = as long as in the settings."
         },
         "args": [
           {
@@ -1196,10 +1196,10 @@
       },
       {
         "title": {
-          "en": "Skip the next use"
+          "en": "Skip the next ready time"
         },
         "hint": {
-          "en": "The next use is not heated for; keep is still held."
+          "en": "The next ready time is not heated for; keep is still held."
         },
         "args": [
           {
@@ -1552,7 +1552,7 @@
         {
           "type": "group",
           "label": {
-            "en": "Use"
+            "en": "Ready time"
           },
           "children": [
             {
@@ -1580,7 +1580,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Ready this long before the use starts."
+                "en": "Ready this long before the ready time."
               }
             },
             {
@@ -1604,7 +1604,7 @@
               "id": "hold_before",
               "type": "number",
               "label": {
-                "en": "Hold before use"
+                "en": "Hold before ready time"
               },
               "value": 120,
               "min": 0,
@@ -1614,7 +1614,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+                "en": "Ready reached this close to the ready time is held to the end of Keep ready for. Reached earlier, the plan may let it cool and heat again in cheaper hours."
               }
             },
             {
@@ -1712,7 +1712,7 @@
                 "en": "/kWh"
               },
               "hint": {
-                "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+                "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
               }
             }
           ]
@@ -2126,7 +2126,7 @@
         {
           "type": "group",
           "label": {
-            "en": "Use"
+            "en": "Ready time"
           },
           "children": [
             {
@@ -2154,7 +2154,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Ready this long before the use starts."
+                "en": "Ready this long before the ready time."
               }
             },
             {
@@ -2178,7 +2178,7 @@
               "id": "hold_before",
               "type": "number",
               "label": {
-                "en": "Hold before use"
+                "en": "Hold before ready time"
               },
               "value": 120,
               "min": 0,
@@ -2188,7 +2188,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "Ready reached this close to a use is held until the use ends. Reached earlier, the plan may let it cool and heat again in cheaper hours."
+                "en": "Ready reached this close to the ready time is held to the end of Keep ready for. Reached earlier, the plan may let it cool and heat again in cheaper hours."
               }
             },
             {
@@ -2286,7 +2286,7 @@
                 "en": "/kWh"
               },
               "hint": {
-                "en": "Skip a use when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+                "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
               }
             }
           ]
@@ -2772,7 +2772,7 @@
         "en": "State"
       },
       "hint": {
-        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
+        "en": "Pre-heating: heating ahead of a ready time in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a ready time. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
       },
       "values": [
         {
@@ -2856,7 +2856,7 @@
         "en": "Heating ready"
       },
       "hint": {
-        "en": "On while the water is held at the ready temperature for a use. Turn off to end the use now; turn on to be ready now."
+        "en": "On while the water is held at the ready temperature. Turn off to end it now; turn on to be ready now."
       },
       "getable": true,
       "setable": true,
