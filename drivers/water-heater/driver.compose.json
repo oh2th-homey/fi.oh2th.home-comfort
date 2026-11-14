@@ -7,7 +7,7 @@
     "onoff",
     "is_automatic",
     "measure_temperature",
-    "measure_temperature.surroundings",
+    "measure_temperature.ambient",
     "target_temperature",
     "heating_ready",
     "enum_water_state",
@@ -20,7 +20,7 @@
         "en": "Water temperature"
       }
     },
-    "measure_temperature.surroundings": {
+    "measure_temperature.ambient": {
       "title": {
         "en": "Room temperature"
       }

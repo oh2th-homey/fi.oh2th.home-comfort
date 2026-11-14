@@ -11,7 +11,7 @@ const READY = 'heating_ready';
 const STATE = 'enum_water_state';
 // Reasons while the water is held at ready for a use (lib/water.js decide).
 const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
-const SURROUNDINGS = 'measure_temperature.surroundings';
+const SURROUNDINGS = 'measure_temperature.ambient';
 const POWER = 'measure_power';
 // A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
 const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
