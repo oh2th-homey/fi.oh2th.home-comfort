@@ -71,10 +71,11 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Expected start**: when heating starts next, for example `16:05` or `Sun 16:05`; `Now` while
   heating, `–` when nothing is planned. While learning it is the latest safe start, so it moves
   later as the device learns and as the water cools more slowly than feared.
-- **Time remaining**: while heating, the minutes until the water reaches the temperature it heats
-  to, by the learned heating curve.
-- **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
-  `Ready until 20:00`.
+- **Expected ready**: when the water is expected at the temperature it heats to, by the learned
+  heating curve, for example `17:48`; `Now` when it is there.
+- **Time remaining**: while heating, how long until then, for example `1 h 5 min`.
+- **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00`,
+  `Ready until 20:00` or, still heating after the ready time, `Heating to 37 °C, ready until 20:00`.
 - **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the
   water getting warmer.
 

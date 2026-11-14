@@ -148,6 +148,20 @@ test('minutesToHeat: by the learned curve, 0 when there, null when it cannot get
   assert.strictEqual(water.minutesToHeat(null, 37, 0, LEARNED), null);
 });
 
+test('readyEstimate: from now while heating, from the start while waiting, now when there', () => {
+  const now = midnight(TZ, '2026-11-13');
+  const heating = water.readyEstimate({ now, temperature: 35, target: 37, outdoor: 0, model: LEARNED, demand: true });
+  assert.strictEqual(heating.minutes, water.minutesToHeat(35, 37, 0, LEARNED));
+  assert.strictEqual(heating.readyAt, now + heating.minutes * 60000);
+  const there = water.readyEstimate({ now, temperature: 37.2, target: 37, outdoor: 0, model: LEARNED, demand: false });
+  assert.strictEqual(there.readyAt, now);
+  assert.strictEqual(water.readyEstimate({ now, temperature: 35, target: 37, outdoor: 0, model: LEARNED, demand: false }).readyAt, null);
+  // Waiting 2 hours: cools first, so ready later than 2 hours plus heating from 35.
+  const waiting = water.readyEstimate({ now, temperature: 35, target: 37, outdoor: 0, model: LEARNED, demand: false, nextStart: now + 2 * H });
+  assert.strictEqual(waiting.minutes, null);
+  assert.ok(waiting.readyAt > now + 2 * H + heating.minutes * 60000);
+});
+
 test('meanPrice: the known prices of the quarters overlapping the time', () => {
   const quarters = [0, 1, 2, 3].map((i) => ({ start: i * Q, price: i === 2 ? null : i }));
   assert.strictEqual(water.meanPrice(quarters, 0, 4 * Q), (0 + 1 + 3) / 3);

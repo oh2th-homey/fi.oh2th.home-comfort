@@ -12,7 +12,8 @@
     "heating_ready",
     "enum_water_state",
     "text_expected_start",
-    "num_time_remaining",
+    "text_expected_ready",
+    "text_time_remaining",
     "text_reason",
     "alarm_problem"
   ],

@@ -1436,7 +1436,8 @@
         "heating_ready",
         "enum_water_state",
         "text_expected_start",
-        "num_time_remaining",
+        "text_expected_ready",
+        "text_time_remaining",
         "text_reason",
         "alarm_problem"
       ],
@@ -1992,7 +1993,8 @@
         "heating_ready",
         "enum_water_state",
         "text_expected_start",
-        "num_time_remaining",
+        "text_expected_ready",
+        "text_time_remaining",
         "text_reason",
         "alarm_problem"
       ],
@@ -2947,24 +2949,18 @@
       "insights": false,
       "icon": "./assets/capabilities/enum_occupancy.svg"
     },
-    "num_time_remaining": {
-      "type": "number",
+    "text_expected_ready": {
+      "type": "string",
       "title": {
-        "en": "Time remaining"
+        "en": "Expected ready"
       },
       "hint": {
-        "en": "While heating: minutes until the water reaches the temperature it heats to, by the learned heating curve."
+        "en": "When the water is expected at the temperature it heats to, by the learned heating curve: Now when it is there, – when nothing is planned."
       },
-      "units": {
-        "en": "min"
-      },
-      "decimals": 0,
-      "min": 0,
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
-      "insights": false,
-      "icon": "./assets/capabilities/num_time_remaining.svg"
+      "icon": "./assets/capabilities/clock.svg"
     },
     "text_expected_start": {
       "type": "string",
@@ -3004,6 +3000,19 @@
       "setable": false,
       "uiComponent": "sensor",
       "icon": "./assets/capabilities/text_reason.svg"
+    },
+    "text_time_remaining": {
+      "type": "string",
+      "title": {
+        "en": "Time remaining"
+      },
+      "hint": {
+        "en": "While heating: how long until the water reaches the temperature it heats to, by the learned heating curve."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/hourglass.svg"
     }
   }
 }

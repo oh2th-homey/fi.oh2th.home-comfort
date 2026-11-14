@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Expected ready"
+  },
+  "hint": {
+    "en": "When the water is expected at the temperature it heats to, by the learned heating curve: Now when it is there, – when nothing is planned."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/clock.svg"
+}

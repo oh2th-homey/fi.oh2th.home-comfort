@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Time remaining"
+  },
+  "hint": {
+    "en": "While heating: how long until the water reaches the temperature it heats to, by the learned heating curve."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/hourglass.svg"
+}

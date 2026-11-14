@@ -721,15 +721,39 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Expected start (Now while heating) and, while heating, the minutes to the temperature it heats to.
+   * @description Expected start (Now while heating), Expected ready and, while heating, the time remaining, by the
+   * learned curve to the temperature it heats to.
    */
   async showTiming(now, result, target) {
-    let start = this.homey.__('water.start.none');
-    if (result.demand) start = this.homey.__('water.start.now');
+    const none = this.homey.__('water.start.none');
+    const nowText = this.homey.__('water.start.now');
+    let start = none;
+    if (result.demand) start = nowText;
     else if (typeof result.nextStart === 'number' && result.nextStart > now) start = this.formatTime(result.nextStart);
     await this.setValue('text_expected_start', start);
-    const minutes = result.demand ? water.minutesToHeat(this.planTemperature(now), target, this.surroundingsTemperature(), this.getStoreValue('model')) : null;
-    await this.setValue('num_time_remaining', minutes);
+    const estimate = water.readyEstimate({
+      now,
+      temperature: this.planTemperature(now),
+      target,
+      outdoor: this.surroundingsTemperature(),
+      model: this.getStoreValue('model'),
+      demand: result.demand,
+      nextStart: result.nextStart,
+      filters: this.filterList(now),
+      filterTarget: this.getStoreValue('filterTarget')
+    });
+    let ready = none;
+    if (estimate.readyAt !== null) ready = estimate.readyAt <= now ? nowText : this.formatTime(estimate.readyAt);
+    await this.setValue('text_expected_ready', ready);
+    await this.setValue('text_time_remaining', estimate.minutes === null ? none : this.duration(estimate.minutes));
+  }
+
+  /**
+   * @description E.g. "45 min" or "1 h 5 min".
+   */
+  duration(minutes) {
+    if (minutes < 60) return this.homey.__('water.duration.minutes', { m: minutes });
+    return this.homey.__('water.duration.hours', { h: Math.floor(minutes / 60), m: minutes % 60 });
   }
 
   /**

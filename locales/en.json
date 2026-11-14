@@ -184,7 +184,7 @@
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",
       "in_use": "Ready until __until__",
-      "in_use_heat": "Ready until __until__",
+      "in_use_heat": "Heating to __target__ °C, ready until __until__",
       "ready_hold": "For __ready__, held until __until__",
       "ready_hold_heat": "For __ready__, held until __until__",
       "learning": "Starts __start__ for __ready__ (learning)",
@@ -225,6 +225,10 @@
     "start": {
       "now": "Now",
       "none": "–"
+    },
+    "duration": {
+      "minutes": "__m__ min",
+      "hours": "__h__ h __m__ min"
     },
     "weekday": {
       "0": "Sun",
