@@ -77,7 +77,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 - **Keep**: never below, whatever the price. **Maximum**: heating demand always stops here.
 - **Use**: **Ready at** (a time of day, empty for none), **Ready ahead** (0–30 minutes: be
-  ready this long before the use starts, default 15), **Use lasts**, the days of the week,
+  ready this long before the use starts, default 15), **Keep ready for**, the days of the week,
   **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows;
   the **Set ready time** card sets Ready at and Ready ahead together.
 - **Price limit**: skip a use when heating for it would cost more per kWh. 0 = always heat.

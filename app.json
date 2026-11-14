@@ -1587,7 +1587,7 @@
               "id": "use_minutes",
               "type": "number",
               "label": {
-                "en": "Use lasts"
+                "en": "Keep ready for"
               },
               "value": 120,
               "min": 15,
@@ -2161,7 +2161,7 @@
               "id": "use_minutes",
               "type": "number",
               "label": {
-                "en": "Use lasts"
+                "en": "Keep ready for"
               },
               "value": 60,
               "min": 15,
