@@ -435,6 +435,35 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
+   * @description What has been learned, for GET /water (api.js): the model with its hours seen, the power levels, the
+   * open learning segment and the water now.
+   */
+  learningState(now = Date.now()) {
+    const stored = this.getStoreValue('model');
+    const m = water.model(stored);
+    const iso = (ms) => (typeof ms === 'number' && Number.isFinite(ms) ? new Date(ms).toISOString() : null);
+    const seg = this.segment;
+    return {
+      id: this.getData().id,
+      name: this.getName(),
+      driver: this.driver.id,
+      model: { ...m, stored: stored || null },
+      confident: water.confident(m),
+      exactness: water.exactness(m),
+      power: this.powerStore(),
+      segment: seg ? { ...seg, start: iso(seg.start), hours: (now - seg.start) / 3600000, surroundings: seg.outN ? seg.outSum / seg.outN : null } : null,
+      stillSince: iso(this.getStoreValue('stillSince')),
+      still: this.isStill(now),
+      heating: this.isHeating(),
+      inUse: water.inUse(this.useList(now - water.AFTER_USE_MS), now),
+      water: this.waterTemperature(),
+      planTemperature: this.planTemperature(now),
+      surroundings: this.surroundingsTemperature(),
+      reason: this.getCapabilityValue('text_reason')
+    };
+  }
+
+  /**
    * @description The uses from now: weekly use time from the settings, one-offs from flows, minus skipped ones.
    */
   useList(now) {

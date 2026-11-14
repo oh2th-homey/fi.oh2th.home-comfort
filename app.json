@@ -30,6 +30,10 @@
     "getHistoryDays": {
       "method": "GET",
       "path": "/history/days"
+    },
+    "getWater": {
+      "method": "GET",
+      "path": "/water"
     }
   },
   "images": {

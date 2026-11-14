@@ -20,5 +20,14 @@ module.exports = {
   async getHistoryDays({ homey }) {
     const { version, zones, data } = await homey.app.history.readDays();
     return { version, zones, data: data ? data.toString('base64') : null };
+  },
+
+  /**
+   * @description GET /water: what each Hot Tub and Water Heater has learned (model, hours seen, open segment), to
+   * follow the learning.
+   */
+  async getWater({ homey }) {
+    const devices = ['spa', 'water-heater'].flatMap((id) => homey.drivers.getDriver(id).getDevices());
+    return devices.filter((device) => typeof device.learningState === 'function').map((device) => device.learningState());
   }
 };
