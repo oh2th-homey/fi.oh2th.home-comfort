@@ -2,10 +2,10 @@
   "name": {
     "en": "Hot Tub"
   },
-  "class": "other",
+  "class": "waterheater",
   "capabilities": [
     "onoff",
-    "is_automatic",
+    "thermostat_mode",
     "measure_temperature",
     "measure_temperature.ambient",
     "target_temperature",
@@ -43,6 +43,31 @@
       "title": {
         "en": "Heating"
       }
+    },
+    "thermostat_mode": {
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        {
+          "id": "auto",
+          "title": {
+            "en": "Automatic"
+          }
+        },
+        {
+          "id": "heat",
+          "title": {
+            "en": "Heat"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        }
+      ]
     }
   },
   "$extends": [

@@ -202,10 +202,11 @@
       "keep_heat": "Holds keep __keep__",
       "waiting": "Starts __start__ for __ready__",
       "waiting_warm": "Warm enough for __ready__",
-      "off": "Automatic off: not heating",
-      "off_heat": "Automatic off: heating by hand",
       "manual_on": "Heating by hand to __target__ °C, then automatic",
-      "manual_off": "Stopped by hand: automatic again at its next start"
+      "manual_off": "Stopped by hand: automatic again at its next start",
+      "mode_off": "Mode Off: the heater runs on its own controls",
+      "mode_heat": "Mode Heat: holds __target__ °C",
+      "mode_heat_heat": "Mode Heat: heats to __target__ °C"
     },
     "error": {
       "keep_max": "Keep must be lower than Maximum.",
@@ -213,7 +214,7 @@
       "ready_max": "The ready temperature is above Maximum: lower it first.",
       "ready_range": "The ready temperature must be above keep (__keep__) and at most the maximum (__max__).",
       "time": "Enter the time as HH:mm, for example 18:00",
-      "off": "Turn Automatic on first.",
+      "off": "Set the mode to Automatic first.",
       "filter_window": "Filter cycle __n__: enter the window as HH:mm within one day (from before to), at least as long as the cycle."
     },
     "model": {

@@ -47,13 +47,15 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 ## What it shows
 
-- **Heating** (on/off): the heating demand, on while the heater should heat. Turn it on by hand
-  to heat to the ready temperature now, whatever the price; then the device carries on by
-  itself. Turn it off by hand to stop the heating going on now; the device starts again at its
-  next planned start or latest safe start. Keep and Maximum always win.
-- **Automatic** (button): on, the device decides when to heat. Off, it heats only when you turn
-  Heating on, until you turn it off; Maximum still stops it, Keep isn't held. Turn Automatic
-  off when you run the heater by hand for a longer time.
+- **Mode**: **Automatic**, the device decides when to heat. **Heat**, it holds the ready
+  temperature all the time, whatever the price, like an ordinary thermostat. **Off**, it never
+  demands heating and the heater runs on its own controls (a tub's own controller keeps its
+  frost protection). Use Heat or Off when you run the heater by hand for a longer time.
+- **Heating** (on/off): the heating demand, on while the heater should heat. In Automatic, turn
+  it on by hand to heat to the ready temperature now, whatever the price; then the device
+  carries on by itself. Turn it off by hand to stop the heating going on now; the device starts
+  again at its next planned start or latest safe start. Keep and Maximum always win. In Heat or
+  Off, turning it on or off switches the mode to Heat or Off.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
 - **Ready temperature** (the dial): the temperature to reach for each use.
@@ -63,7 +65,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **State**: **Pre-heating** (heating ahead of a use in cheap hours), **Heating** (heating
   demand is on otherwise), **Ready** (at the ready temperature for a use,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
-  Maximum) or **Manual** (Automatic is off).
+  Maximum) or **Off** (the mode is Off).
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
   `In use until 20:00`.
 - **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the
@@ -150,13 +152,13 @@ so on a day with a filter cycle before the use, heating starts later or not at a
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
-  `stopped` or `off` for Manual).
-- Conditions **Automatic is on**, **Heating ready is on** and **State is**.
+  `stopped` or `off`).
+- Conditions **Heating ready is on** and **State is**.
 - Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Skip the
-  next use**, **Turn heating ready on or off**, **Turn automatic on or off** and **Set water
-  temperature** (when the water temperature comes from a flow).
-- Homey's own cards for Heating (turned on or off, is on, turn on or off, as by hand) and the
-  ready temperature.
+  next use**, **Turn heating ready on or off** and **Set water temperature** (when the water
+  temperature comes from a flow).
+- Homey's own cards for Heating (turned on or off, is on, turn on or off, as by hand), the mode
+  (changed, is, set) and the ready temperature.
 
 A typical pair of flows for a hot tub:
 

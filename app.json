@@ -561,7 +561,7 @@
               {
                 "id": "off",
                 "title": {
-                  "en": "Manual"
+                  "en": "Off"
                 }
               }
             ]
@@ -627,22 +627,6 @@
           }
         ],
         "id": "heating_ready"
-      },
-      {
-        "title": {
-          "en": "Automatic is on"
-        },
-        "titleFormatted": {
-          "en": "Automatic !{{is|isn't}} on"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=spa|water-heater"
-          }
-        ],
-        "id": "is_automatic"
       },
       {
         "title": {
@@ -950,46 +934,6 @@
           }
         ],
         "id": "set_heating_ready"
-      },
-      {
-        "title": {
-          "en": "Turn automatic on or off"
-        },
-        "titleFormatted": {
-          "en": "Turn automatic [[state]]"
-        },
-        "hint": {
-          "en": "Off: heating only by hand with on/off, Keep isn't held. On: the device decides again."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=spa|water-heater"
-          },
-          {
-            "type": "dropdown",
-            "name": "state",
-            "title": {
-              "en": "State"
-            },
-            "values": [
-              {
-                "id": "on",
-                "title": {
-                  "en": "on"
-                }
-              },
-              {
-                "id": "off",
-                "title": {
-                  "en": "off"
-                }
-              }
-            ]
-          }
-        ],
-        "id": "set_is_automatic"
       },
       {
         "title": {
@@ -1443,10 +1387,10 @@
       "name": {
         "en": "Hot Tub"
       },
-      "class": "other",
+      "class": "waterheater",
       "capabilities": [
         "onoff",
-        "is_automatic",
+        "thermostat_mode",
         "measure_temperature",
         "measure_temperature.ambient",
         "target_temperature",
@@ -1484,6 +1428,31 @@
           "title": {
             "en": "Heating"
           }
+        },
+        "thermostat_mode": {
+          "title": {
+            "en": "Mode"
+          },
+          "values": [
+            {
+              "id": "auto",
+              "title": {
+                "en": "Automatic"
+              }
+            },
+            {
+              "id": "heat",
+              "title": {
+                "en": "Heat"
+              }
+            },
+            {
+              "id": "off",
+              "title": {
+                "en": "Off"
+              }
+            }
+          ]
         }
       },
       "pair": [
@@ -1957,10 +1926,10 @@
       "name": {
         "en": "Water Heater"
       },
-      "class": "other",
+      "class": "waterheater",
       "capabilities": [
         "onoff",
-        "is_automatic",
+        "thermostat_mode",
         "measure_temperature",
         "measure_temperature.ambient",
         "target_temperature",
@@ -1998,6 +1967,31 @@
           "title": {
             "en": "Heating"
           }
+        },
+        "thermostat_mode": {
+          "title": {
+            "en": "Mode"
+          },
+          "values": [
+            {
+              "id": "auto",
+              "title": {
+                "en": "Automatic"
+              }
+            },
+            {
+              "id": "heat",
+              "title": {
+                "en": "Heat"
+              }
+            },
+            {
+              "id": "off",
+              "title": {
+                "en": "Off"
+              }
+            }
+          ]
         }
       },
       "pair": [
@@ -2703,7 +2697,7 @@
         "en": "State"
       },
       "hint": {
-        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Manual: Automatic is off, heating only by hand."
+        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the mode is Off."
       },
       "values": [
         {
@@ -2739,7 +2733,7 @@
         {
           "id": "off",
           "title": {
-            "en": "Manual"
+            "en": "Off"
           }
         }
       ],
@@ -2800,26 +2794,6 @@
         "en": "Heating ready off"
       },
       "icon": "./assets/capabilities/heating_ready.svg"
-    },
-    "is_automatic": {
-      "type": "boolean",
-      "title": {
-        "en": "Automatic"
-      },
-      "hint": {
-        "en": "On: the device decides when to heat, on prices and use times. Off: heating only by hand with on/off; Maximum still stops it."
-      },
-      "getable": true,
-      "setable": true,
-      "uiComponent": "button",
-      "insights": true,
-      "insightsTitleTrue": {
-        "en": "Automatic on"
-      },
-      "insightsTitleFalse": {
-        "en": "Automatic off"
-      },
-      "icon": "./assets/capabilities/is_automatic.svg"
     },
     "is_eco": {
       "type": "boolean",

@@ -4,9 +4,10 @@ const { localTime, isTime, addDays, updateCapabilities } = require('oh2th-homey-
 const mainDevice = require('./main-device');
 const water = require('../lib/water');
 
-// On/off is the heating demand; Automatic decides it (off: by hand only).
+// On/off is the heating demand; the mode decides how: auto (the device), heat (holds ready) or off.
 const DEMAND = 'onoff';
-const AUTOMATIC = 'is_automatic';
+const MODE = 'thermostat_mode';
+const MODES = ['auto', 'heat', 'off'];
 const READY = 'heating_ready';
 const STATE = 'enum_water_state';
 // Reasons while the water is held at ready for a use (lib/water.js decide).
@@ -41,6 +42,9 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   async onInitDevice() {
+    // Water heater class (earlier versions: other).
+    const deviceClass = this.driver.manifest.class;
+    if (deviceClass && this.getClass() !== deviceClass) await this.setClass(deviceClass).catch(this.error);
     this.sourceListeners = {};
     this.segment = this.getStoreValue('segment') || null;
     this.still = this.getStoreValue('still') || null;
@@ -92,18 +96,19 @@ module.exports = class waterDevice extends mainDevice {
     this.registerCapabilityListener('target_temperature', this.onCapability_TARGET_TEMPERATURE.bind(this));
     this.registerCapabilityListener(READY, this.onCapability_HEATING_READY.bind(this));
     this.registerCapabilityListener(DEMAND, this.onCapability_ONOFF.bind(this));
-    this.registerCapabilityListener(AUTOMATIC, this.onCapability_IS_AUTOMATIC.bind(this));
+    this.registerCapabilityListener(MODE, this.onCapability_THERMOSTAT_MODE.bind(this));
   }
 
   /**
-   * @description Heating on or off by hand. With Automatic on: on heats to the ready temperature, off stops the heating
-   * going on now (lib/water.js applyManual). With Automatic off: on until turned off; Maximum still stops it.
+   * @description Heating on or off by hand. In mode Automatic: on heats to the ready temperature, off stops the heating
+   * going on now (lib/water.js applyManual). In mode Heat or Off: switches the mode (on: Heat, off: Off).
    */
   async onCapability_ONOFF(value) {
     this.log(`${this.getName()} - onCapability_ONOFF - ${value}`);
     try {
       if (value === this.getCapabilityValue(DEMAND)) return Promise.resolve(false);
-      if (this.isAutomatic()) await this.setStoreValue('manual', { on: value, at: Date.now() });
+      if (this.mode() === 'auto') await this.setStoreValue('manual', { on: value, at: Date.now() });
+      else await this.setValue(MODE, value ? 'heat' : 'off');
       // Homey stores the value when the listener resolves; plan right after.
       this.setTimer('plan', () => this.plan(), 500);
       return Promise.resolve(true);
@@ -113,16 +118,16 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Automatic on or off. Off stops the heating; from then on it heats only by hand (on/off), Keep isn't
-   * held. On: the device decides again.
+   * @description Mode: Automatic (the device decides), Heat (holds the ready temperature, whatever the price) or Off (no
+   * heating demand; the heater is left to its own controls, Keep isn't held).
    */
-  async onCapability_IS_AUTOMATIC(value) {
-    this.log(`${this.getName()} - onCapability_IS_AUTOMATIC - ${value}`);
+  async onCapability_THERMOSTAT_MODE(value) {
+    this.log(`${this.getName()} - onCapability_THERMOSTAT_MODE - ${value}`);
     try {
-      if (value === this.isAutomatic()) return Promise.resolve(false);
+      if (!MODES.includes(value)) throw new Error(this.homey.__('error.invalid_value', { value }));
+      if (value === this.mode()) return Promise.resolve(false);
       await this.setStoreValue('manual', null);
-      await this.setValue(AUTOMATIC, value);
-      if (!value) await this.setValue(DEMAND, false);
+      // Homey stores the value when the listener resolves; plan right after.
       this.setTimer('plan', () => this.plan(), 500);
       return Promise.resolve(true);
     } catch (error) {
@@ -130,8 +135,12 @@ module.exports = class waterDevice extends mainDevice {
     }
   }
 
-  isAutomatic() {
-    return this.getCapabilityValue(AUTOMATIC) !== false;
+  /**
+   * @description auto | heat | off (unknown: auto).
+   */
+  mode() {
+    const value = this.getCapabilityValue(MODE);
+    return MODES.includes(value) ? value : 'auto';
   }
 
   /**
@@ -147,7 +156,7 @@ module.exports = class waterDevice extends mainDevice {
   async onCapability_HEATING_READY(value) {
     this.log(`${this.getName()} - onCapability_HEATING_READY - ${value}`);
     try {
-      if (value && !this.isAutomatic()) throw new Error(this.homey.__('water.error.off'));
+      if (value && this.mode() !== 'auto') throw new Error(this.homey.__('water.error.off'));
       const now = Date.now();
       const active = this.activeUse(now);
       if (value && !active) {
@@ -192,9 +201,9 @@ module.exports = class waterDevice extends mainDevice {
       await this.setValue('measure_temperature', this.waterTemperature(), check);
       await this.setValue(SURROUNDINGS, this.surroundingsTemperature(), check);
       if (this.hasCapability(POWER)) await this.setValue(POWER, this.powerReading(), check);
-      // Before Automatic, on/off was the control: carry it over once, then on/off shows the heating demand.
-      if (typeof this.getCapabilityValue(AUTOMATIC) !== 'boolean') {
-        await this.setValue(AUTOMATIC, this.getCapabilityValue(DEMAND) !== false, check);
+      // Before the mode, on/off was the control: carry it over once (on: auto, off: off), then on/off shows the demand.
+      if (!MODES.includes(this.getCapabilityValue(MODE))) {
+        await this.setValue(MODE, this.getCapabilityValue(DEMAND) === false ? 'off' : 'auto', check);
         await this.setValue(DEMAND, false, check);
       } else if (typeof this.getCapabilityValue(DEMAND) !== 'boolean') {
         await this.setValue(DEMAND, this.demanded(), check);
@@ -635,17 +644,19 @@ module.exports = class waterDevice extends mainDevice {
     this.planning = true;
     try {
       const settings = this.getSettings();
-      if (!this.isAutomatic()) {
-        // By hand: on/off is the demand; Maximum still stops it.
-        const temperature = this.planTemperature(now);
-        const atMax = typeof temperature === 'number' && temperature >= settings.max_temperature;
-        const demand = this.getCapabilityValue(DEMAND) === true && !atMax;
-        const reason = atMax ? this.reasonText({ code: 'at_max', args: { max: settings.max_temperature } }) : this.homey.__(demand ? 'water.reason.off_heat' : 'water.reason.off');
-        await this.setValue(STATE, 'off');
+      const mode = this.mode();
+      if (mode !== 'auto') {
+        // Heat: holds the ready temperature, whatever the price. Off: no demand.
+        let held = { demand: false, reason: { code: 'mode_off', args: {} } };
+        if (mode === 'heat') {
+          held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.getCapabilityValue('target_temperature'), max: settings.max_temperature, heatingNow: this.demanded() });
+        }
+        const reason = this.reasonText(held.reason);
+        await this.setValue(STATE, mode === 'off' ? 'off' : water.state(held));
         await this.setValue('text_reason', reason);
-        await this.setDemand(demand, reason);
+        await this.setDemand(held.demand, reason);
         await this.setValue(READY, false);
-        await this.checkProblem(now, { demand });
+        await this.checkProblem(now, held);
         return;
       }
       const controller = this.homey.app.findController();

@@ -594,3 +594,14 @@ test('applyManual: on heats to ready then lets go; off skips the heating going o
   assert.strictEqual(water.state(on.result), 'heating');
   assert.strictEqual(water.state(off.result), 'waiting');
 });
+
+test('holdTarget: mode Heat holds the ready temperature with a band, Maximum stops it', () => {
+  const opts = { ready: 37.5, max: 40 };
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: 36.9 }).demand, true);
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: 37.2 }).demand, false);
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: 37.2, heatingNow: true }).demand, true);
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: 37.5, heatingNow: true }).demand, false);
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: 40, heatingNow: true }).reason.code, 'at_max');
+  assert.strictEqual(water.holdTarget({ ...opts, temperature: null }).demand, false);
+  assert.strictEqual(water.state(water.holdTarget({ ...opts, temperature: 36 })), 'heating');
+});
