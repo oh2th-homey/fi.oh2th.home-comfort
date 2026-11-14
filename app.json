@@ -1426,7 +1426,7 @@
         },
         "onoff": {
           "title": {
-            "en": "Heating"
+            "en": "Heating demand"
           },
           "uiComponent": "button"
         },
@@ -1966,7 +1966,7 @@
         },
         "onoff": {
           "title": {
-            "en": "Heating"
+            "en": "Heating demand"
           },
           "uiComponent": "button"
         },

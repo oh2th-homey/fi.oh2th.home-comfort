@@ -28,5 +28,5 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 - Triggers: **Heating demand started** and **Heating demand stopped**, with the ready temperature
   and the reason; **State changed**, with the state; **Filter cycles planned** (Hot Tub, see
   [Filter cycles](Hot-Tub-and-Water-Heater#filter-cycles-hot-tub)), with each cycle's start and
-  whether it runs. Homey's own cards cover Heating (on/off: the heating demand, or by hand), the
+  whether it runs. Homey's own cards cover Heating demand (on/off, also by hand), the
   mode (Automatic, Heat, Off) and the ready temperature.
