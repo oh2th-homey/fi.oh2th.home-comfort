@@ -146,7 +146,8 @@ then **Cycle 2 runs** is yes? → set cycle 2 to **Cycle 2 start**, else disable
 The heating plan counts the heat the tub adds in its filter cycles: during each planned cycle
 (and the same times on the following days, as the tub repeats them) the water warms up to
 **Filter heats to**, shown in the settings. With a power meter the device learns it where the
-tub's own heater stops while the pump runs on and the device isn't demanding heat. Until it has
+tub's own heater stops inside a filter window while the pump runs on and the device isn't
+demanding heat. Until it has
 been seen, filter cycles count as adding no heat. The latest safe start counts the cycles too,
 so on a day with a filter cycle before the use, heating starts later or not at all.
 

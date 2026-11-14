@@ -107,9 +107,17 @@ module.exports = class spaDevice extends waterDevice {
   }
 
   /**
-   * @description The temperature the tub's own filter cycles heat to, learned where its heater stops on its own.
+   * @description The temperature the tub's own filter cycles heat to, learned where its heater stops on its own
+   * inside a filter window.
    */
-  async onOwnHeatingStopped(temperature) {
+  async onOwnHeatingStopped(temperature, now = Date.now()) {
+    // Only inside a filter window: elsewhere the heater was run by something else (e.g. an older flow heating for a use).
+    const cycles = this.filterCycles();
+    if (!cycles.every((cycle) => isTime(cycle.from) && isTime(cycle.to))) return;
+    if (!water.inFilterWindow({ now, timeZone: this.homey.clock.getTimezone(), cycles })) {
+      this.log(`${this.getName()} - own heating stopped at ${temperature} °C outside the filter windows: not learned`);
+      return;
+    }
     const before = this.getStoreValue('filterTarget');
     const target = water.learnFilterTarget(before, temperature);
     this.log(`${this.getName()} - own heating stopped at ${temperature} °C: filter heats to ${target.toFixed(1)} °C`);

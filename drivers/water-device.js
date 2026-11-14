@@ -480,7 +480,7 @@ module.exports = class waterDevice extends mainDevice {
     }
     await this.saveStill(step.state, now);
     // The heater stopped while the pump runs on, without demand from this device: its own thermostat was satisfied.
-    if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse) await this.onOwnHeatingStopped(raw);
+    if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse) await this.onOwnHeatingStopped(raw, now);
     this.lastFlow = flow;
 
     // Heating segments: the heating rate.

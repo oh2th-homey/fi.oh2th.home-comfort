@@ -427,6 +427,18 @@ test('filterTimes: local windows on a DST day', () => {
   assert.strictEqual(night.end - night.start, 2 * H);
 });
 
+test('inFilterWindow: inside a cycle window today, not before or after it, none without cycles', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const cycles = [{ from: '00:00', to: '06:00' }, { from: '13:00', to: '16:30' }];
+  const at = (hours) => water.inFilterWindow({ now: day + hours * H, timeZone: TZ, cycles });
+  assert.strictEqual(at(2), true);
+  assert.strictEqual(at(6), false);
+  assert.strictEqual(at(12.99), false);
+  assert.strictEqual(at(16), true);
+  assert.strictEqual(at(17), false);
+  assert.strictEqual(water.inFilterWindow({ now: day + 2 * H, timeZone: TZ, cycles: [] }), false);
+});
+
 test('filterDay: today while its windows are ahead, the next day only after today\'s windows are over', () => {
   const day = midnight(TZ, '2026-11-14');
   const plan = (hours, plannedDate = null) => water.filterDay({ now: day + hours * H, timeZone: TZ, cycles: CYCLES, plannedDate });
