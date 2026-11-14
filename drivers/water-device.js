@@ -332,6 +332,15 @@ module.exports = class waterDevice extends mainDevice {
     }
     const heating = this.isHeating();
     const seg = this.segment;
+    // In use (and shortly after): jets, people and an open lid. Learn what came before, then nothing until it's over;
+    // the water is stirred, so it doesn't count as standing still either.
+    // The list from AFTER_USE_MS ago, so a use that just ended is still in it.
+    if (water.inUse(this.useList(now - water.AFTER_USE_MS), now)) {
+      if (seg && seg.from !== null) await this.learnSegment(seg, now, temperature);
+      if (seg) await this.saveSegment(null);
+      await this.setStoreValue('stillSince', now).catch(this.error);
+      return;
+    }
     if (!seg || (seg.from === null && heating !== seg.heating)) {
       await this.startSegment(heating, now, raw, surroundings, seg);
       return;
@@ -358,13 +367,20 @@ module.exports = class waterDevice extends mainDevice {
       if (Math.round(hours * 60) % 15 === 0) await this.saveSegment(seg);
       return;
     }
-    const result = water.learn(this.getStoreValue('model'), { heating: seg.heating, hours, from: seg.from, to: temperature, outdoor: seg.outSum / seg.outN });
-    if (result.learned) {
-      this.log(`${this.getName()} - learned ${result.learned} ${result.value.toFixed(4)} from ${hours.toFixed(2)} h: heat ${result.model.heatRate.toFixed(2)} °C/h, loss ${result.model.loss.toFixed(4)}/h`);
-      await this.setStoreValue('model', result.model).catch(this.error);
-      await this.showModel(result.model);
-    }
+    await this.learnSegment(seg, now, temperature);
     await this.startSegment(heating, now, raw, surroundings, seg);
+  }
+
+  /**
+   * @description Learn from a finished segment (lib/water.js learn) and show the curve when it changed.
+   */
+  async learnSegment(seg, now, temperature) {
+    const hours = (now - seg.start) / 3600000;
+    const result = water.learn(this.getStoreValue('model'), { heating: seg.heating, hours, from: seg.from, to: temperature, outdoor: seg.outSum / seg.outN });
+    if (!result.learned) return;
+    this.log(`${this.getName()} - learned ${result.learned} ${result.value.toFixed(4)} from ${hours.toFixed(2)} h: heat ${result.model.heatRate.toFixed(2)} °C/h, loss ${result.model.loss.toFixed(4)}/h`);
+    await this.setStoreValue('model', result.model).catch(this.error);
+    await this.showModel(result.model);
   }
 
   /**
@@ -393,9 +409,6 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description The learned curve in the device settings (labels).
-   */
-  /**
    * @description The learned power levels in the device settings (label), when they change by more than rounding.
    */
   showPower() {
@@ -407,6 +420,9 @@ module.exports = class waterDevice extends mainDevice {
     if (text !== this.getSetting('learned_power')) this.setSettings({ learned_power: text }).catch(this.error);
   }
 
+  /**
+   * @description The learned curve in the device settings (labels).
+   */
   async showModel(stored) {
     const m = water.model(stored);
     const learned = water.confident(m) ? this.homey.__('water.model.learned') : this.homey.__('water.model.learning', { hours: Math.round(m.heatHours * 10) / 10 });
@@ -501,10 +517,11 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Drop one-offs and skips of uses that are over.
+   * @description Drop one-offs and skips of uses that are over. One-offs stay for AFTER_USE_MS, so learning still skips
+   * the stirred water after them.
    */
   async pruneUses(now) {
-    const oneOffs = (this.getStoreValue('oneOffs') || []).filter((use) => use.start + (use.minutes || 60) * 60000 > now);
+    const oneOffs = (this.getStoreValue('oneOffs') || []).filter((use) => use.start + (use.minutes || 60) * 60000 + water.AFTER_USE_MS > now);
     const skipped = (this.getStoreValue('skipped') || []).filter((start) => start > now - 24 * 3600000);
     if (oneOffs.length !== (this.getStoreValue('oneOffs') || []).length) await this.setStoreValue('oneOffs', oneOffs).catch(this.error);
     if (skipped.length !== (this.getStoreValue('skipped') || []).length) await this.setStoreValue('skipped', skipped).catch(this.error);

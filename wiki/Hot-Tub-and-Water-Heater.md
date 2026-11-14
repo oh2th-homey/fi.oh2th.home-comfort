@@ -93,6 +93,10 @@ circulation mixes the water. The device learns this **mixing drop** each time he
 after the water stood still, and plans still water with the reading minus the drop. The first
 15 minutes of each heating are left out of learning while the water mixes.
 
+Uses are left out of learning too, from the start of a use until 30 minutes after it ends: with
+the lid open, the jets on and people in the water, the heat loss and heating say nothing about
+the closed tub.
+
 ## Flows
 
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready

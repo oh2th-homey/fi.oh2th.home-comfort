@@ -301,3 +301,20 @@ test('problemCheck: cooling water under demand raises the problem, warming resta
   assert.deepStrictEqual(water.problemCheck(r.since, 7 * H, 37, false), { since: null, problem: false });
   assert.strictEqual(water.problemCheck(null, 0, null, false).problem, true);
 });
+
+test('inUse: during a use and 30 minutes after it, not before', () => {
+  const list = [{ start: 18 * H, end: 19.5 * H }];
+  assert.strictEqual(water.inUse(list, 17.9 * H), false);
+  assert.strictEqual(water.inUse(list, 18 * H), true);
+  assert.strictEqual(water.inUse(list, 19.9 * H), true);
+  assert.strictEqual(water.inUse(list, 20 * H), false);
+  assert.strictEqual(water.inUse([], 18 * H), false);
+});
+
+test('inUse: with the use list from AFTER_USE_MS ago, a use that just ended still counts', () => {
+  const day = Date.UTC(2026, 0, 5);
+  const list = (now) => water.uses({ now: now - water.AFTER_USE_MS, timeZone: 'UTC', schedule: { time: '18:00', minutes: 60, days: {} } });
+  for (const [hours, expected] of [[17.9, false], [18.5, true], [19.1, true], [19.4, true], [19.6, false]]) {
+    assert.strictEqual(water.inUse(list(day + hours * H), day + hours * H), expected, `${hours} h`);
+  }
+});
