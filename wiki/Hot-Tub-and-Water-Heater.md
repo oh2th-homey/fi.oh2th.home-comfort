@@ -101,7 +101,8 @@ With a **power meter** the device tells three states apart: **still** (standby),
 stretch, from the last reading before the pump stops to the mixed reading 15 minutes after it
 starts again (less what the heater added meanwhile), so the high readings of still water don't
 count. The reading just before the pump starts gives the mixing drop. A pump that stops again
-within those 15 minutes ends the stretch without learning. Without a power meter it can't see
+within those 15 minutes ends the stretch without learning. A use ends a stretch too; the water
+it stirred starts the next one. Without a power meter it can't see
 the pump: it learns the mixing drop when heating starts after the water stood still, and the
 heat loss from the readings while it waits.
 

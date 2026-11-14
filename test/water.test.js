@@ -480,7 +480,7 @@ test('stillStep: no stretch without a mixed start, when the pump stops while mix
     { minutes: 30, flow: 'circulating', raw: 35.5 }
   ]);
   assert.strictEqual(stopped.learned.length, 0);
-  // A use in the middle drops the stretch.
+  // A use in the middle drops the stretch; a new one starts after it (minute 130 to the pump start at 330).
   const used = runStill(
     [
       { minutes: 30, flow: 'circulating', raw: 36.4 },
@@ -489,7 +489,21 @@ test('stillStep: no stretch without a mixed start, when the pump stops while mix
     ],
     { inUseAt: (now) => now > 100 * 60000 && now < 130 * 60000 }
   );
-  assert.strictEqual(used.learned.length, 0);
+  assert.strictEqual(used.learned.length, 1);
+  assert.ok(Math.abs(used.learned[0].loss.hours - 200 / 60) < 1e-9);
+  // After a use the stirred water starts a stretch at once, also when the pump stops soon after.
+  const after = runStill(
+    [
+      { minutes: 60, flow: 'circulating', raw: 37.5 },
+      { minutes: 15, flow: 'circulating', raw: 37.2 },
+      { minutes: 300, flow: 'still', raw: 36.5 },
+      { minutes: 30, flow: 'circulating', raw: 36 }
+    ],
+    { inUseAt: (now) => now < 60 * 60000 }
+  );
+  assert.strictEqual(after.learned.length, 1);
+  assert.strictEqual(after.learned[0].loss.from, 37.2);
+  assert.ok(Math.abs(after.learned[0].loss.hours - 5) < 1e-9);
   // Circulating the whole time: nothing to learn the cooling from.
   assert.strictEqual(runStill([{ minutes: 600, flow: 'circulating', raw: 36 }]).learned.length, 0);
 });
