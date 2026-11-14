@@ -80,8 +80,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   ready this long before the use starts, default 15), **Keep ready for**, the days of the week,
   **Hold before use** and **Ready by hand at most**. One-off uses and skipped ones come from flows;
   the **Set ready time** card sets Ready at and Ready ahead together.
-- **Price limit**: skip a use when heating for it would cost more per kWh. 0 = always heat.
-  Keep is held anyway.
+- **Price limit**: skip a use when heating for it would cost more per kWh on average. 0 = always
+  heat. While the device is still learning, this is the mean price from the latest start to the
+  ready time, decided before the heating starts. Keep is held anyway.
 - **Heater power**: the power while heating, used until a power meter has shown it.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels.

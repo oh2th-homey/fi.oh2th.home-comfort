@@ -118,6 +118,35 @@ test('decide: before the curve is known, heats just in time, not ahead', () => {
   assert.strictEqual(late.reason.code, 'learning_heat');
 });
 
+test('decide: while learning, the price limit skips a use on the mean price from the start to ready', () => {
+  const now = midnight(TZ, '2026-11-13') + 6 * H;
+  const start = now + 12 * H;
+  const useList = [{ start, end: start + H }];
+  const at = (price, opts = {}) => water.decide({ ...base, model: null, now, temperature: 36, outdoor: 0, quarters: water.quarterPrices(Array(96).fill(price), now, 15, now, 24 * H), useList, priceLimit: 0.12, ...opts });
+  const cheap = at(0.05);
+  assert.strictEqual(cheap.reason.code, 'learning');
+  assert.strictEqual(cheap.skip, false);
+  const dear = at(0.2);
+  assert.strictEqual(dear.skip, true);
+  assert.strictEqual(dear.demand, false);
+  assert.strictEqual(dear.reason.code, 'skipped');
+  // No limit: always heats.
+  assert.strictEqual(at(0.2, { priceLimit: null }).skip, false);
+  // Already heating for the use: carries on, no stop halfway.
+  const going = at(0.2, { now: start - 5 * H, heatingNow: true });
+  assert.strictEqual(going.demand, true);
+  assert.strictEqual(going.reason.code, 'learning_heat');
+  // Keep still holds.
+  assert.strictEqual(at(0.2, { temperature: 29.5 }).demand, true);
+});
+
+test('meanPrice: the known prices of the quarters overlapping the time', () => {
+  const quarters = [0, 1, 2, 3].map((i) => ({ start: i * Q, price: i === 2 ? null : i }));
+  assert.strictEqual(water.meanPrice(quarters, 0, 4 * Q), (0 + 1 + 3) / 3);
+  assert.strictEqual(water.meanPrice(quarters, Q + 1, 2 * Q), 1);
+  assert.strictEqual(water.meanPrice(quarters, 2 * Q, 3 * Q), null);
+});
+
 test('decide: without prices, just in time with the no prices reason', () => {
   const now = midnight(TZ, '2026-11-13') + 6 * H;
   const start = now + 2 * H;
