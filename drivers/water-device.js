@@ -41,6 +41,7 @@ module.exports = class waterDevice extends mainDevice {
   async onInitDevice() {
     this.sourceListeners = {};
     this.segment = this.getStoreValue('segment') || null;
+    this.still = this.getStoreValue('still') || null;
     this.demandSince = null;
     await this.subscribeSources();
   }
@@ -270,6 +271,13 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   isStill(now) {
+    // With a power meter: the pump stopped at least STILL_MS ago (unknown since when: still, the safe side).
+    const flow = this.flowState();
+    if (flow) {
+      if (flow !== 'still') return false;
+      const { still } = this;
+      return !(still && still.phase === 'still' && now - still.at < STILL_MS);
+    }
     if (this.isHeating()) return false;
     const stillSince = this.getStoreValue('stillSince');
     // Unknown after a restart: still, the safe side.
@@ -330,6 +338,12 @@ module.exports = class waterDevice extends mainDevice {
       if (this.segment) await this.saveSegment(null);
       return;
     }
+    // With a power meter: still, circulating or heating (trackFlow). Without one, heating is the demand (below).
+    const flow = this.flowState();
+    if (flow) {
+      await this.trackFlow(now, flow);
+      return;
+    }
     const raw = this.waterTemperature();
     // Heating segments measure the mixed water (raw), waiting ones the planned temperature.
     const temperature = this.isHeating() ? raw : this.planTemperature(now);
@@ -377,6 +391,84 @@ module.exports = class waterDevice extends mainDevice {
     }
     await this.learnSegment(seg, now, temperature);
     await this.startSegment(heating, now, raw, surroundings, seg);
+  }
+
+  /**
+   * @description Still, circulating or heating by the power meter; null without one or without a reading.
+   */
+  flowState() {
+    if (!this.getStoreValue('power')) return null;
+    return water.flowState(this.powerReading(), water.powerLevels(this.powerStore(), this.ratedSetting()));
+  }
+
+  /**
+   * @description Learning with a power meter, every minute. The cooling and the mixing drop come from still stretches
+   * between two mixed readings (lib/water.js stillStep); the heating rate from heating segments, as without a meter.
+   */
+  async trackFlow(now, flow) {
+    const raw = this.waterTemperature();
+    const surroundings = this.surroundingsTemperature();
+    const inUse = water.inUse(this.useList(now - water.AFTER_USE_MS), now);
+    const step = water.stillStep(this.still, { now, flow, raw, outdoor: surroundings, inUse, model: this.getStoreValue('model') });
+    if (step.mix) {
+      const mix = water.learnMix(this.getStoreValue('model'), step.mix);
+      if (mix.value !== null) {
+        this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C: average ${mix.model.mixDrop.toFixed(2)} °C`);
+        await this.setStoreValue('model', mix.model).catch(this.error);
+        await this.showModel(mix.model);
+      }
+    }
+    if (step.loss) {
+      const result = water.learn(this.getStoreValue('model'), { heating: false, ...step.loss });
+      const { hours, from, to } = step.loss;
+      this.log(`${this.getName()} - still ${hours.toFixed(2)} h ${from.toFixed(1)} → ${to.toFixed(1)} °C: ${result.learned ? `loss ${result.value.toFixed(4)}/h, now ${result.model.loss.toFixed(4)}/h` : 'not learned'}`);
+      if (result.learned) {
+        await this.setStoreValue('model', result.model).catch(this.error);
+        await this.showModel(result.model);
+      }
+    }
+    await this.saveStill(step.state, now);
+
+    // Heating segments: the heating rate.
+    const seg = this.segment;
+    if (inUse || raw === null) {
+      if (seg && seg.heating && seg.from !== null && raw !== null) await this.learnSegment(seg, now, raw);
+      if (seg) await this.saveSegment(null);
+      return;
+    }
+    if (flow !== 'heating') {
+      // Waiting segments from before a meter reading was seen are dropped: the cooling comes from still stretches.
+      if (seg && seg.heating && seg.from !== null) await this.learnSegment(seg, now, raw);
+      if (seg) await this.saveSegment(null);
+      return;
+    }
+    if (!seg || !seg.heating) {
+      await this.saveSegment({ heating: true, start: now + SETTLE_MS, from: null, outSum: 0, outN: 0 });
+      return;
+    }
+    if (seg.from === null) {
+      if (now >= seg.start) await this.saveSegment({ ...seg, from: raw, outSum: surroundings, outN: 1 });
+      return;
+    }
+    seg.outSum += surroundings;
+    seg.outN += 1;
+    const hours = (now - seg.start) / 3600000;
+    if (hours < MAX_HEAT_HOURS) {
+      if (Math.round(hours * 60) % 15 === 0) await this.saveSegment(seg);
+      return;
+    }
+    await this.learnSegment(seg, now, raw);
+    await this.saveSegment({ heating: true, start: now, from: raw, outSum: surroundings, outN: 1 });
+  }
+
+  /**
+   * @description The still stretch state: in memory, written when its phase changes and each quarter.
+   */
+  async saveStill(state, now) {
+    const before = this.still;
+    this.still = state;
+    const changed = (before && before.phase) !== (state && state.phase);
+    if (changed || Math.round(now / 60000) % 15 === 0) await this.setStoreValue('still', state).catch(this.error);
   }
 
   /**
@@ -462,6 +554,8 @@ module.exports = class waterDevice extends mainDevice {
       segment: seg ? { ...seg, start: iso(seg.start), hours: (now - seg.start) / 3600000, surroundings: seg.outN ? seg.outSum / seg.outN : null } : null,
       stillSince: iso(this.getStoreValue('stillSince')),
       still: this.isStill(now),
+      flow: this.flowState(),
+      stretch: this.still ? { ...this.still, at: iso(this.still.at) } : null,
       heating: this.isHeating(),
       inUse: water.inUse(this.useList(now - water.AFTER_USE_MS), now),
       water: this.waterTemperature(),
@@ -649,6 +743,7 @@ module.exports = class waterDevice extends mainDevice {
     await this.setStoreValue('surroundings', surroundings);
     await this.setStoreValue('power', power);
     await this.saveSegment(null);
+    await this.saveStill(null, Date.now());
     await this.checkCapabilities();
     await this.subscribeSources();
     await this.setCapabilityValues();

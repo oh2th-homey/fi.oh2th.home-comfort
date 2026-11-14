@@ -93,9 +93,17 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
    the learned curve.
 
 In standing water the warm water rises, so a sensor near the surface reads high until the
-circulation mixes the water. The device learns this **mixing drop** each time heating starts
-after the water stood still, and plans still water with the reading minus the drop. The first
-15 minutes of each heating are left out of learning while the water mixes.
+circulation mixes the water. The device plans still water with the reading minus this **mixing
+drop**. The first 15 minutes of each heating are left out of learning while the water mixes.
+
+With a **power meter** the device tells three states apart: **still** (standby), **circulating**
+(the base load, such as a filter pump) and **heating**. It learns the heat loss over each still
+stretch, from the last reading before the pump stops to the mixed reading 15 minutes after it
+starts again (less what the heater added meanwhile), so the high readings of still water don't
+count. The reading just before the pump starts gives the mixing drop. A pump that stops again
+within those 15 minutes ends the stretch without learning. Without a power meter it can't see
+the pump: it learns the mixing drop when heating starts after the water stood still, and the
+heat loss from the readings while it waits.
 
 Uses are left out of learning too, from the start of a use until 30 minutes after it ends: with
 the lid open, the jets on and people in the water, the heat loss and heating say nothing about
