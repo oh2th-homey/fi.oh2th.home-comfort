@@ -220,6 +220,162 @@
   {
     "type": "group",
     "label": {
+      "en": "Filter cycles"
+    },
+    "children": [
+      {
+        "id": "filter_cycles",
+        "type": "dropdown",
+        "label": {
+          "en": "Filter cycles"
+        },
+        "value": "0",
+        "values": [
+          {
+            "id": "0",
+            "label": {
+              "en": "None"
+            }
+          },
+          {
+            "id": "1",
+            "label": {
+              "en": "1 filter cycle"
+            }
+          },
+          {
+            "id": "2",
+            "label": {
+              "en": "2 filter cycles"
+            }
+          }
+        ],
+        "hint": {
+          "en": "The tub's own filter cycles, which also heat. Planned in the cheapest quarters of their windows once the next day's prices are known; the Filter cycles planned card gives the start times to your flow."
+        }
+      },
+      {
+        "id": "filter1_from",
+        "type": "text",
+        "label": {
+          "en": "Cycle 1 window from"
+        },
+        "value": "00:00",
+        "hint": {
+          "en": "HH:mm. The cycle runs in the cheapest quarters between from and to, within one day."
+        }
+      },
+      {
+        "id": "filter1_to",
+        "type": "text",
+        "label": {
+          "en": "Cycle 1 window to"
+        },
+        "value": "06:00"
+      },
+      {
+        "id": "filter1_minutes",
+        "type": "number",
+        "label": {
+          "en": "Cycle 1 length"
+        },
+        "value": 120,
+        "min": 15,
+        "max": 720,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "The same length as set on the tub's own filter cycle card."
+        }
+      },
+      {
+        "id": "filter1_price_limit",
+        "type": "number",
+        "label": {
+          "en": "Cycle 1 price limit"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 10,
+        "step": 0.01,
+        "units": {
+          "en": "/kWh"
+        },
+        "hint": {
+          "en": "Skip the cycle on a day when its cheapest time costs more per kWh on average. 0 = always runs."
+        }
+      },
+      {
+        "id": "filter2_from",
+        "type": "text",
+        "label": {
+          "en": "Cycle 2 window from"
+        },
+        "value": "12:00",
+        "hint": {
+          "en": "HH:mm. The cycle runs in the cheapest quarters between from and to, within one day."
+        }
+      },
+      {
+        "id": "filter2_to",
+        "type": "text",
+        "label": {
+          "en": "Cycle 2 window to"
+        },
+        "value": "18:00"
+      },
+      {
+        "id": "filter2_minutes",
+        "type": "number",
+        "label": {
+          "en": "Cycle 2 length"
+        },
+        "value": 60,
+        "min": 15,
+        "max": 720,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "The same length as set on the tub's own filter cycle card."
+        }
+      },
+      {
+        "id": "filter2_price_limit",
+        "type": "number",
+        "label": {
+          "en": "Cycle 2 price limit"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 10,
+        "step": 0.01,
+        "units": {
+          "en": "/kWh"
+        },
+        "hint": {
+          "en": "Skip the cycle on a day when its cheapest time costs more per kWh on average. 0 = always runs."
+        }
+      },
+      {
+        "id": "filter_planned",
+        "type": "label",
+        "label": {
+          "en": "Planned"
+        },
+        "value": "-",
+        "hint": {
+          "en": "The last planned filter cycles."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
       "en": "Learned heating curve"
     },
     "children": [

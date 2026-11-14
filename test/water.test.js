@@ -348,3 +348,70 @@ test('inUse: with the use list from AFTER_USE_MS ago, a use that just ended stil
     assert.strictEqual(water.inUse(list(day + hours * H), day + hours * H), expected, `${hours} h`);
   }
 });
+
+const CYCLES = [
+  { from: '00:00', to: '06:00', minutes: 120, priceLimit: null },
+  { from: '13:00', to: '16:30', minutes: 60, priceLimit: 0.15 }
+];
+
+// Quarter prices for two days from a local midnight: price(hour, quarter).
+function quartersFrom(date, price) {
+  const start = midnight(TZ, date);
+  return Array.from({ length: 96 * 2 }, (_, i) => ({ start: start + i * Q, price: price(Math.floor((i % 96) / 4), i % 4) }));
+}
+
+test('filterTimes: the cheapest run inside each window, ties to the earliest', () => {
+  // Cheap 03:00–05:00 at night, 14:15–15:15 in the afternoon, the rest 0.10.
+  const quarters = quartersFrom('2026-11-14', (h, q) => {
+    if (h === 3 || h === 4) return 0.02;
+    if ((h === 14 && q >= 1) || (h === 15 && q === 0)) return 0.05;
+    return 0.1;
+  });
+  const [night, day] = water.filterTimes({ quarters, date: '2026-11-14', timeZone: TZ, cycles: CYCLES });
+  const at = (ms) => (ms - midnight(TZ, '2026-11-14')) / H;
+  assert.deepStrictEqual([at(night.start), at(night.end), night.runs], [3, 5, true]);
+  assert.ok(Math.abs(night.price - 0.02) < 1e-9);
+  assert.deepStrictEqual([at(day.start), at(day.end), day.runs], [14.25, 15.25, true]);
+  // All equal: the earliest start in the window.
+  const flat = water.filterTimes({ quarters: quartersFrom('2026-11-14', () => 0.1), date: '2026-11-14', timeZone: TZ, cycles: CYCLES });
+  assert.deepStrictEqual(flat.map((c) => at(c.start)), [0, 13]);
+});
+
+test('filterTimes: over its price limit a cycle is planned but does not run; uncovered windows wait', () => {
+  const quarters = quartersFrom('2026-11-14', () => 0.2);
+  const [night, day] = water.filterTimes({ quarters, date: '2026-11-14', timeZone: TZ, cycles: CYCLES });
+  assert.strictEqual(night.runs, true);
+  assert.strictEqual(day.runs, false);
+  assert.ok(day.start > 0);
+  // The next day's afternoon prices not known yet (null), or past the known quarters: not planned.
+  const partial = quarters.map((q, i) => (i >= 96 + 13 * 4 ? { ...q, price: null } : q));
+  assert.strictEqual(water.filterTimes({ quarters: partial, date: '2026-11-15', timeZone: TZ, cycles: CYCLES }), null);
+  assert.strictEqual(water.filterTimes({ quarters, date: '2026-11-16', timeZone: TZ, cycles: CYCLES }), null);
+});
+
+test('filterTimes: local windows on a DST day', () => {
+  // Summer time ends on 2026-10-25 at 04:00 local: that night has 25 hours, the window 00:00–06:00 seven of them.
+  const start = midnight(TZ, '2026-10-25');
+  assert.strictEqual(water.filterWindow(TZ, '2026-10-25', CYCLES[0]).to - start, 7 * H);
+  // Cheapest 5–7 hours after midnight (local 04:00–06:00 after the change): still inside the window.
+  const quarters = Array.from({ length: 100 }, (_, i) => ({ start: start + i * Q, price: i >= 20 && i < 28 ? 0.01 : 0.1 }));
+  const [night] = water.filterTimes({ quarters, date: '2026-10-25', timeZone: TZ, cycles: [CYCLES[0]] });
+  assert.strictEqual(night.start, start + 5 * H);
+  assert.strictEqual(night.end - night.start, 2 * H);
+});
+
+test('filterDay: today while its windows are ahead, the next day only after today\'s windows are over', () => {
+  const day = midnight(TZ, '2026-11-14');
+  const plan = (hours, plannedDate = null) => water.filterDay({ now: day + hours * H, timeZone: TZ, cycles: CYCLES, plannedDate });
+  // 10:00: the night window has started, the afternoon one is still due today.
+  assert.strictEqual(plan(10), null);
+  // 16:30 on: the next day.
+  assert.strictEqual(plan(16.5), '2026-11-15');
+  assert.strictEqual(plan(23.9), '2026-11-15');
+  assert.strictEqual(plan(17, '2026-11-15'), null);
+  // Just added before any window: today.
+  assert.strictEqual(water.filterDay({ now: day - 0.5 * H, timeZone: TZ, cycles: CYCLES }), '2026-11-14');
+  // One night cycle: after 06:00 the next day.
+  assert.strictEqual(water.filterDay({ now: day + 7 * H, timeZone: TZ, cycles: [CYCLES[0]] }), '2026-11-15');
+  assert.strictEqual(water.filterDay({ now: day + 7 * H, timeZone: TZ, cycles: [] }), null);
+});

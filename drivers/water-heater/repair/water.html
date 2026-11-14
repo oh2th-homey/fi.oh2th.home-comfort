@@ -1,5 +1,5 @@
 <!-- The Hot Tub's and Water Heater's only pairing page: the water temperature, the surroundings and an optional power
-     meter, from other devices. The same file serves both drivers, pair and repair (kept identical by a test). -->
+     meter, from other devices, and the Hot Tub's filter cycles. The same file serves both drivers, pair and repair (kept identical by a test). -->
 <style>
   .wh-error { color: var(--homey-color-red-500, #d33); margin: 0.8em 0; }
 </style>
@@ -33,6 +33,10 @@
   <div class="homey-form-group">
     <label class="homey-form-label" for="wh-power" data-i18n="pair.water.power"></label>
     <select class="homey-form-select" id="wh-power"></select>
+  </div>
+  <div class="homey-form-group" id="wh-filters-group" style="display: none">
+    <label class="homey-form-label" for="wh-filters" data-i18n="pair.water.filters"></label>
+    <select class="homey-form-select" id="wh-filters"></select>
   </div>
   <p class="wh-error" id="wh-error"></p>
   <button class="homey-button-primary-full" id="wh-save" data-i18n="pair.water.save"></button>
@@ -93,17 +97,18 @@
         surroundings: pick(el('wh-surroundings'), el('wh-surroundings-cap')),
         power: el('wh-power').value ? { id: el('wh-power').value } : null
       };
+      const filterCycles = view.filters ? el('wh-filters').value : null;
       if (!sources.water) {
         errorEl.textContent = Homey.__('pair.water.no_water');
         return;
       }
       try {
         if (view.repair) {
-          await Homey.emit('save_sources', { sources });
+          await Homey.emit('save_sources', { sources, filterCycles });
           Homey.done();
           return;
         }
-        const device = await Homey.emit('create_water', { name: el('wh-name').value.trim(), sources });
+        const device = await Homey.emit('create_water', { name: el('wh-name').value.trim(), sources, filterCycles });
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
@@ -134,6 +139,11 @@
         el('wh-power').appendChild(option('', Homey.__('pair.water.none')));
         for (const meter of view.meters) el('wh-power').appendChild(option(meter.id, label(meter, false)));
         el('wh-power').value = current.power && view.meters.some((m) => m.id === current.power.id) ? current.power.id : '';
+        if (view.filters) {
+          for (const n of ['0', '1', '2']) el('wh-filters').appendChild(option(n, Homey.__(`pair.water.filters_${n}`)));
+          el('wh-filters').value = current.filterCycles || '0';
+          el('wh-filters-group').style.display = '';
+        }
         el('wh-form').style.display = '';
       } catch (error) {
         el('wh-blocked').textContent = error.message || String(error);

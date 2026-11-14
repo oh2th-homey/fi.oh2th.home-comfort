@@ -101,10 +101,37 @@ Uses are left out of learning too, from the start of a use until 30 minutes afte
 the lid open, the jets on and people in the water, the heat loss and heating say nothing about
 the closed tub.
 
+## Filter cycles (Hot Tub)
+
+Many hot tubs run one or two filter cycles a day from their own schedule, and heat during them.
+The Hot Tub can plan these cycles in the cheapest hours: choose **1 filter cycle** or **2 filter
+cycles** when you add it (or in **Repair**), then set each cycle in the device settings:
+
+- **Window from** and **to**: the cycle runs somewhere in between, within one day, for example
+  00:00–06:00 for a night cycle and 12:00–18:00 for a day cycle.
+- **Length**: the same length as on the tub's own filter cycle card.
+- **Price limit**: on a day when the cycle's cheapest time costs more per kWh on average, it
+  doesn't run. 0 = always runs.
+
+Once the next day's prices are known and the current day's cycles are over, the device picks
+the cheapest time in each window and runs **Filter cycles planned**. Tokens: **Cycle 1 start**
+and **Cycle 2 start** (HH:mm), **Cycle 1 runs** and **Cycle 2 runs** (yes/no), and a **Summary**
+such as `Sun: 02:00–04:00, 14:00–15:00`. The tub repeats its schedule daily, so the new times are
+sent only after the day's last cycle is over; until the prices come, the tub keeps the times it
+has. **Planned** in the settings shows the last plan.
+
+A typical flow: **Filter cycles planned** → set the tub's filter cycle 1 to **Cycle 1 start**;
+then **Cycle 2 runs** is yes? → set cycle 2 to **Cycle 2 start**, else disable cycle 2 (length
+0 on the tub's card). Add a notification with the **Summary** if you like.
+
+The heating plan doesn't yet count the heat the tub adds in its filter cycles; it re-plans from
+the water temperature afterwards.
+
 ## Flows
 
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready
   temperature** and the **Reason** as tokens.
+- Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Trigger **State changed**, with the state as a token (`heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating demand is active**, **Heating ready is on** and **State is**.

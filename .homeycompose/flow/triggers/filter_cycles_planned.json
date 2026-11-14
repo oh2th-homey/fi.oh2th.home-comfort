@@ -1,0 +1,59 @@
+{
+  "title": {
+    "en": "Filter cycles planned"
+  },
+  "hint": {
+    "en": "Set the tub's own filter cycles here: the start times for the next day, once its prices are known. Disable a cycle that doesn't run."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "cycle1_start",
+      "type": "string",
+      "title": {
+        "en": "Cycle 1 start"
+      },
+      "example": "02:00"
+    },
+    {
+      "name": "cycle1_runs",
+      "type": "boolean",
+      "title": {
+        "en": "Cycle 1 runs"
+      },
+      "example": true
+    },
+    {
+      "name": "cycle2_start",
+      "type": "string",
+      "title": {
+        "en": "Cycle 2 start"
+      },
+      "example": "14:00"
+    },
+    {
+      "name": "cycle2_runs",
+      "type": "boolean",
+      "title": {
+        "en": "Cycle 2 runs"
+      },
+      "example": true
+    },
+    {
+      "name": "summary",
+      "type": "string",
+      "title": {
+        "en": "Summary"
+      },
+      "example": {
+        "en": "Sun: 02:00–04:00, 14:00–15:00"
+      }
+    }
+  ]
+}

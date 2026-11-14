@@ -16,21 +16,40 @@ module.exports = class waterDriver extends mainDriver {
     return this.homey.__('pair.water.surroundings_none');
   }
 
+  /**
+   * @description Whether pairing asks for the filter cycles (issue #24): overridden by the Hot Tub.
+   */
+  hasFilterCycles() {
+    return false;
+  }
+
+  /**
+   * @description The picked number of filter cycles as the setting's value ('0', '1' or '2').
+   */
+  filterCyclesValue(value) {
+    return this.hasFilterCycles() && ['0', '1', '2'].includes(String(value)) ? String(value) : '0';
+  }
+
   async onPair(session) {
     session.setHandler('get_sources', async () => this.sourcesView(null));
-    session.setHandler('create_water', async ({ name, sources }) => {
+    session.setHandler('create_water', async ({ name, sources, filterCycles }) => {
       this.checkController();
-      return {
+      const device = {
         name: name || this.homey.__(`pair.water.name_${this.id}`),
         data: { id: `${this.id}-${crypto.randomUUID()}` },
         store: await this.checkSources(sources)
       };
+      if (this.hasFilterCycles()) device.settings = { filter_cycles: this.filterCyclesValue(filterCycles) };
+      return device;
     });
   }
 
   async onRepair(session, device) {
     session.setHandler('get_sources', async () => this.sourcesView(device));
-    session.setHandler('save_sources', async ({ sources }) => device.onRepairSources(await this.checkSources(sources)));
+    session.setHandler('save_sources', async ({ sources, filterCycles }) => {
+      const options = this.hasFilterCycles() ? { filterCycles: this.filterCyclesValue(filterCycles) } : {};
+      return device.onRepairSources(await this.checkSources(sources), options);
+    });
   }
 
   /**
@@ -61,9 +80,22 @@ module.exports = class waterDriver extends mainDriver {
       repair: !!device,
       driver: this.id,
       surroundingsNone: this.surroundingsFallback(),
+      filters: this.hasFilterCycles(),
       sensors,
       meters,
-      current: device ? { water: device.getStoreValue('water'), surroundings: device.getStoreValue('surroundings'), power: device.getStoreValue('power') } : null
+      current: device ? this.currentChoices(device) : null
+    };
+  }
+
+  /**
+   * @description A device's current choices, shown on the repair page.
+   */
+  currentChoices(device) {
+    return {
+      water: device.getStoreValue('water'),
+      surroundings: device.getStoreValue('surroundings'),
+      power: device.getStoreValue('power'),
+      filterCycles: this.filterCyclesValue(device.getSetting('filter_cycles'))
     };
   }
 

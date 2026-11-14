@@ -179,8 +179,16 @@ module.exports = class waterDevice extends mainDevice {
     // Sources missed at start (their app started later) are retried.
     if (local.minutes % 5 === 0) await this.subscribeSources();
     await this.track(now.getTime());
-    if (local.minutes % PLAN_MINUTES === 0) await this.plan(now.getTime());
+    if (local.minutes % PLAN_MINUTES === 0) {
+      await this.plan(now.getTime());
+      await this.planFilters(now.getTime());
+    }
   }
+
+  /**
+   * @description Filter cycles: only the Hot Tub has them (overridden).
+   */
+  async planFilters() {}
 
   /**
    * @description Prices or the surroundings on the controller changed.
@@ -630,9 +638,11 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Repair: new sources; listeners and capabilities follow.
+   * @description Repair: new sources; listeners and capabilities follow. Options from the page (the Hot Tub's filter
+   * cycles) are handled by the driver's device class.
    */
-  async onRepairSources({ water: waterSource, surroundings, power }) {
+  // eslint-disable-next-line no-unused-vars
+  async onRepairSources({ water: waterSource, surroundings, power }, options = {}) {
     this.log(`${this.getName()} - onRepairSources - water ${waterSource && (waterSource.flow ? 'flow' : waterSource.name)}, surroundings ${surroundings ? surroundings.name : 'none'}, power ${power ? power.name : 'none'}`);
     this.unsubscribeSources();
     await this.setStoreValue('water', waterSource);
