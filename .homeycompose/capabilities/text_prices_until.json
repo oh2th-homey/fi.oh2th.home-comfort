@@ -9,5 +9,5 @@
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
-  "icon": "./assets/capabilities/text_prices_until.svg"
+  "icon": "./assets/capabilities/clock.svg"
 }

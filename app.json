@@ -2977,7 +2977,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
-      "icon": "./assets/capabilities/text_expected_start.svg"
+      "icon": "./assets/capabilities/clock.svg"
     },
     "text_prices_until": {
       "type": "string",
@@ -2990,7 +2990,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
-      "icon": "./assets/capabilities/text_prices_until.svg"
+      "icon": "./assets/capabilities/clock.svg"
     },
     "text_reason": {
       "type": "string",
