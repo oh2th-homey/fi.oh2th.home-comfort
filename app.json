@@ -529,6 +529,12 @@
             },
             "values": [
               {
+                "id": "preheating",
+                "title": {
+                  "en": "Pre-heating"
+                }
+              },
+              {
                 "id": "heating",
                 "title": {
                   "en": "Heating"
@@ -2646,9 +2652,15 @@
         "en": "State"
       },
       "hint": {
-        "en": "Heating: heating demand is on. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the control is off."
+        "en": "Pre-heating: heating ahead of a use in cheap hours. Heating: heating demand is on otherwise. Ready: at the ready temperature for a use. Waiting: nothing to heat yet. Stopped: no water temperature, or at Maximum. Off: the control is off."
       },
       "values": [
+        {
+          "id": "preheating",
+          "title": {
+            "en": "Pre-heating"
+          }
+        },
         {
           "id": "heating",
           "title": {

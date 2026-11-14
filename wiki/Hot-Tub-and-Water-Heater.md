@@ -57,7 +57,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Heating ready** (button): on while the water is held at the ready temperature for a use.
   Turn it off to end the use now; turn it on to be ready now (held until you turn it off, at most
   as long as set in the settings).
-- **State**: **Heating** (heating demand is on), **Ready** (at the ready temperature for a use,
+- **State**: **Pre-heating** (heating ahead of a use in cheap hours), **Heating** (heating
+  demand is on otherwise), **Ready** (at the ready temperature for a use,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
   Maximum) or **Off** (the control is off).
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
@@ -87,10 +88,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
    just in time instead of ahead.
 4. **Latest safe start**: when waiting longer would miss the ready time, it heats now, whatever
    the price. This covers a wrong model and late prices. It counts the water cooling until the
-   start and aims to be ready 15 minutes early. While little is learned it also assumes a slower
-   heater (80 %) and faster heat loss (125 %) than learned; this margin shrinks as heating and
-   waiting are seen, and after about 10 hours of heating and 48 hours of waiting it times by
-   the learned curve.
+   start and aims to be ready 15 minutes early. While little is learned it assumes a slower
+   heater (80 %) and faster heat loss while heating (125 %) than learned; this margin shrinks as
+   heating and waiting are seen, and after about 6 hours of heating and 24 hours of waiting it
+   times by the learned curve.
 
 In standing water the warm water rises, so a sensor near the surface reads high until the
 circulation mixes the water. The device plans still water with the reading minus this **mixing
@@ -141,7 +142,7 @@ the water temperature afterwards.
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
-- Trigger **State changed**, with the state as a token (`heating`, `ready`, `waiting`,
+- Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating demand is active**, **Heating ready is on** and **State is**.
 - Actions **Ready at a time** (a one-off use, the next time it is that time of day), **Skip the

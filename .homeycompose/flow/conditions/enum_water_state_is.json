@@ -19,6 +19,12 @@
       },
       "values": [
         {
+          "id": "preheating",
+          "title": {
+            "en": "Pre-heating"
+          }
+        },
+        {
           "id": "heating",
           "title": {
             "en": "Heating"

@@ -190,8 +190,8 @@ test('pessimistic: the doubt shrinks as heating and waiting are seen, to the lea
   const fresh = water.pessimistic(water.model({ heatRate: 2, loss: 0.01 }));
   assert.ok(Math.abs(fresh.heatRate - 1.6) < 1e-9);
   assert.ok(Math.abs(fresh.loss - 0.0125) < 1e-9);
-  // Half way: 5 h of heating, plenty of waiting.
-  const half = water.pessimistic(water.model({ heatRate: 2, loss: 0.01, heatHours: 5, idleHours: 100 }));
+  // Half way: 3 h of heating, plenty of waiting.
+  const half = water.pessimistic(water.model({ heatRate: 2, loss: 0.01, heatHours: 3, idleHours: 100 }));
   assert.ok(Math.abs(half.heatRate - 1.8) < 1e-9);
   // The least learned part counts: plenty of heating, no waiting.
   assert.strictEqual(water.exactness(water.model({ heatHours: 50, idleHours: 0 })), 0);
@@ -211,6 +211,12 @@ test('latestStart: counts the cooling until the start and keeps the safety margi
   assert.ok(heated <= start - 15 * 60000 && heated > start - 17 * 60000, new Date(heated).toISOString());
   // Without the cooling it would start later than this.
   assert.ok(latest < start - water.hoursToHeat(36, 38, 0, m) * H - 15 * 60000);
+  // While learning: cools by the learned curve, heats by the pessimistic one.
+  const fresh = water.model({ heatRate: 2, loss: 0.01 });
+  const early = water.latestStart(36, 38, 0, fresh, now, start);
+  const freshCooled = water.project(36, 0, (early - now) / H, false, fresh);
+  const freshHeated = early + water.hoursToHeat(freshCooled, 38, 0, water.pessimistic(fresh)) * H;
+  assert.ok(freshHeated <= start - 15 * 60000 && freshHeated > start - 17 * 60000, new Date(freshHeated).toISOString());
   // Too late already, or a heater that can't get there: now.
   assert.strictEqual(water.latestStart(30, 38, 0, m, now, now + H), now);
   assert.strictEqual(water.latestStart(30, 250, 0, m, now, start), now);
@@ -310,6 +316,10 @@ test('power levels: a heater power set far too low still separates the pump once
 
 test('state: heating whenever demanded, ready while held, stopped without a temperature or at maximum', () => {
   assert.strictEqual(water.state({ demand: true, reason: { code: 'in_use_heat' } }), 'heating');
+  assert.strictEqual(water.state({ demand: true, safe: false, reason: { code: 'heating' } }), 'preheating');
+  assert.strictEqual(water.state({ demand: true, safe: true, reason: { code: 'heating' } }), 'heating');
+  assert.strictEqual(water.state({ demand: true, reason: { code: 'heating_keep' } }), 'heating');
+  assert.strictEqual(water.state({ demand: true, reason: { code: 'learning_heat' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, reason: { code: 'below_keep' } }), 'heating');
   assert.strictEqual(water.state({ demand: false, reason: { code: 'in_use' } }), 'ready');
   assert.strictEqual(water.state({ demand: false, reason: { code: 'ready_hold' } }), 'ready');
