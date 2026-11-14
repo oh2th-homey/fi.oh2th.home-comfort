@@ -76,8 +76,11 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Time remaining**: while heating, how long until then, for example `1 h 5 min`.
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00`,
   `Ready until 20:00` or, still heating after the ready time, `Heating to 37 °C, ready until 20:00`.
-- **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the
-  water getting warmer.
+- **Heater problem**: no water temperature, heating was demanded for 1.5 hours without the
+  water getting warmer, or (with a power meter) heating was demanded for 10 minutes without the
+  meter showing heating power. A flow on **Heater problem turned on** can resend the heater's own
+  mode. While bathing only the 1.5-hour check counts: a tub may hold its heater off while the jets
+  run.
 
 ## Settings
 
@@ -86,7 +89,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   ahead** (0–30 minutes: be ready this long before it, default 15), **Keep ready for**, the days
   of the week, **Hold before ready time** and **Ready by hand at most**. One-off ready times and
   skipped ones come from flows;
-  the **Set ready time** card sets Ready at and Ready ahead together.
+  the **Set ready time** card sets Ready at, Ready ahead and the days together.
 - **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. Keep is held anyway.
@@ -164,11 +167,13 @@ so on a day with a filter cycle before the ready time, heating starts later or n
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
+- Trigger **Ready time skipped**, once when the price limit skips a ready time, with the **Ready
+  time**, the **Price** (average per kWh of the heating it would need) and the **Price limit**.
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating ready is on** and **State is**.
 - Actions **Ready at a time** (a one-off ready time, the next time it is that time of day), **Set ready
-  time** (the daily Ready at and Ready ahead, for example from a calendar), **Skip the next ready time**, **Turn heating ready on or off** and **Set water temperature** (when the water
+  time** (Ready at, Ready ahead and the days of the week, for example from a calendar), **Skip the next ready time**, **Turn heating ready on or off** and **Set water temperature** (when the water
   temperature comes from a flow).
 - Homey's own cards for Heating demand (turned on or off, is on, turn on or off, as by hand), the mode
   (changed, is, set) and the target temperature.

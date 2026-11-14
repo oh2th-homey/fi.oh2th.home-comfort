@@ -1,0 +1,41 @@
+{
+  "title": {
+    "en": "Ready time skipped"
+  },
+  "hint": {
+    "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit. Keep is still held."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "ready_time",
+      "type": "string",
+      "title": {
+        "en": "Ready time"
+      },
+      "example": "18:00"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "title": {
+        "en": "Price"
+      },
+      "example": 0.18
+    },
+    {
+      "name": "price_limit",
+      "type": "number",
+      "title": {
+        "en": "Price limit"
+      },
+      "example": 0.12
+    }
+  ]
+}

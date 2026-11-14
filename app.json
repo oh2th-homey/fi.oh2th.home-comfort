@@ -462,6 +462,48 @@
           }
         ],
         "id": "prices_missing_tomorrow"
+      },
+      {
+        "title": {
+          "en": "Ready time skipped"
+        },
+        "hint": {
+          "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit. Keep is still held."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "ready_time",
+            "type": "string",
+            "title": {
+              "en": "Ready time"
+            },
+            "example": "18:00"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price"
+            },
+            "example": 0.18
+          },
+          {
+            "name": "price_limit",
+            "type": "number",
+            "title": {
+              "en": "Price limit"
+            },
+            "example": 0.12
+          }
+        ],
+        "id": "water_ready_skipped"
       }
     ],
     "conditions": [
@@ -1160,10 +1202,10 @@
           "en": "Set ready time"
         },
         "titleFormatted": {
-          "en": "Ready daily at [[time]], [[ahead]] minutes ahead"
+          "en": "Ready at [[time]], [[ahead]] minutes ahead, on Mon [[mon]], Tue [[tue]], Wed [[wed]], Thu [[thu]], Fri [[fri]], Sat [[sat]], Sun [[sun]]"
         },
         "hint": {
-          "en": "The daily Ready at time, and how many minutes before it the water is ready. Days of the week stay as in the settings."
+          "en": "The Ready at time, how many minutes before it the water is ready, and the days of the week."
         },
         "args": [
           {
@@ -1190,6 +1232,62 @@
             "placeholder": {
               "en": "15"
             }
+          },
+          {
+            "type": "checkbox",
+            "name": "mon",
+            "title": {
+              "en": "Monday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "tue",
+            "title": {
+              "en": "Tuesday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "wed",
+            "title": {
+              "en": "Wednesday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "thu",
+            "title": {
+              "en": "Thursday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "fri",
+            "title": {
+              "en": "Friday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "sat",
+            "title": {
+              "en": "Saturday"
+            },
+            "value": false
+          },
+          {
+            "type": "checkbox",
+            "name": "sun",
+            "title": {
+              "en": "Sunday"
+            },
+            "value": false
           }
         ],
         "id": "water_set_ready_time"

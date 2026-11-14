@@ -689,6 +689,7 @@ module.exports = class waterDevice extends mainDevice {
         max: settings.max_temperature
       });
       if (manual.manual !== this.getStoreValue('manual')) await this.setStoreValue('manual', manual.manual).catch(this.error);
+      await this.announceSkip(decided);
       const { result } = manual;
       let reason = this.reasonText(result.reason);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
@@ -757,10 +758,27 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Problem: no water temperature, or demanded for a while without the water warming.
+   * @description Ready time skipped: once per ready time that the price limit skips.
+   */
+  async announceSkip(decided) {
+    if (!decided.skip || !decided.use || this.getStoreValue('skipAnnounced') === decided.use.start) return;
+    await this.setStoreValue('skipAnnounced', decided.use.start).catch(this.error);
+    const round = (value) => (typeof value === 'number' && Number.isFinite(value) ? Math.round(value * 10000) / 10000 : 0);
+    this.log(`${this.getName()} - ready time ${this.formatTime(decided.use.start)} skipped at ${round(decided.skipPrice)}/kWh`);
+    await this.triggerFlow('water_ready_skipped', {
+      ready_time: localTime(this, new Date(decided.use.start)).time,
+      price: round(decided.skipPrice),
+      price_limit: round(this.getSetting('price_limit'))
+    });
+  }
+
+  /**
+   * @description Problem: no water temperature, demanded for a while without the water warming, or (with a power
+   * meter) demanded for minutes without heating power.
    */
   async checkProblem(now, result) {
-    const { since, problem } = water.problemCheck(this.demandSince, now, this.waterTemperature(), result.demand);
+    const inUse = water.inUse(this.useList(now - water.AFTER_USE_MS), now);
+    const { since, problem } = water.problemCheck(this.demandSince, now, this.waterTemperature(), result.demand, { flow: this.flowState(), inUse });
     this.demandSince = since;
     await this.setValue('alarm_problem', problem);
   }
@@ -811,14 +829,16 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Flow: the daily ready time (empty for none) and how long before it to be ready.
+   * @description Flow: the ready time (empty for none), how long before it to be ready, and the days of the week.
    */
-  async onAction_WATER_SET_READY_TIME(time, ahead) {
-    this.log(`${this.getName()} - onAction_WATER_SET_READY_TIME - ${time} ${ahead}`);
+  async onAction_WATER_SET_READY_TIME(args) {
+    const { time, ahead } = args;
+    const days = Object.fromEntries(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day) => [`use_${day}`, args[day] === true]));
+    this.log(`${this.getName()} - onAction_WATER_SET_READY_TIME - ${time} ${ahead} ${JSON.stringify(days)}`);
     const useTime = typeof time === 'string' ? time.trim() : '';
     if (useTime && !isTime(useTime)) throw new Error(this.homey.__('water.error.time'));
     if (typeof ahead !== 'number' || !Number.isFinite(ahead) || ahead < 0 || ahead > 30) throw new Error(this.homey.__('error.invalid_value', { value: ahead }));
-    await this.setSettings({ use_time: useTime, ready_ahead: ahead });
+    await this.setSettings({ use_time: useTime, ready_ahead: ahead, ...days });
     await this.plan();
     return true;
   }

@@ -130,6 +130,7 @@ test('decide: while learning, the price limit skips a use on the mean price from
   assert.strictEqual(dear.skip, true);
   assert.strictEqual(dear.demand, false);
   assert.strictEqual(dear.reason.code, 'skipped');
+  assert.ok(Math.abs(dear.skipPrice - 0.2) < 1e-9);
   // No limit: always heats.
   assert.strictEqual(at(0.2, { priceLimit: null }).skip, false);
   // Already heating for the use: carries on, no stop halfway.
@@ -224,6 +225,7 @@ test('decide: a price limit skips an expensive use but still holds keep', () => 
   const result = water.decide({ ...base, now, temperature: 31, outdoor: 0, quarters: dayPrices(now), useList, priceLimit: 0.1 });
   assert.strictEqual(result.skip, true);
   assert.strictEqual(result.reason.code, result.demand ? 'skipped_heat' : 'skipped');
+  assert.ok(result.skipPrice > 0.1);
   assert.ok(result.plan.temps.every((t) => t >= 29.9));
   const always = water.decide({ ...base, now, temperature: 31, outdoor: 0, quarters: dayPrices(now), useList });
   assert.strictEqual(always.skip, false);
@@ -408,6 +410,28 @@ test('problemCheck: cooling water under demand raises the problem, warming resta
   assert.strictEqual(w.problem, false);
   assert.deepStrictEqual(water.problemCheck(r.since, 7 * H, 37, false), { since: null, problem: false });
   assert.strictEqual(water.problemCheck(null, 0, null, false).problem, true);
+});
+
+test('problemCheck: with a power meter, demand without heating power for 10 minutes is a problem', () => {
+  const M = 60000;
+  let r = water.problemCheck(null, 0, 36, true, { flow: 'circulating' });
+  r = water.problemCheck(r.since, 9 * M, 36, true, { flow: 'circulating' });
+  assert.strictEqual(r.problem, false);
+  r = water.problemCheck(r.since, 10 * M, 36, true, { flow: 'still' });
+  assert.strictEqual(r.problem, true);
+  // Heating seen: the clock restarts, and the problem clears.
+  r = water.problemCheck(r.since, 11 * M, 36, true, { flow: 'heating' });
+  assert.strictEqual(r.problem, false);
+  r = water.problemCheck(r.since, 20 * M, 36.1, true, { flow: 'heating' });
+  assert.strictEqual(r.problem, false);
+  // While in use the tub may hold its heater off: only the slow check.
+  let u = water.problemCheck(null, 0, 37, true, { flow: 'circulating', inUse: true });
+  u = water.problemCheck(u.since, 30 * M, 37, true, { flow: 'circulating', inUse: true });
+  assert.strictEqual(u.problem, false);
+  // Without a meter: only the slow check.
+  let n = water.problemCheck(null, 0, 36, true);
+  n = water.problemCheck(n.since, 30 * M, 36, true);
+  assert.strictEqual(n.problem, false);
 });
 
 test('inUse: during a use and 30 minutes after it, not before', () => {

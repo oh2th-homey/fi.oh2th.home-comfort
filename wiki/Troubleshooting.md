@@ -18,7 +18,9 @@
   **Step** to 1 in Repair.
 - **Hot Tub or Water Heater: "No water temperature" and Heater problem**: the water temperature
   has not reported for 6 hours or its device is unavailable. Nothing is demanded until it reports
-  again. If it comes from a virtual device, check the flow that updates it.
+  again. If it comes from a virtual device, check the flow that updates it. With a power meter,
+  Heater problem also comes on when heating has been demanded for 10 minutes without heating
+  power: check that your flow on **Heating demand started** really turns the heater on.
 - **Hot Tub or Water Heater heats much earlier than needed**: it is still learning and heats just
   in time with a slow starting estimate. Its settings show the learned values; after a day or two
   of heating and waiting it heats ahead in cheap hours instead.
