@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="none" stroke="#000000" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M120 560H840V720A80 80 0 0 1 760 800H200A80 80 0 0 1 120 720Z"/>
-  <path d="M220 660C270 630 320 630 370 660S470 690 520 660S620 630 670 660S740 680 760 660"/>
-  <path d="M340 440L440 520L640 280"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="#000000" stroke="none">
+  <path fill-rule="evenodd" d="M100 540H860V720A100 100 0 0 1 760 820H200A100 100 0 0 1 100 720ZM140 580H820V720A60 60 0 0 1 760 780H200A60 60 0 0 1 140 720Z"/>
+  <path d="M220 640C270 610 320 610 370 640C420 670 470 670 520 640C570 610 620 610 670 640C720 670 740 660 760 640A20 20 0 0 1 760 680C740 700 720 710 670 680C620 650 570 650 520 680C470 710 420 710 370 680C320 650 270 650 220 680A20 20 0 0 1 220 640Z"/>
+  <rect x="320" y="420" width="168" height="40" rx="20" transform="rotate(38.66 340 440)"/>
+  <rect x="420" y="500" width="352" height="40" rx="20" transform="rotate(-50.19 440 520)"/>
 </svg>

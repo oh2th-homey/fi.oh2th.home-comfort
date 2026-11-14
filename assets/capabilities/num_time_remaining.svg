@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="none" stroke="#000000" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M280 140H680M280 820H680"/>
-  <path d="M320 140C320 340 640 380 640 480C640 580 320 620 320 820"/>
-  <path d="M640 140C640 340 320 380 320 480C320 580 640 620 640 820"/>
-  <path d="M400 760L480 680L560 760"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="#000000" stroke="none">
+  <rect x="260" y="120" width="440" height="40" rx="20"/>
+  <rect x="260" y="800" width="440" height="40" rx="20"/>
+  <path fill-rule="evenodd" d="M300 150C300 360 420 420 420 480C420 540 300 600 300 810H660C660 600 540 540 540 480C540 420 660 360 660 150ZM345 150C345 345 460 410 460 480C460 550 345 615 345 810H615C615 615 500 550 500 480C500 410 615 345 615 150Z"/>
+  <path d="M390 260H570C545 320 510 350 480 375C450 350 415 320 390 260Z"/>
+  <path d="M385 805C420 730 455 700 480 690C505 700 540 730 575 805Z"/>
 </svg>

@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="none" stroke="#000000" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M350 60H610A80 80 0 0 1 690 140V740A80 80 0 0 1 610 820H350A80 80 0 0 1 270 740V140A80 80 0 0 1 350 60Z"/>
-  <path d="M270 190H690"/>
-  <circle cx="570" cy="300" r="56" stroke-width="28"/>
-  <path d="M570 300L600 270" stroke-width="28"/>
-  <path d="M480 430C530 500 560 550 560 600A80 80 0 0 1 400 600C400 550 430 500 480 430Z"/>
-  <path d="M390 820V900M570 820V900"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="#000000" stroke="none">
+  <path fill-rule="evenodd" d="M350 40H610A100 100 0 0 1 710 140V740A100 100 0 0 1 610 840H350A100 100 0 0 1 250 740V140A100 100 0 0 1 350 40ZM350 80H610A60 60 0 0 1 670 140V740A60 60 0 0 1 610 800H350A60 60 0 0 1 290 740V140A60 60 0 0 1 350 80Z"/>
+  <rect x="270" y="170" width="420" height="40"/>
+  <path fill-rule="evenodd" d="M500 300A70 70 0 1 0 640 300A70 70 0 1 0 500 300ZM528 300A42 42 0 1 0 612 300A42 42 0 1 0 528 300Z"/>
+  <rect x="556" y="286" width="70" height="28" rx="14" transform="rotate(-45 570 300)"/>
+  <path fill-rule="evenodd" d="M480 395C540 480 580 540 580 600A100 100 0 0 1 380 600C380 540 420 480 480 395ZM480 465C520 520 540 560 540 600A60 60 0 0 1 420 600C420 560 440 520 480 465Z"/>
+  <rect x="370" y="820" width="40" height="100" rx="20"/>
+  <rect x="550" y="820" width="40" height="100" rx="20"/>
 </svg>
