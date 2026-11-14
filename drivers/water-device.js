@@ -164,6 +164,8 @@ module.exports = class waterDevice extends mainDevice {
         await this.setStoreValue('oneOffs', oneOffs);
       } else if (!value && active) {
         await this.setStoreValue('skipped', [...(this.getStoreValue('skipped') || []), active.start]);
+        // Ended by hand: still in use for AFTER_USE_MS from now, so learning skips the stirred water after it.
+        if (active.start <= now) await this.setStoreValue('ended', [...(this.getStoreValue('ended') || []), { start: active.start, end: now }]);
       }
       await this.setValue(READY, value);
       this.setTimer('plan', () => this.plan(), 500);
@@ -171,6 +173,13 @@ module.exports = class waterDevice extends mainDevice {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  /**
+   * @description In use now or ended less than AFTER_USE_MS ago, including uses ended early by turning Heating ready off.
+   */
+  inUseNow(now) {
+    return water.inUse([...this.useList(now - water.AFTER_USE_MS), ...(this.getStoreValue('ended') || [])], now);
   }
 
   /**
@@ -408,7 +417,7 @@ module.exports = class waterDevice extends mainDevice {
     // In use (and shortly after): jets, people and an open lid. Learn what came before, then nothing until it's over;
     // the water is stirred, so it doesn't count as standing still either.
     // The list from AFTER_USE_MS ago, so a use that just ended is still in it.
-    if (water.inUse(this.useList(now - water.AFTER_USE_MS), now)) {
+    if (this.inUseNow(now)) {
       if (seg && seg.from !== null) await this.learnSegment(seg, now, temperature);
       if (seg) await this.saveSegment(null);
       await this.setStoreValue('stillSince', now).catch(this.error);
@@ -459,7 +468,7 @@ module.exports = class waterDevice extends mainDevice {
   async trackFlow(now, flow) {
     const raw = this.waterTemperature();
     const surroundings = this.surroundingsTemperature();
-    const inUse = water.inUse(this.useList(now - water.AFTER_USE_MS), now);
+    const inUse = this.inUseNow(now);
     const step = water.stillStep(this.still, { now, flow, raw, outdoor: surroundings, inUse, model: this.getStoreValue('model') });
     if (step.mix) {
       const mix = water.learnMix(this.getStoreValue('model'), step.mix);
@@ -611,7 +620,7 @@ module.exports = class waterDevice extends mainDevice {
       flow: this.flowState(),
       stretch: this.still ? { ...this.still, at: iso(this.still.at) } : null,
       heating: this.isHeating(),
-      inUse: water.inUse(this.useList(now - water.AFTER_USE_MS), now),
+      inUse: this.inUseNow(now),
       water: this.waterTemperature(),
       planTemperature: this.planTemperature(now),
       filterTarget: this.getStoreValue('filterTarget'),
@@ -777,7 +786,7 @@ module.exports = class waterDevice extends mainDevice {
    * meter) demanded for minutes without heating power.
    */
   async checkProblem(now, result) {
-    const inUse = water.inUse(this.useList(now - water.AFTER_USE_MS), now);
+    const inUse = this.inUseNow(now);
     const { since, problem } = water.problemCheck(this.demandSince, now, this.waterTemperature(), result.demand, { flow: this.flowState(), inUse });
     this.demandSince = since;
     await this.setValue('alarm_problem', problem);
@@ -792,6 +801,8 @@ module.exports = class waterDevice extends mainDevice {
     const skipped = (this.getStoreValue('skipped') || []).filter((start) => start > now - 24 * 3600000);
     if (oneOffs.length !== (this.getStoreValue('oneOffs') || []).length) await this.setStoreValue('oneOffs', oneOffs).catch(this.error);
     if (skipped.length !== (this.getStoreValue('skipped') || []).length) await this.setStoreValue('skipped', skipped).catch(this.error);
+    const ended = (this.getStoreValue('ended') || []).filter((use) => use.end + water.AFTER_USE_MS > now);
+    if (ended.length !== (this.getStoreValue('ended') || []).length) await this.setStoreValue('ended', ended).catch(this.error);
   }
 
   formatTime(ms) {

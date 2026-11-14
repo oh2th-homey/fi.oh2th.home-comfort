@@ -129,7 +129,8 @@ heat loss from the readings while it waits.
 
 Bathing is left out of learning too, from the ready time until 30 minutes after **Keep ready
 for** ends: with the lid open, the jets on and people in the water, the heat loss and heating say nothing about
-the closed tub.
+the closed tub. When you finish early, turn **Heating ready** off: it goes back to Keep, and learning starts again 30
+minutes later.
 
 ## Filter cycles (Hot Tub)
 

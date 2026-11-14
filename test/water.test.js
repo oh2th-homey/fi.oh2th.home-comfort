@@ -451,6 +451,16 @@ test('inUse: with the use list from AFTER_USE_MS ago, a use that just ended stil
   }
 });
 
+test('inUse: a use ended early by hand (skipped, plus its end) counts until AFTER_USE_MS after it was ended', () => {
+  const day = Date.UTC(2026, 0, 5);
+  const start = day + 18 * H;
+  const ended = [{ start, end: day + 18.5 * H }];
+  const list = (now) => [...water.uses({ now: now - water.AFTER_USE_MS, timeZone: 'UTC', schedule: { time: '18:00', minutes: 60, days: {} }, skipped: [start] }), ...ended];
+  for (const [hours, expected] of [[18.6, true], [18.9, true], [19.1, false], [19.4, false]]) {
+    assert.strictEqual(water.inUse(list(day + hours * H), day + hours * H), expected, `${hours} h`);
+  }
+});
+
 const CYCLES = [
   { from: '00:00', to: '06:00', minutes: 120, priceLimit: null },
   { from: '13:00', to: '16:30', minutes: 60, priceLimit: 0.15 }
