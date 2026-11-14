@@ -652,6 +652,7 @@ module.exports = class waterDevice extends mainDevice {
           held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.getCapabilityValue('target_temperature'), max: settings.max_temperature, heatingNow: this.demanded() });
         }
         const reason = this.reasonText(held.reason);
+        await this.showTiming(now, held, this.getCapabilityValue('target_temperature'));
         await this.setValue(STATE, mode === 'off' ? 'off' : water.state(held));
         await this.setValue('text_reason', reason);
         await this.setDemand(held.demand, reason);
@@ -691,6 +692,8 @@ module.exports = class waterDevice extends mainDevice {
       const { result } = manual;
       let reason = this.reasonText(result.reason);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
+      const keeping = ['keep_heat', 'below_keep'].includes(result.reason.code);
+      await this.showTiming(now, result, keeping ? settings.keep_temperature : this.getCapabilityValue('target_temperature'));
       await this.setValue(STATE, water.state(result));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
@@ -715,6 +718,18 @@ module.exports = class waterDevice extends mainDevice {
     if (this.initializing) return;
     const tokens = { target_temperature: this.getCapabilityValue('target_temperature'), reason };
     await this.triggerFlow(demand ? 'heating_demand_started' : 'heating_demand_stopped', tokens);
+  }
+
+  /**
+   * @description Expected start (Now while heating) and, while heating, the minutes to the temperature it heats to.
+   */
+  async showTiming(now, result, target) {
+    let start = this.homey.__('water.start.none');
+    if (result.demand) start = this.homey.__('water.start.now');
+    else if (typeof result.nextStart === 'number' && result.nextStart > now) start = this.formatTime(result.nextStart);
+    await this.setValue('text_expected_start', start);
+    const minutes = result.demand ? water.minutesToHeat(this.planTemperature(now), target, this.surroundingsTemperature(), this.getStoreValue('model')) : null;
+    await this.setValue('num_time_remaining', minutes);
   }
 
   /**

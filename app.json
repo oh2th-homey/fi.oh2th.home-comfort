@@ -1435,6 +1435,8 @@
         "target_temperature",
         "heating_ready",
         "enum_water_state",
+        "text_expected_start",
+        "num_time_remaining",
         "text_reason",
         "alarm_problem"
       ],
@@ -1992,6 +1994,8 @@
         "target_temperature",
         "heating_ready",
         "enum_water_state",
+        "text_expected_start",
+        "num_time_remaining",
         "text_reason",
         "alarm_problem"
       ],
@@ -2948,6 +2952,38 @@
       "uiComponent": "sensor",
       "insights": false,
       "icon": "./assets/capabilities/enum_occupancy.svg"
+    },
+    "num_time_remaining": {
+      "type": "number",
+      "title": {
+        "en": "Time remaining"
+      },
+      "hint": {
+        "en": "While heating: minutes until the water reaches the temperature it heats to, by the learned heating curve."
+      },
+      "units": {
+        "en": "min"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "./assets/capabilities/num_time_remaining.svg"
+    },
+    "text_expected_start": {
+      "type": "string",
+      "title": {
+        "en": "Expected start"
+      },
+      "hint": {
+        "en": "When heating starts next: a time, Now while heating, or – when nothing is planned."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/text_expected_start.svg"
     },
     "text_prices_until": {
       "type": "string",

@@ -222,6 +222,10 @@
       "learning": "Learning (__hours__ h of heating seen): heats just in time",
       "power": "Heating __heating__ kW, base load __base__ kW"
     },
+    "start": {
+      "now": "Now",
+      "none": "–"
+    },
     "weekday": {
       "0": "Sun",
       "1": "Mon",

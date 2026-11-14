@@ -140,6 +140,14 @@ test('decide: while learning, the price limit skips a use on the mean price from
   assert.strictEqual(at(0.2, { temperature: 29.5 }).demand, true);
 });
 
+test('minutesToHeat: by the learned curve, 0 when there, null when it cannot get there', () => {
+  assert.strictEqual(water.minutesToHeat(38, 37, 0, LEARNED), 0);
+  const m = water.minutesToHeat(35, 37, 0, LEARNED);
+  assert.ok(m > 60 && m < 90, String(m));
+  assert.strictEqual(water.minutesToHeat(35, 250, 0, LEARNED), null);
+  assert.strictEqual(water.minutesToHeat(null, 37, 0, LEARNED), null);
+});
+
 test('meanPrice: the known prices of the quarters overlapping the time', () => {
   const quarters = [0, 1, 2, 3].map((i) => ({ start: i * Q, price: i === 2 ? null : i }));
   assert.strictEqual(water.meanPrice(quarters, 0, 4 * Q), (0 + 1 + 3) / 3);

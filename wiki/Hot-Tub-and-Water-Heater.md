@@ -68,6 +68,11 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   demand is on otherwise), **Ready** (at the ready temperature for a ready time,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
   Maximum) or **Off** (the mode is Off).
+- **Expected start**: when heating starts next, for example `16:05` or `Sun 16:05`; `Now` while
+  heating, `–` when nothing is planned. While learning it is the latest safe start, so it moves
+  later as the device learns and as the water cools more slowly than feared.
+- **Time remaining**: while heating, the minutes until the water reaches the temperature it heats
+  to, by the learned heating curve.
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00` or
   `Ready until 20:00`.
 - **Heater problem**: no water temperature, or heating was demanded for 1.5 hours without the

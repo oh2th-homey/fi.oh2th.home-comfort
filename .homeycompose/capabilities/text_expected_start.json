@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Expected start"
+  },
+  "hint": {
+    "en": "When heating starts next: a time, Now while heating, or – when nothing is planned."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/text_expected_start.svg"
+}

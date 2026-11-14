@@ -1,0 +1,19 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Time remaining"
+  },
+  "hint": {
+    "en": "While heating: minutes until the water reaches the temperature it heats to, by the learned heating curve."
+  },
+  "units": {
+    "en": "min"
+  },
+  "decimals": 0,
+  "min": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "./assets/capabilities/num_time_remaining.svg"
+}
