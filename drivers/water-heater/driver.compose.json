@@ -83,5 +83,6 @@
     {
       "id": "water"
     }
-  ]
+  ],
+  "deprecated": true
 }
