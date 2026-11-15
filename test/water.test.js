@@ -670,6 +670,22 @@ function runStill(phases, { start = 0, model = { heatRate: 1.6 }, inUseAt = () =
   return { state, learned };
 }
 
+test('stillStep: in use it remembers since when the water stands still', () => {
+  const M = 60000;
+  const opts = { flow: 'still', raw: 37, outdoor: 2, inUse: true, model: null };
+  // Heated and circulated until just before: still since the pump stopped.
+  const fromStill = water.stillStep({ phase: 'still', at: 100 * M, temp: 37 }, { ...opts, now: 105 * M });
+  assert.deepStrictEqual(fromStill.state, { phase: 'used', since: 100 * M });
+  // Pump running in use: moving (null); stopping again: still from then on.
+  const moving = water.stillStep(fromStill.state, { ...opts, now: 110 * M, flow: 'circulating' });
+  assert.strictEqual(moving.state.since, null);
+  assert.strictEqual(water.stillStep(moving.state, { ...opts, now: 120 * M }).state.since, 120 * M);
+  // Kept while it stands; unknown before (restart): still since long.
+  assert.strictEqual(water.stillStep(fromStill.state, { ...opts, now: 200 * M }).state.since, 100 * M);
+  assert.strictEqual(water.stillStep(null, { ...opts, now: 105 * M }).state.since, 0);
+  assert.strictEqual(water.stillStep({ phase: 'mixing', at: 90 * M }, { ...opts, now: 105 * M }).state.since, 105 * M);
+});
+
 test('stillStep: a still stretch from the last mixed reading to the first mixed one after the pump starts', () => {
   // Pump runs (36.4 mixed), then still for 7 h reading 35.5 at the end, then a filter cycle heats: the reading drops to
   // the mixed 34.8 and rises 1.6 °C/h.

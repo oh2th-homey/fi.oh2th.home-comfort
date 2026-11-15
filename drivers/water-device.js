@@ -354,6 +354,8 @@ module.exports = class waterDevice extends mainDevice {
     if (flow) {
       if (flow !== 'still') return false;
       const { still } = this;
+      // In use: still once the water has stood STILL_MS since it last moved (lib/water.js stillStep).
+      if (still && still.phase === 'used') return typeof still.since === 'number' && now - still.since >= STILL_MS;
       return !(still && still.phase === 'still' && now - still.at < STILL_MS);
     }
     if (this.isHeating()) return false;
