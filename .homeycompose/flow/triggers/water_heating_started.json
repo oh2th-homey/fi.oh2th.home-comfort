@@ -1,0 +1,57 @@
+{
+  "title": {
+    "en": "Heating started for a ready time"
+  },
+  "hint": {
+    "en": "Runs once per ready time, when heating for it starts, also when that is pre-heating in cheap hours."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "ready_time",
+      "type": "string",
+      "title": {
+        "en": "Ready time"
+      },
+      "example": "Wed 18:00"
+    },
+    {
+      "name": "expected_start",
+      "type": "string",
+      "title": {
+        "en": "Expected start"
+      },
+      "example": "15:30"
+    },
+    {
+      "name": "expected_ready",
+      "type": "string",
+      "title": {
+        "en": "Expected ready"
+      },
+      "example": "17:40"
+    },
+    {
+      "name": "target_temperature",
+      "type": "number",
+      "title": {
+        "en": "Target temperature"
+      },
+      "example": 37
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Reason"
+      },
+      "example": "Starts 15:30 for 18:00"
+    }
+  ]
+}

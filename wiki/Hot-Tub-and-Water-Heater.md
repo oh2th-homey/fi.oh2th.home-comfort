@@ -171,6 +171,10 @@ so on a day with a filter cycle before the ready time, heating starts later or n
 - Triggers **Heating demand started** and **Heating demand stopped**, with the **Target
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
+- Triggers **Heating planned** (once per ready time, when the start of heating for it is known, at most a
+  day ahead; the plan may still change with prices) and **Heating started for a ready time** (once per
+  ready time, also when it starts as pre-heating in cheap hours), with the **Ready time**, **Expected
+  start**, **Expected ready**, **Target temperature** and **Reason**. Good for a daily confirmation.
 - Trigger **Ready time skipped**, once when the price limit skips a ready time, with the **Ready
   time**, the **Price** (average per kWh of the heating it would need) and the **Price limit**.
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,

@@ -720,6 +720,7 @@ module.exports = class waterDevice extends mainDevice {
       await this.setValue(STATE, water.state(result));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
+      await this.announceHeating(now, result);
       await this.setValue(READY, READY_CODES.includes(result.reason.code));
       await this.checkProblem(now, result);
       await this.pruneUses(now);
@@ -793,6 +794,26 @@ module.exports = class waterDevice extends mainDevice {
       price: round(decided.skipPrice),
       price_limit: round(this.getSetting('price_limit'))
     });
+  }
+
+  /**
+   * @description Heating planned and Heating started: once each per ready time (lib/water.js heatingNews), with the
+   * times as shown on the device.
+   */
+  async announceHeating(now, result) {
+    const told = { planned: this.getStoreValue('plannedTold'), started: this.getStoreValue('startedTold') };
+    const news = water.heatingNews(now, result, told);
+    if (!news) return;
+    await this.setStoreValue(news === 'started' ? 'startedTold' : 'plannedTold', result.use.start).catch(this.error);
+    const tokens = {
+      ready_time: this.formatTime(result.use.start),
+      expected_start: this.getCapabilityValue('text_expected_start') || '',
+      expected_ready: this.getCapabilityValue('text_expected_ready') || '',
+      target_temperature: Number(this.getCapabilityValue('target_temperature')) || 0,
+      reason: this.getCapabilityValue('text_reason') || ''
+    };
+    this.log(`${this.getName()} - heating ${news} for ${tokens.ready_time}: start ${tokens.expected_start}, ready ${tokens.expected_ready}`);
+    await this.triggerFlow(news === 'started' ? 'water_heating_started' : 'water_heating_planned', tokens);
   }
 
   /**

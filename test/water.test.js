@@ -288,6 +288,26 @@ test('filterWatchStep: a cycle that pumped without heating ends unheated; heatin
   assert.strictEqual(water.lowerFilterTarget(37, null), 37);
 });
 
+test('heatingNews: planned once up to a day ahead, started once when heating for the ready time starts', () => {
+  const now = 10 * H;
+  const use = { start: 18 * H, end: 19.5 * H };
+  const waiting = { use, demand: false, nextStart: 15 * H, skip: false, reason: { code: 'waiting' } };
+  assert.strictEqual(water.heatingNews(now, waiting, {}), 'planned');
+  assert.strictEqual(water.heatingNews(now, waiting, { planned: use.start }), null);
+  assert.strictEqual(water.heatingNews(now, { ...waiting, nextStart: now + 25 * H }, {}), null);
+  assert.strictEqual(water.heatingNews(now, { ...waiting, nextStart: null }, {}), null);
+  assert.strictEqual(water.heatingNews(now, { ...waiting, skip: true }, {}), null);
+  const heating = { use, demand: true, nextStart: now, skip: false, reason: { code: 'heating' } };
+  assert.strictEqual(water.heatingNews(now, heating, { planned: use.start }), 'started');
+  assert.strictEqual(water.heatingNews(now, heating, { started: use.start }), null);
+  assert.strictEqual(water.heatingNews(now, { ...heating, reason: { code: 'safe_start' } }, {}), 'started');
+  // Not for keep, by hand, holding a reached ready temperature, or a ready time already going on.
+  for (const code of ['keep_heat', 'manual_on', 'ready_hold_heat']) assert.strictEqual(water.heatingNews(now, { ...heating, reason: { code } }, {}), null, code);
+  assert.strictEqual(water.heatingNews(19 * H, heating, {}), null);
+  // After it started, no planned message for the same ready time.
+  assert.strictEqual(water.heatingNews(now, waiting, { started: use.start }), null);
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');
