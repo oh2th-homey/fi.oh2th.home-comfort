@@ -232,6 +232,62 @@ test('decide: a price limit skips an expensive use but still holds keep', () => 
   assert.ok(always.expected >= 38);
 });
 
+test('decide: without keep (null) the water is left to the heater between uses; reasons say nothing of keep', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const now = day + 2 * H;
+  const noKeep = { ...base, keep: null };
+  // Cold, no use ahead: no demand, also while it was heating.
+  const cold = water.decide({ ...noKeep, now, temperature: 20, outdoor: -20, quarters: dayPrices(now), useList: [], heatingNow: true });
+  assert.strictEqual(cold.demand, false);
+  assert.strictEqual(cold.reason.code, 'idle_no_keep');
+  assert.ok(cold.plan.heat.every((h) => !h));
+  const learning = water.decide({ ...noKeep, model: null, now, temperature: 20, outdoor: 0, quarters: dayPrices(now), useList: [], heatingNow: true });
+  assert.strictEqual(learning.demand, false);
+  assert.strictEqual(learning.reason.code, 'learning_idle_no_keep');
+  assert.strictEqual(water.decide({ ...noKeep, now, temperature: 20, outdoor: 0, quarters: [], useList: [] }).reason.code, 'no_prices_idle_no_keep');
+  // A use ahead is still heated for, from well below the old keep.
+  const useList = [{ start: day + 18 * H, end: day + 19 * H }];
+  const planned = water.decide({ ...noKeep, now, temperature: 25, outdoor: 0, quarters: dayPrices(now), useList });
+  assert.strictEqual(planned.demand, true);
+  assert.ok(planned.expected >= 38);
+  // A skipped use: no heating for keep, the plain skipped reason.
+  const skipped = water.decide({ ...noKeep, now: day + 8 * H, temperature: 25, outdoor: 0, quarters: dayPrices(day + 8 * H), useList, priceLimit: 0.1 });
+  assert.strictEqual(skipped.skip, true);
+  assert.strictEqual(skipped.demand, false);
+  assert.strictEqual(skipped.reason.code, 'skipped');
+});
+
+test('applyManual: without keep, off stops heating at any temperature', () => {
+  const result = water.applyManual({ demand: true, reason: { code: 'heating', args: {} } }, { on: false, at: 0 }, { ready: 37, keep: null, max: 40, temperature: 20 });
+  assert.strictEqual(result.result.demand, false);
+  assert.strictEqual(result.result.reason.code, 'manual_off');
+});
+
+test('filterWatchStep: a cycle that pumped without heating ends unheated; heating, demand or bathing spoil it', () => {
+  const cycles = [{ start: 4 * H, end: 6 * H }];
+  const run = (flows, opts = {}) => {
+    let watch = null;
+    let unheated = false;
+    flows.forEach((flow, i) => {
+      const step = water.filterWatchStep(watch, { now: 3.5 * H + i * Q, cycles: cycles.filter((c) => c.end > 3.5 * H + i * Q), flow, ...opts });
+      watch = step.watch;
+      unheated = unheated || step.unheated;
+    });
+    return unheated;
+  };
+  // 03:30 … 06:15 in quarters: still before, circulating in the cycle, still after.
+  const flows = ['still', 'still', 'circulating', 'circulating', 'circulating', 'circulating', 'circulating', 'circulating', 'circulating', 'circulating', 'still', 'still'];
+  assert.strictEqual(run(flows), true);
+  assert.strictEqual(run(flows.map((f, i) => (i === 5 ? 'heating' : f))), false);
+  assert.strictEqual(run(flows, { demanded: true }), false);
+  assert.strictEqual(run(flows, { inUse: true }), false);
+  assert.strictEqual(run(flows.map(() => 'still')), false);
+  assert.strictEqual(water.lowerFilterTarget(37, 33.2), 33.2);
+  assert.strictEqual(water.lowerFilterTarget(37, 38), 37);
+  assert.strictEqual(water.lowerFilterTarget(null, 33), null);
+  assert.strictEqual(water.lowerFilterTarget(37, null), 37);
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');

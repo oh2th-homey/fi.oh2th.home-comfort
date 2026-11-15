@@ -6,7 +6,7 @@
     "en": "Turn heating ready [[state]]"
   },
   "hint": {
-    "en": "Off ends the ready time now (back to keep). On heats to the target temperature now and holds it until turned off, at most as long as set in the device settings."
+    "en": "Off ends the ready time now. On heats to the target temperature now and holds it until turned off, at most as long as set in the device settings."
   },
   "args": [
     {

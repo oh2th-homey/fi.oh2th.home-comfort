@@ -18,6 +18,14 @@ module.exports = class spaDevice extends waterDevice {
     return typeof outdoor === 'number' ? outdoor : UNKNOWN_OUTDOOR;
   }
 
+  /**
+   * @description No keep: between ready times the tub's own controller holds the water (filter cycles, frost
+   * protection), and the plan counts on the temperature its filter cycles were seen to heat to.
+   */
+  keepTemperature() {
+    return null;
+  }
+
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     for (const [n, cycle] of this.filterCycles(newSettings).entries()) {
       const ok = isTime(cycle.from) && isTime(cycle.to) && strToMins(cycle.to) - strToMins(cycle.from) >= cycle.minutes;
@@ -121,6 +129,30 @@ module.exports = class spaDevice extends waterDevice {
     const before = this.getStoreValue('filterTarget');
     const target = water.learnFilterTarget(before, temperature);
     this.log(`${this.getName()} - own heating stopped at ${temperature} °C: filter heats to ${target.toFixed(1)} °C`);
+    await this.setStoreValue('filterTarget', target).catch(this.error);
+    this.setSettings({ filter_target: `${target.toFixed(1)} °C` }).catch(this.error);
+    this.setTimer('plan', () => this.plan(), 2000);
+  }
+
+  async onInterval(now) {
+    await super.onInterval(now);
+    await this.watchFilterCycle(now.getTime());
+  }
+
+  /**
+   * @description A planned filter cycle that ran without the tub's heater heating: its own set point is at most the
+   * water temperature, so Filter heats to comes down to it (e.g. a flow sets the tub lower between ready times).
+   */
+  async watchFilterCycle(now) {
+    const flow = this.flowState();
+    if (flow === null) return;
+    const step = water.filterWatchStep(this.filterWatch || null, { now, cycles: this.filterList(now), flow, demanded: this.demanded(), inUse: this.inUseNow(now) });
+    this.filterWatch = step.watch;
+    if (!step.unheated) return;
+    const before = this.getStoreValue('filterTarget');
+    const target = water.lowerFilterTarget(before, this.waterTemperature());
+    if (target === null || target === before) return;
+    this.log(`${this.getName()} - filter cycle ran without heating: filter heats to ${target.toFixed(1)} °C`);
     await this.setStoreValue('filterTarget', target).catch(this.error);
     this.setSettings({ filter_target: `${target.toFixed(1)} °C` }).catch(this.error);
     this.setTimer('plan', () => this.plan(), 2000);

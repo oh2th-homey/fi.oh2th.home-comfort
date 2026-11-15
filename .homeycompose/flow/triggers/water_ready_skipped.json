@@ -3,7 +3,7 @@
     "en": "Ready time skipped"
   },
   "hint": {
-    "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit. Keep is still held."
+    "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit."
   },
   "args": [
     {

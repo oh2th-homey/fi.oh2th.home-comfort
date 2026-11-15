@@ -64,7 +64,7 @@ module.exports = class waterDevice extends mainDevice {
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     this.log(`${this.getName()} - onSettings - changed: ${changedKeys}`);
-    if (newSettings.keep_temperature >= newSettings.max_temperature) throw new Error(this.homey.__('water.error.keep_max'));
+    if (typeof newSettings.keep_temperature === 'number' && newSettings.keep_temperature >= newSettings.max_temperature) throw new Error(this.homey.__('water.error.keep_max'));
     if (newSettings.use_time && !isTime(newSettings.use_time)) throw new Error(this.homey.__('water.error.time'));
     const ready = this.getCapabilityValue('target_temperature');
     if (typeof ready === 'number' && ready > newSettings.max_temperature) throw new Error(this.homey.__('water.error.ready_max'));
@@ -151,7 +151,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Heating ready: off ends the use being held now (back to keep); on is ready now, held until turned off.
+   * @description Heating ready: off ends the use being held now; on is ready now, held until turned off.
    */
   async onCapability_HEATING_READY(value) {
     this.log(`${this.getName()} - onCapability_HEATING_READY - ${value}`);
@@ -191,11 +191,24 @@ module.exports = class waterDevice extends mainDevice {
     return use.start <= now || this.getStoreValue('reachedFor') === use.start ? use : null;
   }
 
+  /**
+   * @description Keep: never below it, also between ready times (°C). Null when the device has no keep (Hot Tub: between
+   * ready times its own controller holds the water).
+   */
+  keepTemperature() {
+    const keep = this.getSetting('keep_temperature');
+    return typeof keep === 'number' && Number.isFinite(keep) ? keep : null;
+  }
+
   async onCapability_TARGET_TEMPERATURE(value) {
     this.log(`${this.getName()} - onCapability_TARGET_TEMPERATURE - ${value}`);
     try {
-      const { keep_temperature: keep, max_temperature: max } = this.getSettings();
-      if (typeof value !== 'number' || !Number.isFinite(value) || value <= keep || value > max) throw new Error(this.homey.__('water.error.ready_range', { keep, max }));
+      const keep = this.keepTemperature();
+      const max = this.getSetting('max_temperature');
+      const below = keep !== null && value <= keep;
+      if (typeof value !== 'number' || !Number.isFinite(value) || below || value > max) {
+        throw new Error(keep === null ? this.homey.__('water.error.ready_range_no_keep', { max }) : this.homey.__('water.error.ready_range', { keep, max }));
+      }
       // Homey stores the value when the listener resolves; plan right after.
       this.setTimer('plan', () => this.plan(), 1000);
       return Promise.resolve(true);
@@ -677,7 +690,7 @@ module.exports = class waterDevice extends mainDevice {
         model: this.getStoreValue('model'),
         quarters: controller ? controller.priceQuarters(now) : [],
         useList: this.useList(now),
-        keep: settings.keep_temperature,
+        keep: this.keepTemperature(),
         ready: this.getCapabilityValue('target_temperature'),
         max: settings.max_temperature,
         powerW: this.ratedPower(),
@@ -694,7 +707,7 @@ module.exports = class waterDevice extends mainDevice {
       const manual = water.applyManual(decided, this.getStoreValue('manual'), {
         temperature: this.planTemperature(now),
         ready: this.getCapabilityValue('target_temperature'),
-        keep: settings.keep_temperature,
+        keep: this.keepTemperature(),
         max: settings.max_temperature
       });
       if (manual.manual !== this.getStoreValue('manual')) await this.setStoreValue('manual', manual.manual).catch(this.error);
@@ -703,7 +716,7 @@ module.exports = class waterDevice extends mainDevice {
       let reason = this.reasonText(result.reason);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
       const keeping = ['keep_heat', 'below_keep'].includes(result.reason.code);
-      await this.showTiming(now, result, keeping ? settings.keep_temperature : this.getCapabilityValue('target_temperature'));
+      await this.showTiming(now, result, keeping ? this.keepTemperature() : this.getCapabilityValue('target_temperature'));
       await this.setValue(STATE, water.state(result));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
@@ -881,7 +894,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description Flow: skip the next use (keep still holds).
+   * @description Flow: skip the next use (keep, if any, still holds).
    */
   async onAction_WATER_SKIP_NEXT() {
     const now = Date.now();

@@ -468,7 +468,7 @@
           "en": "Ready time skipped"
         },
         "hint": {
-          "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit. Keep is still held."
+          "en": "Runs once when a ready time is not heated for because heating for it would cost more than the price limit."
         },
         "args": [
           {
@@ -945,7 +945,7 @@
           "en": "Turn heating ready [[state]]"
         },
         "hint": {
-          "en": "Off ends the ready time now (back to keep). On heats to the target temperature now and holds it until turned off, at most as long as set in the device settings."
+          "en": "Off ends the ready time now. On heats to the target temperature now and holds it until turned off, at most as long as set in the device settings."
         },
         "args": [
           {
@@ -1297,7 +1297,7 @@
           "en": "Skip the next ready time"
         },
         "hint": {
-          "en": "The next ready time is not heated for; keep is still held."
+          "en": "The next ready time is not heated for."
         },
         "args": [
           {
@@ -1612,23 +1612,6 @@
           },
           "children": [
             {
-              "id": "keep_temperature",
-              "type": "number",
-              "label": {
-                "en": "Keep"
-              },
-              "value": 30,
-              "min": 5,
-              "max": 80,
-              "step": 0.5,
-              "units": {
-                "en": "°C"
-              },
-              "hint": {
-                "en": "Never below, whatever the price: frost protection."
-              }
-            },
-            {
               "id": "max_temperature",
               "type": "number",
               "label": {
@@ -1810,7 +1793,7 @@
                 "en": "/kWh"
               },
               "hint": {
-                "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+                "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat."
               }
             }
           ]

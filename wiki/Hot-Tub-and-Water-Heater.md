@@ -13,14 +13,14 @@ defaults:
 | | Hot Tub | Water Heater |
 |---|---|---|
 | Surroundings | Outdoor temperature: a sensor, or the HVAC Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
-| Keep (default) | 30 °C, frost protection | 45 °C, enough hot water at any time |
+| Keep (default) | None: between ready times the tub's own controller holds the water | 45 °C, enough hot water at any time |
 | Ready / Maximum (default) | 38 / 40 °C | 73 / 75 °C |
 
 ## Before you add one
 
 The [HVAC Controller](HVAC-Controller) must exist and follow a price device (see
-[Prices](Prices)): the device plans on its prices. Without prices it still holds Keep and heats
-just in time for each ready time, without looking at prices.
+[Prices](Prices)): the device plans on its prices. Without prices it heats just in time for each ready time,
+without looking at prices (a Water Heater also holds Keep).
 
 ## Add it
 
@@ -54,7 +54,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Heating demand** (button): on while the heater should heat. In Automatic, turn
   it on by hand to heat to the target temperature now, whatever the price; then the device
   carries on by itself. Turn it off by hand to stop the heating going on now; the device starts
-  again at its next planned start or latest safe start. Keep and Maximum always win. In Heat or
+  again at its next planned start or latest safe start. Keep (Water Heater) and Maximum always win. In Heat or
   Off, turning it on or off switches the mode to Heat or Off.
 - **Water temperature**, the outdoor or room temperature, and **Power** when a power meter is
   chosen.
@@ -84,7 +84,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 ## Settings
 
-- **Keep**: never below, whatever the price. **Maximum**: heating demand always stops here.
+- **Keep** (Water Heater): never below, whatever the price. The Hot Tub has no Keep: between ready
+  times its own controller holds the water with its filter cycles and frost protection.
+- **Maximum**: heating demand always stops here.
 - **Ready time**: **Ready at** (the time of day you want the water ready, empty for none), **Ready
   ahead** (0–30 minutes: be ready this long before it, default 15), **Keep ready for**, the days
   of the week, **Hold before ready time** and **Ready by hand at most**. One-off ready times and
@@ -92,14 +94,14 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   the **Set ready time** card sets Ready at, Ready ahead and the days together.
 - **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
-  ready time, decided before the heating starts. Keep is held anyway.
+  ready time, decided before the heating starts. A Water Heater still holds Keep.
 - **Heater power**: the power while heating, used until a power meter has shown it.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels.
 
 ## How it decides
 
-1. **Safety first**: below Keep it heats, at Maximum it stops.
+1. **Safety first**: at Maximum it stops. A Water Heater below Keep heats.
 2. **From the ready time** it holds the target temperature for **Keep ready for**. Ready reached
    within **Hold before ready time** of it is held too, so the water doesn't cool again before
    you need it.
@@ -129,7 +131,7 @@ heat loss from the readings while it waits.
 
 Bathing is left out of learning too, from the ready time until 30 minutes after **Keep ready
 for** ends: with the lid open, the jets on and people in the water, the heat loss and heating say nothing about
-the closed tub. When you finish early, turn **Heating ready** off: it goes back to Keep, and learning starts again 30
+the closed tub. When you finish early, turn **Heating ready** off: the ready time ends, and learning starts again 30
 minutes later.
 
 ## Filter cycles (Hot Tub)
@@ -159,13 +161,14 @@ The heating plan counts the heat the tub adds in its filter cycles: during each 
 (and the same times on the following days, as the tub repeats them) the water warms up to
 **Filter heats to**, shown in the settings. With a power meter the device learns it where the
 tub's own heater stops inside a filter window while the pump runs on and the device isn't
-demanding heat. Until it has
+demanding heat. A planned cycle that runs without the heater heating lowers it to the water
+temperature at once, for example when your flow sets the tub lower between ready times. Until it has
 been seen, filter cycles count as adding no heat. The latest safe start counts the cycles too,
 so on a day with a filter cycle before the ready time, heating starts later or not at all.
 
 ## Flows
 
-- Triggers **Heating demand started** and **Heating demand stopped**, with the **Ready
+- Triggers **Heating demand started** and **Heating demand stopped**, with the **Target
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Trigger **Ready time skipped**, once when the price limit skips a ready time, with the **Ready
@@ -183,7 +186,9 @@ A typical pair of flows for a hot tub:
 
 - **Heating demand started** → set the tub's heater mode to Ready, then set its target
   temperature to the **Target temperature** token.
-- **Heating demand stopped** → set the tub's heater mode to Rest.
+- **Heating demand stopped** → set the tub's heater mode to Rest, and its target temperature to
+  what you want between ready times, for example 30 °C. Its filter cycles then hold that, instead
+  of trying to reach the ready temperature on days without a ready time.
 
 The tub's own thermostat measures in a different place than your sensor. If it stops a little
 early or late, add an offset to the token in the flow.
