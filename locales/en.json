@@ -78,8 +78,13 @@
       "none": "None",
       "choose": "Choose…",
       "from_flow": "From a flow (Set water temperature card)",
+      "from_flow_tank": "From a flow (Set tank temperature card)",
+      "top": "Top temperature",
+      "middle": "Middle temperature",
+      "bottom": "Bottom temperature",
       "save": "Save",
       "no_water": "Choose the water temperature.",
+      "no_tank": "Choose at least one tank temperature.",
       "no_prices": "Choose the prices to follow on the HVAC Controller first (Repair).",
       "filters": "Filter cycles",
       "filters_0": "None",
@@ -215,6 +220,8 @@
     "error": {
       "keep_max": "Keep must be lower than Maximum.",
       "not_flow": "The water temperature comes from a device. To set it from a flow, choose From a flow in Repair.",
+      "not_flow_tank": "The __position__ temperature doesn't come from a flow. Choose From a flow for it in Repair.",
+      "tank_card": "This tank has temperatures at several heights: use the Set tank temperature card.",
       "ready_max": "The target temperature is above Maximum: lower it first.",
       "ready_range": "The target temperature must be above keep (__keep__) and at most the maximum (__max__).",
       "ready_range_no_keep": "The target temperature must be at most the maximum (__max__).",
@@ -248,6 +255,11 @@
       "cycle": "__start__–__end__",
       "off": "off (__price__/kWh)",
       "summary": "__day__: __cycles__"
+    },
+    "tank": {
+      "top": "Top",
+      "middle": "Middle",
+      "bottom": "Bottom"
     }
   }
 }

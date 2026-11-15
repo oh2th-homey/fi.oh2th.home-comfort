@@ -1,7 +1,10 @@
-<!-- The Hot Tub's and Water Heater's only pairing page: the water temperature, the surroundings and an optional power
-     meter, from other devices, and the Hot Tub's filter cycles. The same file serves both drivers, pair and repair (kept identical by a test). -->
+<!-- The Hot Tub's and Water Heater's only pairing page: the water temperature (the Water Heater: a tank's top, middle
+     and bottom), the surroundings and an optional power meter, from other devices, and the Hot Tub's filter cycles. The same file serves both drivers, pair and repair (kept identical by a test). -->
 <style>
-  .wh-error { color: var(--homey-color-red-500, #d33); margin: 0.8em 0; }
+  .wh-error {
+    color: var(--homey-color-red-500, #d33);
+    margin: 0.8em 0;
+  }
 </style>
 
 <header class="homey-header">
@@ -9,18 +12,44 @@
   <p class="homey-subtitle" data-i18n="pair.water.subtitle"></p>
 </header>
 
-<form class="homey-form" id="wh-form" onsubmit="return false" style="display: none">
+<form class="homey-form" id="wh-form" onsubmit="return false;" style="display: none">
   <div class="homey-form-group" id="wh-name-group">
     <label class="homey-form-label" for="wh-name" data-i18n="pair.water.name"></label>
     <input class="homey-form-input" id="wh-name" type="text" />
   </div>
-  <div class="homey-form-group">
+  <div class="homey-form-group" id="wh-water-group">
     <label class="homey-form-label" for="wh-water" data-i18n="pair.water.water"></label>
     <select class="homey-form-select" id="wh-water"></select>
   </div>
   <div class="homey-form-group" id="wh-water-cap-group" style="display: none">
     <label class="homey-form-label" for="wh-water-cap" data-i18n="pair.members.temperature_cap"></label>
     <select class="homey-form-select" id="wh-water-cap"></select>
+  </div>
+  <div id="wh-tank" style="display: none">
+    <div class="homey-form-group">
+      <label class="homey-form-label" for="wh-top" data-i18n="pair.water.top"></label>
+      <select class="homey-form-select" id="wh-top"></select>
+    </div>
+    <div class="homey-form-group" id="wh-top-cap-group" style="display: none">
+      <label class="homey-form-label" for="wh-top-cap" data-i18n="pair.members.temperature_cap"></label>
+      <select class="homey-form-select" id="wh-top-cap"></select>
+    </div>
+    <div class="homey-form-group">
+      <label class="homey-form-label" for="wh-middle" data-i18n="pair.water.middle"></label>
+      <select class="homey-form-select" id="wh-middle"></select>
+    </div>
+    <div class="homey-form-group" id="wh-middle-cap-group" style="display: none">
+      <label class="homey-form-label" for="wh-middle-cap" data-i18n="pair.members.temperature_cap"></label>
+      <select class="homey-form-select" id="wh-middle-cap"></select>
+    </div>
+    <div class="homey-form-group">
+      <label class="homey-form-label" for="wh-bottom" data-i18n="pair.water.bottom"></label>
+      <select class="homey-form-select" id="wh-bottom"></select>
+    </div>
+    <div class="homey-form-group" id="wh-bottom-cap-group" style="display: none">
+      <label class="homey-form-label" for="wh-bottom-cap" data-i18n="pair.members.temperature_cap"></label>
+      <select class="homey-form-select" id="wh-bottom-cap"></select>
+    </div>
   </div>
   <div class="homey-form-group">
     <label class="homey-form-label" for="wh-surroundings" id="wh-surroundings-label"></label>
@@ -48,8 +77,10 @@
   (function () {
     // Own scope: Homey loads pairing views into one document, so top-level const/let would clash between pages.
     let view = null;
-    // Water temperature set by the Set water temperature flow card instead of a device.
+    // Water temperature set by the Set water temperature (or Set tank temperature) flow card instead of a device.
     const FLOW = '_flow';
+    // A tank's sensor heights (Water Heater).
+    const POSITIONS = ['top', 'middle', 'bottom'];
     const el = (id) => document.getElementById(id);
     const errorEl = el('wh-error');
 
@@ -88,17 +119,26 @@
     }
 
     el('wh-water').addEventListener('change', () => showCaps(el('wh-water'), el('wh-water-cap'), el('wh-water-cap-group'), null));
+    for (const position of POSITIONS) {
+      el(`wh-${position}`).addEventListener('change', () => showCaps(el(`wh-${position}`), el(`wh-${position}-cap`), el(`wh-${position}-cap-group`), null));
+    }
     el('wh-surroundings').addEventListener('change', () => showCaps(el('wh-surroundings'), el('wh-surroundings-cap'), el('wh-surroundings-cap-group'), null));
 
     el('wh-save').addEventListener('click', async () => {
       errorEl.textContent = '';
+      const tank = view.tank ? Object.fromEntries(POSITIONS.map((position) => [position, pick(el(`wh-${position}`), el(`wh-${position}-cap`))])) : null;
       const sources = {
-        water: pick(el('wh-water'), el('wh-water-cap')),
+        water: view.tank ? null : pick(el('wh-water'), el('wh-water-cap')),
+        tank,
         surroundings: pick(el('wh-surroundings'), el('wh-surroundings-cap')),
         power: el('wh-power').value ? { id: el('wh-power').value } : null
       };
       const filterCycles = view.filters ? el('wh-filters').value : null;
-      if (!sources.water) {
+      if (view.tank && !POSITIONS.some((position) => tank[position])) {
+        errorEl.textContent = Homey.__('pair.water.no_tank');
+        return;
+      }
+      if (!view.tank && !sources.water) {
         errorEl.textContent = Homey.__('pair.water.no_water');
         return;
       }
@@ -130,10 +170,24 @@
         el('wh-name-group').style.display = view.repair ? 'none' : '';
         el('wh-name').value = Homey.__(`pair.water.name_${view.driver}`);
         el('wh-surroundings-label').textContent = Homey.__(`pair.water.surroundings_${view.driver}`);
-        fillSensors(el('wh-water'), Homey.__('pair.water.choose'), current.water);
-        el('wh-water').insertBefore(option(FLOW, Homey.__('pair.water.from_flow')), el('wh-water').options[1] || null);
-        if (current.water && current.water.flow) el('wh-water').value = FLOW;
-        showCaps(el('wh-water'), el('wh-water-cap'), el('wh-water-cap-group'), current.water && current.water.cap);
+        if (view.tank) {
+          // Each height: a sensor, From a flow (Set tank temperature card) or None (not installed).
+          const tank = current.tank || {};
+          for (const position of POSITIONS) {
+            const selectEl = el(`wh-${position}`);
+            fillSensors(selectEl, Homey.__('pair.water.none'), tank[position]);
+            selectEl.insertBefore(option(FLOW, Homey.__('pair.water.from_flow_tank')), selectEl.options[1] || null);
+            if (tank[position] && tank[position].flow) selectEl.value = FLOW;
+            showCaps(selectEl, el(`wh-${position}-cap`), el(`wh-${position}-cap-group`), tank[position] && tank[position].cap);
+          }
+          el('wh-water-group').style.display = 'none';
+          el('wh-tank').style.display = '';
+        } else {
+          fillSensors(el('wh-water'), Homey.__('pair.water.choose'), current.water);
+          el('wh-water').insertBefore(option(FLOW, Homey.__('pair.water.from_flow')), el('wh-water').options[1] || null);
+          if (current.water && current.water.flow) el('wh-water').value = FLOW;
+          showCaps(el('wh-water'), el('wh-water-cap'), el('wh-water-cap-group'), current.water && current.water.cap);
+        }
         fillSensors(el('wh-surroundings'), view.surroundingsNone, current.surroundings);
         showCaps(el('wh-surroundings'), el('wh-surroundings-cap'), el('wh-surroundings-cap-group'), current.surroundings && current.surroundings.cap);
         el('wh-power').appendChild(option('', Homey.__('pair.water.none')));

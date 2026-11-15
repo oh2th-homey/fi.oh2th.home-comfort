@@ -336,6 +336,28 @@ test('readyNews: once per ready time, when the state first becomes ready', () =>
   assert.strictEqual(water.readyNews({ use: null, demand: false, reason: { code: 'idle' } }, null), false);
 });
 
+test('tankTemperature: the average of the installed sensors to plan with, the top for Keep', () => {
+  assert.deepStrictEqual(water.tankTemperature({ top: 58.6, middle: 54.6, bottom: 18.7 }), { average: 44, keepAt: 58.6 });
+  // Not installed or stale: left out; without a top, Keep uses the average.
+  assert.deepStrictEqual(water.tankTemperature({ top: null, middle: 52, bottom: 20 }), { average: 36, keepAt: 36 });
+  assert.deepStrictEqual(water.tankTemperature({ top: 60.3 }), { average: 60.3, keepAt: 60.3 });
+  assert.deepStrictEqual(water.tankTemperature({}), { average: null, keepAt: null });
+});
+
+test('decide: a tank holds Keep on its own reading (the top), not on the planned average', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const now = day + 20 * H;
+  const tank = { ...base, keep: 50, ready: 59, max: 75 };
+  // After evening showers: the average is low, the top still hot. No heating for Keep, and the plan isn't bound by it.
+  const after = water.decide({ ...tank, now, temperature: 44, keepAt: 58.6, outdoor: 20, quarters: dayPrices(now), useList: [] });
+  assert.strictEqual(after.demand, false);
+  assert.ok(after.plan.temps.some((t) => t < 50));
+  // The top below Keep: heat.
+  const low = water.decide({ ...tank, now, temperature: 44, keepAt: 49, outdoor: 20, quarters: dayPrices(now), useList: [] });
+  assert.strictEqual(low.demand, true);
+  assert.strictEqual(low.reason.code, 'below_keep');
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');

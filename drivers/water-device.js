@@ -14,6 +14,7 @@ const STATE = 'enum_water_state';
 const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
 const SURROUNDINGS = 'measure_temperature.ambient';
 const POWER = 'measure_power';
+const TEMPERATURE = 'measure_temperature';
 // A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
 const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const SURROUNDINGS_MAX_AGE_MS = 3 * 60 * 60 * 1000;
@@ -78,7 +79,13 @@ module.exports = class waterDevice extends mainDevice {
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.getStoreValue('power')) capabilities.push(POWER);
+    const tank = this.getStoreValue('tank');
+    const positions = tank ? water.TANK_POSITIONS.filter((position) => tank[position]) : [];
+    for (const position of positions) capabilities.push(`${TEMPERATURE}.${position}`);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
+    for (const position of positions) {
+      await this.setCapabilityOptions(`${TEMPERATURE}.${position}`, { title: this.homey.__(`water.tank.${position}`), units: '°C', decimals: 1 }).catch(this.error);
+    }
     // Homey's own title for measure_power: clear the custom one that earlier versions set.
     if (this.hasCapability(POWER)) {
       let options = {};
@@ -221,6 +228,9 @@ module.exports = class waterDevice extends mainDevice {
     try {
       if (typeof this.getCapabilityValue('target_temperature') !== 'number') await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
       await this.setValue('measure_temperature', this.waterTemperature(), check);
+      for (const position of water.TANK_POSITIONS) {
+        if (this.hasCapability(`${TEMPERATURE}.${position}`)) await this.setValue(`${TEMPERATURE}.${position}`, this.positionTemperature(position), check);
+      }
       await this.setValue(SURROUNDINGS, this.surroundingsTemperature(), check);
       if (this.hasCapability(POWER)) await this.setValue(POWER, this.powerReading(), check);
       // Before the mode, on/off was the control: carry it over once (on: auto, off: off), then on/off shows the demand.
@@ -281,11 +291,10 @@ module.exports = class waterDevice extends mainDevice {
    */
   sources() {
     const list = [];
-    const waterSource = this.getStoreValue('water');
     const surroundings = this.getStoreValue('surroundings');
     const power = this.getStoreValue('power');
-    // From a flow: the Set water temperature card feeds it, nothing to subscribe to.
-    if (waterSource && !waterSource.flow) list.push({ key: 'water', ...waterSource });
+    // From a flow: the Set water / tank temperature card feeds it, nothing to subscribe to.
+    for (const [key, source] of Object.entries(this.waterSources())) if (source && !source.flow) list.push({ key, ...source });
     if (surroundings) list.push({ key: 'surroundings', ...surroundings });
     if (power) list.push({ key: 'power', ...power, cap: 'measure_power' });
     return list;
@@ -310,8 +319,23 @@ module.exports = class waterDevice extends mainDevice {
     this.sourceListeners = {};
   }
 
+  /**
+   * @description The water temperature sources by key: 'water' (one sensor, e.g. a Hot Tub), or a tank's 'top',
+   * 'middle' and 'bottom' (Water Heater; null when not installed). Each { id, cap, name } or { flow: true }.
+   */
+  waterSources() {
+    const tank = this.getStoreValue('tank');
+    if (tank) return Object.fromEntries(water.TANK_POSITIONS.map((position) => [position, tank[position] || null]));
+    return { water: this.getStoreValue('water') };
+  }
+
+  isTank() {
+    return !!this.getStoreValue('tank');
+  }
+
   async onSource(key) {
-    if (key === 'water') {
+    if (key === 'water' || water.TANK_POSITIONS.includes(key)) {
+      if (key !== 'water') await this.setValue(`${TEMPERATURE}.${key}`, this.positionTemperature(key));
       const changed = await this.setValue('measure_temperature', this.waterTemperature());
       // Reaching keep, ready or max should not wait for the next plan.
       if (changed && !this.initializing) this.setTimer('plan', () => this.plan(), 2000);
@@ -336,15 +360,36 @@ module.exports = class waterDevice extends mainDevice {
     return reading.value;
   }
 
-  waterTemperature() {
-    const value = this.isFlowWater() ? this.flowWater() : this.read('water', WATER_MAX_AGE_MS);
+  /**
+   * @description One source's temperature (0.1 °C), null when not installed, stale or out of range.
+   */
+  positionTemperature(key) {
+    const source = this.waterSources()[key];
+    if (!source) return null;
+    const value = source.flow ? this.flowWater(key) : this.read(key, WATER_MAX_AGE_MS);
     return value === null || value < -5 || value > 100 ? null : Math.round(value * 10) / 10;
+  }
+
+  /**
+   * @description The tank's readings (Water Heater with tank sensors): the average and the reading for Keep.
+   */
+  tankTemperature() {
+    return water.tankTemperature(Object.fromEntries(water.TANK_POSITIONS.map((position) => [position, this.positionTemperature(position)])));
+  }
+
+  /**
+   * @description The water temperature shown and planned with: one sensor, or a tank's average.
+   */
+  waterTemperature() {
+    return this.isTank() ? this.tankTemperature().average : this.positionTemperature('water');
   }
 
   /**
    * @description The water temperature to plan and learn with: while the water stands still, minus the mixing drop.
    */
   planTemperature(now = Date.now()) {
+    // A tank's average over its heights needs no mixing drop.
+    if (this.isTank()) return this.waterTemperature();
     return water.mixedTemperature(this.waterTemperature(), this.getStoreValue('model'), this.isStill(now));
   }
 
@@ -693,6 +738,7 @@ module.exports = class waterDevice extends mainDevice {
         quarters: controller ? controller.priceQuarters(now) : [],
         useList: this.useList(now),
         keep: this.keepTemperature(),
+        keepAt: this.isTank() ? this.tankTemperature().keepAt : null,
         ready: this.getCapabilityValue('target_temperature'),
         max: settings.max_temperature,
         powerW: this.ratedPower(),
@@ -906,16 +952,17 @@ module.exports = class waterDevice extends mainDevice {
     return true;
   }
 
-  isFlowWater() {
-    const waterSource = this.getStoreValue('water');
-    return !!(waterSource && waterSource.flow);
+  isFlowWater(key = 'water') {
+    const source = this.waterSources()[key];
+    return !!(source && source.flow);
   }
 
   /**
-   * @description The water temperature last set by the flow card, while not older than the sources' max age.
+   * @description A temperature last set by a flow card (Set water temperature, or Set tank temperature per position),
+   * while not older than the sources' max age.
    */
-  flowWater() {
-    const fed = this.getStoreValue('flowWater');
+  flowWater(key = 'water') {
+    const fed = key === 'water' ? this.getStoreValue('flowWater') : (this.getStoreValue('flowTank') || {})[key];
     if (!fed || typeof fed.value !== 'number' || Date.now() - fed.at > WATER_MAX_AGE_MS) return null;
     return fed.value;
   }
@@ -925,10 +972,24 @@ module.exports = class waterDevice extends mainDevice {
    */
   async onAction_SET_WATER_TEMPERATURE(value) {
     this.log(`${this.getName()} - onAction_SET_WATER_TEMPERATURE - ${value}`);
+    if (this.isTank()) throw new Error(this.homey.__('water.error.tank_card'));
     if (!this.isFlowWater()) throw new Error(this.homey.__('water.error.not_flow'));
     if (typeof value !== 'number' || !Number.isFinite(value) || value < -5 || value > 100) throw new Error(this.homey.__('error.invalid_value', { value }));
     await this.setStoreValue('flowWater', { value, at: Date.now() });
     await this.onSource('water');
+    return true;
+  }
+
+  /**
+   * @description Flow: a tank temperature at one height (top, middle or bottom), when it comes from a flow (e.g. MQTT).
+   */
+  async onAction_SET_TANK_TEMPERATURE(position, value) {
+    this.log(`${this.getName()} - onAction_SET_TANK_TEMPERATURE - ${position} ${value}`);
+    if (!water.TANK_POSITIONS.includes(position)) throw new Error(this.homey.__('error.invalid_value', { value: position }));
+    if (!this.isFlowWater(position)) throw new Error(this.homey.__('water.error.not_flow_tank', { position: this.homey.__(`water.tank.${position}`) }));
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < -5 || value > 100) throw new Error(this.homey.__('error.invalid_value', { value }));
+    await this.setStoreValue('flowTank', { ...(this.getStoreValue('flowTank') || {}), [position]: { value, at: Date.now() } });
+    await this.onSource(position);
     return true;
   }
 
@@ -950,10 +1011,16 @@ module.exports = class waterDevice extends mainDevice {
    * cycles) are handled by the driver's device class.
    */
   // eslint-disable-next-line no-unused-vars
-  async onRepairSources({ water: waterSource, surroundings, power }, options = {}) {
-    this.log(`${this.getName()} - onRepairSources - water ${waterSource && (waterSource.flow ? 'flow' : waterSource.name)}, surroundings ${surroundings ? surroundings.name : 'none'}, power ${power ? power.name : 'none'}`);
+  async onRepairSources({ water: waterSource, tank = null, surroundings, power }, options = {}) {
+    const name = (source) => {
+      if (!source) return 'none';
+      return source.flow ? 'flow' : source.name;
+    };
+    const tankText = tank ? water.TANK_POSITIONS.map((position) => `${position} ${name(tank[position])}`).join(', ') : null;
+    this.log(`${this.getName()} - onRepairSources - water ${tankText || name(waterSource)}, surroundings ${name(surroundings)}, power ${name(power)}`);
     this.unsubscribeSources();
-    await this.setStoreValue('water', waterSource);
+    await this.setStoreValue('water', waterSource || null);
+    await this.setStoreValue('tank', tank);
     await this.setStoreValue('surroundings', surroundings);
     await this.setStoreValue('power', power);
     await this.saveSegment(null);

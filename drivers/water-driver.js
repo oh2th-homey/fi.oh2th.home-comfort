@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const mainDriver = require('./main-driver');
+const { TANK_POSITIONS } = require('../lib/water');
 
 /**
  * Shared driver base of the Hot Tub and the Water Heater (issue #1): one pairing page that picks the water temperature,
@@ -20,6 +21,14 @@ module.exports = class waterDriver extends mainDriver {
    * @description Whether pairing asks for the filter cycles (issue #24): overridden by the Hot Tub.
    */
   hasFilterCycles() {
+    return false;
+  }
+
+  /**
+   * @description Whether the water temperature comes from a tank's sensors at up to three heights (top, middle,
+   * bottom) instead of one: overridden by the Water Heater.
+   */
+  hasTank() {
     return false;
   }
 
@@ -81,6 +90,7 @@ module.exports = class waterDriver extends mainDriver {
       driver: this.id,
       surroundingsNone: this.surroundingsFallback(),
       filters: this.hasFilterCycles(),
+      tank: this.hasTank(),
       sensors,
       meters,
       current: device ? this.currentChoices(device) : null
@@ -93,6 +103,7 @@ module.exports = class waterDriver extends mainDriver {
   currentChoices(device) {
     return {
       water: device.getStoreValue('water'),
+      tank: device.getStoreValue('tank'),
       surroundings: device.getStoreValue('surroundings'),
       power: device.getStoreValue('power'),
       filterCycles: this.filterCyclesValue(device.getSetting('filter_cycles'))
@@ -100,8 +111,10 @@ module.exports = class waterDriver extends mainDriver {
   }
 
   /**
-   * @description Picked sources as stored: { water: { id, cap, name } | { flow: true }, surroundings: … | null, power: { id, name } | null }.
-   * The water temperature is required; a capability must exist on its device.
+   * @description Picked sources as stored: { water: { id, cap, name } | { flow: true } | null, tank: { top, middle, bottom }
+   * (each a source or null when not installed) | null, surroundings: … | null, power: { id, name } | null }.
+   * The water temperature is required: one source, or (a tank) at least one installed position. A capability must exist
+   * on its device.
    */
   async checkSources(sources = {}) {
     const candidates = await this.homey.app.members.candidates();
@@ -112,9 +125,17 @@ module.exports = class waterDriver extends mainDriver {
       const cap = device.temperatures.some((t) => t.id === pick.cap) ? pick.cap : device.temperatures[0].id;
       return { id: device.id, cap, name: device.name };
     };
-    const waterSource = sources.water && sources.water.flow ? { flow: true } : temperature(sources.water);
-    if (!waterSource) throw new Error(this.homey.__('pair.water.no_water'));
+    const pickWater = (pick) => (pick && pick.flow ? { flow: true } : temperature(pick));
+    let waterSource = null;
+    let tank = null;
+    if (this.hasTank()) {
+      tank = Object.fromEntries(TANK_POSITIONS.map((position) => [position, pickWater((sources.tank || {})[position])]));
+      if (!TANK_POSITIONS.some((position) => tank[position])) throw new Error(this.homey.__('pair.water.no_tank'));
+    } else {
+      waterSource = pickWater(sources.water);
+      if (!waterSource) throw new Error(this.homey.__('pair.water.no_water'));
+    }
     const meter = sources.power && candidates.find((d) => d.id === sources.power.id && d.power);
-    return { water: waterSource, surroundings: temperature(sources.surroundings), power: meter ? { id: meter.id, name: meter.name } : null };
+    return { water: waterSource, tank, surroundings: temperature(sources.surroundings), power: meter ? { id: meter.id, name: meter.name } : null };
   }
 };
