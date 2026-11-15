@@ -240,7 +240,7 @@ test('decide: without keep (null) the water is left to the heater between uses; 
   const cold = water.decide({ ...noKeep, now, temperature: 20, outdoor: -20, quarters: dayPrices(now), useList: [], heatingNow: true });
   assert.strictEqual(cold.demand, false);
   assert.strictEqual(cold.reason.code, 'idle_no_keep');
-  assert.ok(cold.plan.heat.every((h) => !h));
+  assert.strictEqual(cold.plan, null);
   const learning = water.decide({ ...noKeep, model: null, now, temperature: 20, outdoor: 0, quarters: dayPrices(now), useList: [], heatingNow: true });
   assert.strictEqual(learning.demand, false);
   assert.strictEqual(learning.reason.code, 'learning_idle_no_keep');
@@ -255,6 +255,19 @@ test('decide: without keep (null) the water is left to the heater between uses; 
   assert.strictEqual(skipped.skip, true);
   assert.strictEqual(skipped.demand, false);
   assert.strictEqual(skipped.reason.code, 'skipped');
+});
+
+test('decide: without keep and without a ready time ahead, never heats, also not to spare a filter cycle later', () => {
+  const now = Date.UTC(2026, 10, 15, 5, 50);
+  const filters = [{ start: now + 5.7 * H, end: now + 6.7 * H }, { start: now + 20 * H, end: now + 22 * H }];
+  for (const [label, price] of [['rising', (i) => 0.004 + i * 0.0003], ['negative', () => -0.001]]) {
+    const quarters = Array.from({ length: 64 }, (_, i) => ({ start: now + i * Q, price: price(i) }));
+    for (const heatingNow of [true, false]) {
+      const result = water.decide({ ...base, keep: null, now, temperature: 36.9, outdoor: 3, quarters, useList: [], heatingNow, filters, filterTarget: 36.4 });
+      assert.strictEqual(result.demand, false, `${label} ${heatingNow}`);
+      assert.strictEqual(result.reason.code, 'idle_no_keep');
+    }
+  }
 });
 
 test('applyManual: without keep, off stops heating at any temperature', () => {
