@@ -10,5 +10,8 @@
   },
   "1.3.0": {
     "en": "NEW: Hot Tub device that heats the tub in the cheapest hours to be ready at your ready times, plans its filter cycles and learns how fast the water heats and cools."
+  },
+  "1.4.0": {
+    "en": "NEW: Water Heater control with tank sensors and a heating block for its own timer, and a Sauna device that tells when the sauna heats, is ready and is in use."
   }
 }
