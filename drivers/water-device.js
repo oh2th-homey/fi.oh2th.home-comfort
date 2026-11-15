@@ -15,6 +15,8 @@ const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
 const SURROUNDINGS = 'measure_temperature.ambient';
 const POWER = 'measure_power';
 const TEMPERATURE = 'measure_temperature';
+// A tank's full temperature until its thermostat has been seen stopping the heater (°C).
+const DEFAULT_FULL = 60;
 // A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
 const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const SURROUNDINGS_MAX_AGE_MS = 3 * 60 * 60 * 1000;
@@ -734,12 +736,13 @@ module.exports = class waterDevice extends mainDevice {
 
   /**
    * @description The temperature ready times and reheats heat to: the target temperature, or (a heater with its own
-   * thermostat) the full temperature learned from it; before that, Maximum (heating until the thermostat stops it).
+   * thermostat) the full temperature learned from it; before that, a usual hot water thermostat setting, at most
+   * Maximum (its first stop above Keep then teaches the real one).
    */
   readyTemperature() {
     if (!this.heatsToFull()) return this.getCapabilityValue('target_temperature');
     const full = this.getStoreValue('fullTemperature');
-    return typeof full === 'number' ? full : this.getSetting('max_temperature');
+    return typeof full === 'number' ? full : Math.min(DEFAULT_FULL, this.getSetting('max_temperature'));
   }
 
   /**
