@@ -4,6 +4,11 @@ const { localTime, isTime, strToMins, addDays } = require('oh2th-homey-helpers')
 const waterDevice = require('../water-device');
 const water = require('../../lib/water');
 
+// Starting model until learned: a tank this size (litres; heating 1 l of water by 1 °C takes 4.186 kJ) with good
+// insulation (share of the difference to the room lost per hour).
+const START_LITRES = 300;
+const START_LOSS = 0.002;
+
 // The block is planned at Plan from, or this long after it when Homey was down then.
 const BLOCK_LATE_MS = 6 * 3600000;
 // Only a ready time this soon after Plan from gets the block (the next morning's).
@@ -16,6 +21,14 @@ module.exports = class waterHeaterDevice extends waterDevice {
   fallbackSurroundings() {
     const value = this.getSetting('surroundings_temperature');
     return typeof value === 'number' ? value : 20;
+  }
+
+  /**
+   * @description A tank heats much faster and loses much less than a hot tub: start from the heater power.
+   */
+  startModel() {
+    const watts = Number(this.getSetting('heater_power')) || 2000;
+    return { heatRate: Math.round(((watts / 1000) * 3600 * 10) / (4.186 * START_LITRES)) / 10, loss: START_LOSS };
   }
 
   /**

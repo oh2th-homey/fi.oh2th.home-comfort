@@ -52,7 +52,26 @@ module.exports = class waterDevice extends mainDevice {
     this.segment = this.getStoreValue('segment') || null;
     this.still = this.getStoreValue('still') || null;
     this.demandSince = null;
+    await this.seedModel();
     await this.subscribeSources();
+  }
+
+  /**
+   * @description A starting model for a device type whose water behaves very differently from a hot tub (overridden):
+   * { heatRate, loss }, or null for the shared default.
+   */
+  startModel() {
+    return null;
+  }
+
+  /**
+   * @description Until anything is learned, plan with the device type's starting model (learning replaces it).
+   */
+  async seedModel() {
+    const start = this.startModel();
+    const stored = this.getStoreValue('model');
+    if (!start || (stored && (stored.heatHours > 0 || stored.idleHours > 0))) return;
+    await this.setStoreValue('model', { ...(stored || {}), ...start, heatHours: 0, idleHours: 0 }).catch(this.error);
   }
 
   async onDeleted() {
@@ -67,6 +86,8 @@ module.exports = class waterDevice extends mainDevice {
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     this.log(`${this.getName()} - onSettings - changed: ${changedKeys}`);
+    // The starting model follows the heater power until something is learned.
+    if (changedKeys.includes('heater_power')) this.homey.setTimeout(() => this.seedModel().catch(this.error), 1000);
     if (typeof newSettings.keep_temperature === 'number' && newSettings.keep_temperature >= newSettings.max_temperature) throw new Error(this.homey.__('water.error.keep_max'));
     if (newSettings.use_time && !isTime(newSettings.use_time)) throw new Error(this.homey.__('water.error.time'));
     const ready = this.getCapabilityValue('target_temperature');

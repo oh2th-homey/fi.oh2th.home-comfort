@@ -108,7 +108,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. A Water Heater still holds Keep.
-- **Heater power**: the power while heating, used until a power meter has shown it.
+- **Heater power**: the power while heating, used until a power meter has shown it. A Water Heater also
+  starts planning from it (a 300-litre, well insulated tank) until its heating and cooling are learned.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
   meter also learns **Full at**: where its own thermostat stops the heater while heating is
