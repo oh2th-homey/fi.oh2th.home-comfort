@@ -40,5 +40,6 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## Sauna
 
-- Triggers: **Sauna heating started**, **Sauna ready**, **Sauna bathing started**, **Add wood**. See
+- Triggers: **Sauna heating started**, **Sauna ready**, **Sauna bathing started**, **Add wood**.
+- Action: **Set stove switch** (on or off), when another device sees the stove's main switch. See
   [Sauna](Sauna).

@@ -162,6 +162,7 @@ module.exports = class saunaDevice extends mainDevice {
       humidity: this.humidity(),
       power: this.power(),
       sources: Object.keys(this.sourceListeners || {}),
+      stoveSwitch: this.getStoreValue('stoveSwitch') || null,
       lastError: this.lastError || null,
       lastTick: this.lastTick || null,
       reason: this.getCapabilityValue('text_reason')
@@ -189,7 +190,8 @@ module.exports = class saunaDevice extends mainDevice {
       dropped: powerMin === null ? null : powerMin <= sauna.HEAT_W,
       readySet: this.getSetting('ready_temperature'),
       learnedReady: model && model.ready,
-      maxHours: this.getSetting('max_hours')
+      maxHours: this.getSetting('max_hours'),
+      switchOn: this.stoveSwitch()
     });
     this.lastTick = { at: new Date(at).toISOString(), temperature, powerMax, powerMin, phaseBefore: before ? before.phase : null, phaseAfter: state ? state.phase : null, events };
     this.session = state;
@@ -203,6 +205,25 @@ module.exports = class saunaDevice extends mainDevice {
     if (learned) await this.learn(learned);
     for (const event of events) await this.onEvent(event, at, temperature);
     await this.show(at);
+  }
+
+  /**
+   * @description The stove's main switch as last set by a flow (true or false), null when no flow sets it.
+   */
+  stoveSwitch() {
+    const stove = this.getStoreValue('stoveSwitch');
+    return stove && typeof stove.on === 'boolean' ? stove.on : null;
+  }
+
+  /**
+   * @description Flow: the stove's main switch is on or off (e.g. from a contact input on its supply). From then on
+   * the switch starts and ends a session.
+   */
+  async onAction_SET_SAUNA_STOVE(state) {
+    this.log(`${this.getName()} - onAction_SET_SAUNA_STOVE - ${state}`);
+    if (state !== 'on' && state !== 'off') throw new Error(this.homey.__('error.invalid_value', { value: state }));
+    await this.setStoreValue('stoveSwitch', { on: state === 'on', at: Date.now() });
+    return true;
   }
 
   async learn(sample) {

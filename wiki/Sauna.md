@@ -40,6 +40,13 @@ Add device → Smart HVAC Control → **Sauna**, then choose:
    there.
 4. **Off**: no power for 45 minutes, or (wood) cooled below 40 °C.
 
+## Stove switch (optional)
+
+When another device sees the stove's main switch (for example an input on its supply), feed it with
+the action **Set stove switch** in a flow: when the input turns on, *The stove switch is on*; when
+it turns off, *off*. From the first time it is set, the switch starts the session and ends it at
+once, instead of waiting 45 minutes without power.
+
 With a wood-burning stove, **Add wood** runs when the temperature stops rising before ready, or
 falls a few degrees during the session.
 
@@ -53,4 +60,5 @@ it depends on where the sensor hangs, so it is learned rather than set.
 
 - Triggers **Sauna heating started** (temperature, expected ready), **Sauna ready** (temperature),
   **Sauna bathing started** (temperature, minutes since switched on), **Add wood** (temperature).
+- Action **Set stove switch** (on or off).
 - Homey's own cards for the temperature, humidity, power and **Left on**.

@@ -137,3 +137,25 @@ test('minutesToReady: from the recent rise, else the learned rate', () => {
   assert.strictEqual(sauna.readyTemperature(56, 62), 56);
   assert.strictEqual(sauna.readyTemperature(null, 62), 62);
 });
+
+test('stove switch from a flow: starts and ends the session, long thermostat pauses do not end it', () => {
+  let state = null;
+  const events = [];
+  const at = (t, input) => {
+    const result = sauna.step(state, { now: t * M, maxHours: 4, ...input });
+    state = result.state;
+    for (const e of result.events) events.push({ t, e });
+  };
+  at(0, { temperature: 20, power: 0, switchOn: true });
+  for (let t = 1; t < 60; t++) at(t, { temperature: 20 + t, power: 6900, switchOn: true });
+  // Ready, then the thermostat keeps the elements off for an hour: still on.
+  for (let t = 60; t < 130; t++) at(t, { temperature: 78, power: 0, switchOn: true });
+  at(130, { temperature: 75, power: 0, switchOn: false });
+  assert.deepStrictEqual(
+    events.map((e) => e.e),
+    ['started', 'ready', 'off']
+  );
+  assert.strictEqual(events[2].t, 130);
+  // Power without the switch on does not start a session.
+  assert.deepStrictEqual(sauna.step(null, { now: 0, temperature: 20, power: 6900, switchOn: false }).events, []);
+});
