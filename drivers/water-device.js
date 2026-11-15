@@ -86,6 +86,9 @@ module.exports = class waterDevice extends mainDevice {
     for (const position of positions) {
       await this.setCapabilityOptions(`${TEMPERATURE}.${position}`, { title: this.homey.__(`water.tank.${position}`), units: '°C', decimals: 1 }).catch(this.error);
     }
+    // Devices paired before it became read only: the manifest's options (setable false) again, all of them together.
+    const targetOptions = (this.driver.manifest.capabilitiesOptions || {}).target_temperature;
+    if (targetOptions && targetOptions.setable === false) await this.setCapabilityOptions('target_temperature', targetOptions).catch(this.error);
     // Homey's own title for measure_power: clear the custom one that earlier versions set.
     if (this.hasCapability(POWER)) {
       let options = {};
@@ -226,7 +229,13 @@ module.exports = class waterDevice extends mainDevice {
 
   async setCapabilityValues(check = false) {
     try {
-      if (typeof this.getCapabilityValue('target_temperature') !== 'number') await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
+      if (this.heatsToFull()) {
+        // Read only: the full temperature learned from the tank's thermostat (empty until seen).
+        const full = this.getStoreValue('fullTemperature');
+        await this.setValue('target_temperature', typeof full === 'number' ? Math.round(full * 10) / 10 : null, check);
+      } else if (typeof this.getCapabilityValue('target_temperature') !== 'number') {
+        await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
+      }
       await this.setValue('measure_temperature', this.waterTemperature(), check);
       for (const position of water.TANK_POSITIONS) {
         if (this.hasCapability(`${TEMPERATURE}.${position}`)) await this.setValue(`${TEMPERATURE}.${position}`, this.positionTemperature(position), check);
@@ -724,13 +733,13 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description The temperature ready times and reheats heat to: the target temperature, or the full temperature
-   * learned from the heater's thermostat when that is lower.
+   * @description The temperature ready times and reheats heat to: the target temperature, or (a heater with its own
+   * thermostat) the full temperature learned from it; before that, Maximum (heating until the thermostat stops it).
    */
   readyTemperature() {
-    const target = this.getCapabilityValue('target_temperature');
+    if (!this.heatsToFull()) return this.getCapabilityValue('target_temperature');
     const full = this.getStoreValue('fullTemperature');
-    return this.heatsToFull() && typeof full === 'number' && full < target ? full : target;
+    return typeof full === 'number' ? full : this.getSetting('max_temperature');
   }
 
   /**
@@ -793,10 +802,10 @@ module.exports = class waterDevice extends mainDevice {
         // Heat: holds the target temperature, whatever the price. Off: no demand.
         let held = { demand: false, reason: { code: 'mode_off', args: {} } };
         if (mode === 'heat') {
-          held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.getCapabilityValue('target_temperature'), max: settings.max_temperature, heatingNow: this.demanded() });
+          held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.readyTemperature(), max: settings.max_temperature, heatingNow: this.demanded() });
         }
         const reason = this.reasonText(held.reason);
-        await this.showTiming(now, held, this.getCapabilityValue('target_temperature'));
+        await this.showTiming(now, held, this.readyTemperature());
         await this.setValue(STATE, mode === 'off' ? 'off' : water.state(held));
         await this.setValue('text_reason', reason);
         await this.setDemand(held.demand, reason);
@@ -874,7 +883,7 @@ module.exports = class waterDevice extends mainDevice {
     if (demand === this.demanded()) return;
     await this.setStoreValue('demand', demand).catch(this.error);
     if (this.initializing) return;
-    const tokens = { target_temperature: this.getCapabilityValue('target_temperature'), reason };
+    const tokens = { target_temperature: Number(this.readyTemperature()) || 0, reason };
     await this.triggerFlow(demand ? 'heating_demand_started' : 'heating_demand_stopped', tokens);
   }
 
@@ -942,7 +951,7 @@ module.exports = class waterDevice extends mainDevice {
       ready_time: this.formatTime(result.use.start),
       expected_start: this.getCapabilityValue('text_expected_start') || '',
       expected_ready: this.getCapabilityValue('text_expected_ready') || '',
-      target_temperature: Number(this.getCapabilityValue('target_temperature')) || 0,
+      target_temperature: Number(this.readyTemperature()) || 0,
       reason: this.getCapabilityValue('text_reason') || ''
     };
     this.log(`${this.getName()} - heating ${news} for ${tokens.ready_time}: start ${tokens.expected_start}, ready ${tokens.expected_ready}`);

@@ -14,7 +14,8 @@ defaults:
 |---|---|---|
 | Surroundings | Outdoor temperature: a sensor, or the HVAC Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
 | Keep (default) | None: between ready times the tub's own controller holds the water | 45 °C, enough hot water at any time |
-| Ready / Maximum (default) | 38 / 40 °C | 73 / 75 °C |
+| Target temperature | 38 °C, set by you | Read only: **Full at**, learned where the tank's own thermostat stops the heater |
+| Maximum (default) | 40 °C | 75 °C |
 
 ## Before you add one
 
@@ -111,7 +112,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
   meter also learns **Full at**: where its own thermostat stops the heater while heating is
-  demanded. Ready times and reheats then heat to it, and the tank counts as full until it has
+  demanded. It is shown as the Water Heater's (read only) target temperature; until it is
+  seen, the Water Heater heats until the thermostat stops the heater. Ready times and reheats then heat to it, and the tank counts as full until it has
   cooled or been drawn by a degree.
 
 ## Heating block (Water Heater)

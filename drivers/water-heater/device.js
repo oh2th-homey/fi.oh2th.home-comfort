@@ -31,13 +31,14 @@ module.exports = class waterHeaterDevice extends waterDevice {
    */
   async onDemandedHeatingStopped(temperature, now = Date.now()) {
     const before = this.getStoreValue('fullTemperature');
-    if (!water.fullStop(temperature, before, this.getCapabilityValue('target_temperature'))) {
+    if (!water.fullStop(temperature, before, this.keepTemperature())) {
       this.log(`${this.getName()} - heater stopped at ${temperature} °C while demanded: below full, not learned`);
       return;
     }
     const full = water.learnFilterTarget(before, temperature);
     this.log(`${this.getName()} - thermostat stopped the heater at ${temperature} °C: full at ${full.toFixed(1)} °C`);
     await this.setStoreValue('fullTemperature', full).catch(this.error);
+    await this.setValue('target_temperature', Math.round(full * 10) / 10);
     await this.setStoreValue('fullAt', { temperature, at: now }).catch(this.error);
     await this.setStoreValue('reheat', false).catch(this.error);
     this.setSettings({ learned_full: `${full.toFixed(1)} °C` }).catch(this.error);

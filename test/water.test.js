@@ -359,11 +359,13 @@ test('decide: a tank holds Keep on its own reading (the top), not on the planned
 });
 
 test('fullStop and stillFull: the tank thermostat stopping the heater near full, and how long it stays full', () => {
-  assert.strictEqual(water.fullStop(59.5, null, 60), true);
-  assert.strictEqual(water.fullStop(59.5, 59.8, 70), true);
+  // Before any full temperature: a stop above the floor (Keep) counts.
+  assert.strictEqual(water.fullStop(59.5, null, 50), true);
+  assert.strictEqual(water.fullStop(46, null, 50), false);
+  assert.strictEqual(water.fullStop(59.5, 59.8, 50), true);
   // Far below full: the relay was switched off early (e.g. a safety timer), not the thermostat.
-  assert.strictEqual(water.fullStop(48, 59.8, 70), false);
-  assert.strictEqual(water.fullStop(null, 59.8, 70), false);
+  assert.strictEqual(water.fullStop(55, 59.8, 50), false);
+  assert.strictEqual(water.fullStop(null, 59.8, 50), false);
   const fullAt = { temperature: 59.6, at: 0 };
   assert.strictEqual(water.stillFull(fullAt, 59.2), true);
   assert.strictEqual(water.stillFull(fullAt, 58.4), false);
