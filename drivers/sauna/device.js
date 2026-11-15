@@ -131,6 +131,35 @@ module.exports = class saunaDevice extends mainDevice {
    * @description Every minute: one step of the session (lib/sauna.js), its notifications, and what the device shows.
    */
   async onInterval(now) {
+    try {
+      await this.tick(now);
+      this.lastError = null;
+    } catch (error) {
+      this.lastError = `${new Date().toISOString()} ${error && error.stack ? error.stack : error}`;
+      this.error(`${this.getName()} - onInterval - ${this.lastError}`);
+    }
+  }
+
+  /**
+   * @description The session and the readings, for GET /water.
+   */
+  learningState() {
+    return {
+      id: this.getData().id,
+      name: this.getName(),
+      driver: 'sauna',
+      model: this.getStoreValue('model'),
+      session: this.session ? { ...this.session, readings: (this.session.readings || []).length } : null,
+      temperature: this.temperature(),
+      humidity: this.humidity(),
+      power: this.power(),
+      sources: Object.keys(this.sourceListeners || {}),
+      lastError: this.lastError || null,
+      reason: this.getCapabilityValue('text_reason')
+    };
+  }
+
+  async tick(now) {
     const local = localTime(this, now);
     if (local.minutes % 5 === 0) await this.subscribeSources();
     const at = now.getTime();
