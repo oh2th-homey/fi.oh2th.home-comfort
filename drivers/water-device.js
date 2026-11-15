@@ -550,6 +550,8 @@ module.exports = class waterDevice extends mainDevice {
     await this.saveStill(step.state, now);
     // The heater stopped while the pump runs on, without demand from this device: its own thermostat was satisfied.
     if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse) await this.onOwnHeatingStopped(raw, now);
+    // The heater stopped while heating is demanded: a tank's thermostat may have found it full.
+    if (this.lastFlow === 'heating' && flow !== 'heating' && this.demanded() && raw !== null) await this.onDemandedHeatingStopped(raw, now);
     this.lastFlow = flow;
 
     // Heating segments: the heating rate.
@@ -708,6 +710,51 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
+   * @description Whether the heater has its own thermostat that decides when the water is full, seen as the heater
+   * stopping by itself while heating is demanded (Water Heater: overridden).
+   */
+  heatsToFull() {
+    return false;
+  }
+
+  /**
+   * @description The temperature ready times and reheats heat to: the target temperature, or the full temperature
+   * learned from the heater's thermostat when that is lower.
+   */
+  readyTemperature() {
+    const target = this.getCapabilityValue('target_temperature');
+    const full = this.getStoreValue('fullTemperature');
+    return this.heatsToFull() && typeof full === 'number' && full < target ? full : target;
+  }
+
+  /**
+   * @description The temperature to decide with: the planned one, but while the tank is still full since its thermostat
+   * stopped the heater, at least the ready temperature (the sensors on its wall may read a little low).
+   */
+  decideTemperature(now, ready) {
+    const temperature = this.planTemperature(now);
+    if (!this.heatsToFull() || !water.stillFull(this.getStoreValue('fullAt'), temperature)) return temperature;
+    return Math.max(temperature, ready);
+  }
+
+  /**
+   * @description Heating to full after the tank fell below Keep, until it is full (or the mode isn't Automatic).
+   */
+  async updateReheat(temperature, ready) {
+    const reheat = this.getStoreValue('reheat') === true;
+    if (!reheat) return false;
+    if (typeof temperature === 'number' && temperature < ready) return true;
+    await this.setStoreValue('reheat', false).catch(this.error);
+    return false;
+  }
+
+  /**
+   * @description The heater stopped while heating was demanded (with a power meter): the Water Heater checks whether
+   * its thermostat found the tank full (overridden).
+   */
+  async onDemandedHeatingStopped() {}
+
+  /**
    * @description The HVAC Controller's long absence: { on, until } (until: its last day, YYYY-MM-DD, or '' when open).
    */
   longAbsence() {
@@ -752,16 +799,20 @@ module.exports = class waterDevice extends mainDevice {
         return;
       }
       const controller = this.homey.app.findController();
+      const ready = this.readyTemperature();
+      const temperature = this.decideTemperature(now, ready);
+      const reheat = await this.updateReheat(temperature, ready);
       const decided = water.decide({
         now,
-        temperature: this.planTemperature(now),
+        temperature,
         outdoor: this.surroundingsTemperature(),
         model: this.getStoreValue('model'),
         quarters: controller ? controller.priceQuarters(now) : [],
         useList: this.useList(now),
         keep: this.keepTemperature(),
         keepAt: this.isTank() ? this.tankTemperature().keepAt : null,
-        ready: this.getCapabilityValue('target_temperature'),
+        reheat,
+        ready,
         max: settings.max_temperature,
         powerW: this.ratedPower(),
         priceLimit: settings.price_limit > 0 ? settings.price_limit : null,
@@ -774,9 +825,11 @@ module.exports = class waterDevice extends mainDevice {
       });
       if (decided.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', decided.reachedFor).catch(this.error);
       // A manual on/off from the button over the decision.
+      // A tank that fell below Keep heats to full from the next plan on.
+      if (this.heatsToFull() && decided.reason.code === 'below_keep') await this.setStoreValue('reheat', true).catch(this.error);
       const manual = water.applyManual(decided, this.getStoreValue('manual'), {
-        temperature: this.planTemperature(now),
-        ready: this.getCapabilityValue('target_temperature'),
+        temperature,
+        ready,
         keep: this.keepTemperature(),
         max: settings.max_temperature
       });
@@ -788,7 +841,7 @@ module.exports = class waterDevice extends mainDevice {
       if (absence.on && !result.use && !result.demand) reason = this.absenceText(absence.until);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
       const keeping = ['keep_heat', 'below_keep'].includes(result.reason.code);
-      await this.showTiming(now, result, keeping ? this.keepTemperature() : this.getCapabilityValue('target_temperature'));
+      await this.showTiming(now, result, keeping ? this.keepTemperature() : ready);
       await this.setValue(STATE, water.state(result));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);

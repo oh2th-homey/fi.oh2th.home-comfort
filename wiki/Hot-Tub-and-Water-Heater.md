@@ -84,8 +84,12 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 ## Settings
 
-- **Keep** (Water Heater): never below, whatever the price. The Hot Tub has no Keep: between ready
-  times its own controller holds the water with its filter cycles and frost protection.
+- **Keep** (Water Heater): a reheat level. When the tank falls below it, it is heated until full,
+  whatever the price: until the tank's own thermostat stops the heater, or the target temperature.
+  With tank sensors, Keep is checked on the top temperature (the hot water at the tap). Heating
+  to full also keeps the water hot enough while nobody uses it (see [Long absence](#long-absence)).
+  The Hot Tub has no Keep: between ready times its own controller holds the water with its filter
+  cycles and frost protection.
 - **Maximum**: heating demand always stops here.
 - **Ready time**: **Ready at** (the time of day you want the water ready, empty for none), **Ready
   ahead** (0–30 minutes: be ready this long before it, default 15), **Keep ready for**, the days
@@ -97,7 +101,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   ready time, decided before the heating starts. A Water Heater still holds Keep.
 - **Heater power**: the power while heating, used until a power meter has shown it.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
-  surroundings, the mixing drop (below), and the learned power levels.
+  surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
+  meter also learns **Full at**: where its own thermostat stops the heater while heating is
+  demanded. Ready times and reheats then heat to it, and the tank counts as full until it has
+  cooled or been drawn by a degree.
 
 ## Long absence
 

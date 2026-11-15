@@ -188,6 +188,7 @@
       "no_temperature": "No water temperature",
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",
+      "reheat": "Below keep: heating until full (__target__ °C)",
       "in_use": "Ready until __until__",
       "in_use_heat": "Heating to __target__ °C, ready until __until__",
       "ready_hold": "For __ready__, held until __until__",

@@ -358,6 +358,29 @@ test('decide: a tank holds Keep on its own reading (the top), not on the planned
   assert.strictEqual(low.reason.code, 'below_keep');
 });
 
+test('fullStop and stillFull: the tank thermostat stopping the heater near full, and how long it stays full', () => {
+  assert.strictEqual(water.fullStop(59.5, null, 60), true);
+  assert.strictEqual(water.fullStop(59.5, 59.8, 70), true);
+  // Far below full: the relay was switched off early (e.g. a safety timer), not the thermostat.
+  assert.strictEqual(water.fullStop(48, 59.8, 70), false);
+  assert.strictEqual(water.fullStop(null, 59.8, 70), false);
+  const fullAt = { temperature: 59.6, at: 0 };
+  assert.strictEqual(water.stillFull(fullAt, 59.2), true);
+  assert.strictEqual(water.stillFull(fullAt, 58.4), false);
+  assert.strictEqual(water.stillFull(null, 60), false);
+});
+
+test('decide: a tank that fell below Keep heats to full, also when the plan would wait', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const now = day + 12 * H;
+  const tank = { ...base, keep: 50, ready: 59.5, max: 75 };
+  const result = water.decide({ ...tank, now, temperature: 52, keepAt: 53, reheat: true, outdoor: 20, quarters: dayPrices(now), useList: [] });
+  assert.strictEqual(result.demand, true);
+  assert.strictEqual(result.reason.code, 'reheat');
+  const full = water.decide({ ...tank, now, temperature: 59.6, keepAt: 60, reheat: true, outdoor: 20, quarters: dayPrices(now), useList: [] });
+  assert.strictEqual(full.demand, false);
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');
