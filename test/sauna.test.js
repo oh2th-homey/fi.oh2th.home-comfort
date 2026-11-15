@@ -101,6 +101,25 @@ test('wood: started on the rise, add wood when it stalls, ready at the ready tem
   assert.strictEqual(names[names.length - 1], 'off');
 });
 
+test('electric: a stove cycling within the minute (thermostat) counts as heating, and its first drop as ready', () => {
+  let state = null;
+  const events = [];
+  // Heated for 30 minutes, then the thermostat switches on and off within each minute.
+  for (let t = 0; t < 40; t++) {
+    const cycling = t >= 30;
+    const result = sauna.step(state, { now: t * M, temperature: 30 + t, power: 6900, dropped: cycling, maxHours: 4 });
+    state = result.state;
+    for (const e of result.events) events.push({ t, e });
+  }
+  assert.deepStrictEqual(events, [
+    { t: 0, e: 'started' },
+    { t: 30, e: 'ready' }
+  ]);
+  // Paired while the stove already cycles: each minute's highest power starts the session.
+  const late = sauna.step(null, { now: 0, temperature: 60, power: 6500, dropped: true });
+  assert.deepStrictEqual(late.events, ['started']);
+});
+
 test('learn: running averages of the ready temperature and rate', () => {
   let m = sauna.learn(null, { ready: 60, rate: 0.45 });
   assert.deepStrictEqual(m, { ready: 60, rate: 0.45, sessions: 1 });

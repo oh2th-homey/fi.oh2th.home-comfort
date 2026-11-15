@@ -100,7 +100,15 @@ module.exports = class saunaDevice extends mainDevice {
   async onSource(key) {
     if (key === 'temperature') await this.setValue('measure_temperature', this.temperature());
     else if (key === 'humidity') await this.setValue(HUMIDITY, this.humidity());
-    else if (key === 'power') await this.setValue(POWER, this.power());
+    else if (key === 'power') {
+      const watts = this.power();
+      // The stove's thermostat switches within a minute: keep the highest and lowest seen until the next step.
+      if (typeof watts === 'number') {
+        this.powerMax = Math.max(this.powerMax ?? watts, watts);
+        this.powerMin = Math.min(this.powerMin ?? watts, watts);
+      }
+      await this.setValue(POWER, watts);
+    }
   }
 
   read(key, maxAge = null) {
@@ -167,16 +175,23 @@ module.exports = class saunaDevice extends mainDevice {
     const temperature = this.temperature();
     const model = this.getStoreValue('model') || null;
     const before = this.session;
+    // The power over the minute: the highest (heating at all) and whether it dropped (the thermostat switching off).
+    const watts = this.power();
+    const powerMax = typeof watts === 'number' ? Math.max(this.powerMax ?? watts, watts) : null;
+    const powerMin = typeof watts === 'number' ? Math.min(this.powerMin ?? watts, watts) : null;
+    this.powerMax = null;
+    this.powerMin = null;
     const { state, events, learned } = sauna.step(this.session, {
       now: at,
       temperature,
       humidity: this.hasCapability(HUMIDITY) ? this.humidity() : null,
-      power: this.power(),
+      power: powerMax,
+      dropped: powerMin === null ? null : powerMin <= sauna.HEAT_W,
       readySet: this.getSetting('ready_temperature'),
       learnedReady: model && model.ready,
       maxHours: this.getSetting('max_hours')
     });
-    this.lastTick = { at: new Date(at).toISOString(), temperature, power: this.power(), phaseBefore: before ? before.phase : null, phaseAfter: state ? state.phase : null, events };
+    this.lastTick = { at: new Date(at).toISOString(), temperature, powerMax, powerMin, phaseBefore: before ? before.phase : null, phaseAfter: state ? state.phase : null, events };
     this.session = state;
     // Energy of the session (with a meter), for the cost estimate.
     if (state && state.phase !== 'off' && before && before.phase !== 'off') {
