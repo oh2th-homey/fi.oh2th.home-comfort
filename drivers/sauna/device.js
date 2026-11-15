@@ -155,6 +155,7 @@ module.exports = class saunaDevice extends mainDevice {
       power: this.power(),
       sources: Object.keys(this.sourceListeners || {}),
       lastError: this.lastError || null,
+      lastTick: this.lastTick || null,
       reason: this.getCapabilityValue('text_reason')
     };
   }
@@ -175,6 +176,7 @@ module.exports = class saunaDevice extends mainDevice {
       learnedReady: model && model.ready,
       maxHours: this.getSetting('max_hours')
     });
+    this.lastTick = { at: new Date(at).toISOString(), temperature, power: this.power(), phaseBefore: before ? before.phase : null, phaseAfter: state ? state.phase : null, events };
     this.session = state;
     // Energy of the session (with a meter), for the cost estimate.
     if (state && state.phase !== 'off' && before && before.phase !== 'off') {
