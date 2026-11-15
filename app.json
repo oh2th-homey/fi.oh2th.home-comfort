@@ -265,6 +265,38 @@
       },
       {
         "title": {
+          "en": "Heating ready turned off"
+        },
+        "hint": {
+          "en": "The ready time ended, or heating ready was turned off by hand."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "id": "heating_ready_false"
+      },
+      {
+        "title": {
+          "en": "Heating ready turned on"
+        },
+        "hint": {
+          "en": "A ready time started, or heating ready was turned on by hand."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "id": "heating_ready_true"
+      },
+      {
+        "title": {
           "en": "Eco changed"
         },
         "hint": {
@@ -578,6 +610,56 @@
           }
         ],
         "id": "water_heating_started"
+      },
+      {
+        "title": {
+          "en": "Ready reached"
+        },
+        "hint": {
+          "en": "Runs once per ready time, when the water first reaches the target temperature for it."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "ready_time",
+            "type": "string",
+            "title": {
+              "en": "Ready time"
+            },
+            "example": "18:00"
+          },
+          {
+            "name": "until",
+            "type": "string",
+            "title": {
+              "en": "Ready until"
+            },
+            "example": "19:30"
+          },
+          {
+            "name": "water_temperature",
+            "type": "number",
+            "title": {
+              "en": "Water temperature"
+            },
+            "example": 37.1
+          },
+          {
+            "name": "target_temperature",
+            "type": "number",
+            "title": {
+              "en": "Target temperature"
+            },
+            "example": 37
+          }
+        ],
+        "id": "water_ready_reached"
       },
       {
         "title": {

@@ -722,6 +722,7 @@ module.exports = class waterDevice extends mainDevice {
       await this.setDemand(result.demand, reason);
       await this.announceHeating(now, result);
       await this.setValue(READY, READY_CODES.includes(result.reason.code));
+      await this.announceReady(result);
       await this.checkProblem(now, result);
       await this.pruneUses(now);
     } catch (error) {
@@ -814,6 +815,20 @@ module.exports = class waterDevice extends mainDevice {
     };
     this.log(`${this.getName()} - heating ${news} for ${tokens.ready_time}: start ${tokens.expected_start}, ready ${tokens.expected_ready}`);
     await this.triggerFlow(news === 'started' ? 'water_heating_started' : 'water_heating_planned', tokens);
+  }
+
+  /**
+   * @description Ready reached: once per ready time, when the water first reaches the target for it.
+   */
+  async announceReady(result) {
+    if (!water.readyNews(result, this.getStoreValue('readyTold'))) return;
+    await this.setStoreValue('readyTold', result.use.start).catch(this.error);
+    await this.triggerFlow('water_ready_reached', {
+      ready_time: this.formatTime(result.use.start),
+      until: this.formatTime(result.use.end),
+      water_temperature: Number(this.waterTemperature()) || 0,
+      target_temperature: Number(this.getCapabilityValue('target_temperature')) || 0
+    });
   }
 
   /**

@@ -1,0 +1,49 @@
+{
+  "title": {
+    "en": "Ready reached"
+  },
+  "hint": {
+    "en": "Runs once per ready time, when the water first reaches the target temperature for it."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "ready_time",
+      "type": "string",
+      "title": {
+        "en": "Ready time"
+      },
+      "example": "18:00"
+    },
+    {
+      "name": "until",
+      "type": "string",
+      "title": {
+        "en": "Ready until"
+      },
+      "example": "19:30"
+    },
+    {
+      "name": "water_temperature",
+      "type": "number",
+      "title": {
+        "en": "Water temperature"
+      },
+      "example": 37.1
+    },
+    {
+      "name": "target_temperature",
+      "type": "number",
+      "title": {
+        "en": "Target temperature"
+      },
+      "example": 37
+    }
+  ]
+}

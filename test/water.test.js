@@ -308,6 +308,17 @@ test('heatingNews: planned once up to a day ahead, started once when heating for
   assert.strictEqual(water.heatingNews(now, waiting, { started: use.start }), null);
 });
 
+test('readyNews: once per ready time, when the state first becomes ready', () => {
+  const use = { start: 18 * H, end: 19.5 * H };
+  const ready = { use, demand: false, reason: { code: 'in_use' } };
+  assert.strictEqual(water.readyNews(ready, null), true);
+  assert.strictEqual(water.readyNews(ready, use.start), false);
+  assert.strictEqual(water.readyNews({ ...ready, reason: { code: 'ready_hold' } }, null), true);
+  assert.strictEqual(water.readyNews({ use, demand: true, reason: { code: 'in_use_heat' } }, null), false);
+  assert.strictEqual(water.readyNews({ use, demand: false, reason: { code: 'waiting' } }, null), false);
+  assert.strictEqual(water.readyNews({ use: null, demand: false, reason: { code: 'idle' } }, null), false);
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');

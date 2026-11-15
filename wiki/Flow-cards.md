@@ -30,5 +30,7 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
   [Filter cycles](Hot-Tub-and-Water-Heater#filter-cycles-hot-tub)), with each cycle's start and
   whether it runs; **Ready time skipped** (over the price limit), with the ready time, the price
   and the limit; **Heating planned** and **Heating started for a ready time** (once each per ready
-  time), with the ready time, expected start and ready, target temperature and reason. Homey's own cards cover Heating demand (on/off, also by hand), the
+  time), with the ready time, expected start and ready, target temperature and reason; **Ready
+  reached** (once per ready time), with the ready time, until when and the temperatures;
+  **Heating ready turned on** and **Heating ready turned off**. Homey's own cards cover Heating demand (on/off, also by hand), the
   mode (Automatic, Heat, Off) and the target temperature.

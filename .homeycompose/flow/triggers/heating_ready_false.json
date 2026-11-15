@@ -1,0 +1,15 @@
+{
+  "title": {
+    "en": "Heating ready turned off"
+  },
+  "hint": {
+    "en": "The ready time ended, or heating ready was turned off by hand."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    }
+  ]
+}

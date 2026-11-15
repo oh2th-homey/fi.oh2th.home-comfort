@@ -175,6 +175,11 @@ so on a day with a filter cycle before the ready time, heating starts later or n
   day ahead; the plan may still change with prices) and **Heating started for a ready time** (once per
   ready time, also when it starts as pre-heating in cheap hours), with the **Ready time**, **Expected
   start**, **Expected ready**, **Target temperature** and **Reason**. Good for a daily confirmation.
+- Trigger **Ready reached**, once per ready time when the water first reaches the target temperature,
+  with the **Ready time**, **Ready until**, **Water temperature** and **Target temperature**. Good for
+  a "the tub is ready" message: it doesn't repeat when the water dips and is reheated during use.
+- Triggers **Heating ready turned on** and **Heating ready turned off**: a ready time started or ended
+  (or it was turned on or off by hand).
 - Trigger **Ready time skipped**, once when the price limit skips a ready time, with the **Ready
   time**, the **Price** (average per kWh of the heating it would need) and the **Price limit**.
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
