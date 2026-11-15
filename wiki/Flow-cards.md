@@ -37,3 +37,8 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
   Heater, for a heater on its own schedule), with whether it runs, start, end, minutes, ready time
   and price. Homey's own cards cover Heating demand (on/off, also by hand), the
   mode (Automatic, Heat, Off) and the target temperature.
+
+## Sauna
+
+- Triggers: **Sauna heating started**, **Sauna ready**, **Sauna bathing started**, **Add wood**. See
+  [Sauna](Sauna).

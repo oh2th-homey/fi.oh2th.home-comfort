@@ -1,0 +1,74 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Session"
+    },
+    "children": [
+      {
+        "id": "ready_temperature",
+        "type": "number",
+        "label": {
+          "en": "Ready temperature"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 110,
+        "step": 1,
+        "units": {
+          "en": "°C"
+        },
+        "hint": {
+          "en": "Optional: ready when the sauna sensor reaches this. 0 = when the stove's thermostat first switches off (with a power meter), or the learned temperature."
+        }
+      },
+      {
+        "id": "max_hours",
+        "type": "number",
+        "label": {
+          "en": "Left on after"
+        },
+        "value": 4,
+        "min": 1,
+        "max": 12,
+        "step": 0.5,
+        "units": {
+          "en": "h"
+        },
+        "hint": {
+          "en": "Left on alarm when a session lasts longer."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Learned"
+    },
+    "children": [
+      {
+        "id": "learned_ready",
+        "type": "label",
+        "label": {
+          "en": "Ready at"
+        },
+        "value": "-",
+        "hint": {
+          "en": "The sauna sensor's temperature when the stove's thermostat first switches off."
+        }
+      },
+      {
+        "id": "learned_rate",
+        "type": "label",
+        "label": {
+          "en": "Heats up"
+        },
+        "value": "-",
+        "hint": {
+          "en": "From switching on to ready, per hour."
+        }
+      }
+    ]
+  }
+]

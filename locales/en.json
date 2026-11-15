@@ -90,6 +90,15 @@
       "filters_0": "None",
       "filters_1": "1 filter cycle",
       "filters_2": "2 filter cycles"
+    },
+    "sauna": {
+      "name": "Sauna",
+      "subtitle": "Follows the sauna from its temperature, and optionally its humidity and the stove's power meter. Nothing is switched.",
+      "temperature": "Sauna temperature",
+      "humidity": "Sauna humidity (optional, for the first löyly)",
+      "power": "Stove power meter (optional)",
+      "no_power": "None (e.g. a wood-burning stove)",
+      "no_temperature": "Choose the sauna temperature."
     }
   },
   "error": {
@@ -266,6 +275,17 @@
       "top": "Top",
       "middle": "Middle",
       "bottom": "Bottom"
+    }
+  },
+  "sauna": {
+    "cost": "Cost estimate",
+    "reason": {
+      "no_temperature": "No sauna temperature",
+      "heating": "Heating, ready about __ready__",
+      "heating_unknown": "Heating",
+      "ready": "Ready since __since__",
+      "in_use": "In use since __since__",
+      "off": "Off"
     }
   }
 }

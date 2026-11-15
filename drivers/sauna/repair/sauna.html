@@ -1,0 +1,123 @@
+<!-- The Sauna's only pairing page: the sauna temperature, and optionally its humidity and the stove's power meter, from
+     other devices. The same file serves pair and repair (kept identical by a test). -->
+<style>
+  .sa-error {
+    color: var(--homey-color-red-500, #d33);
+    margin: 0.8em 0;
+  }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" data-i18n="pair.sauna.name"></h1>
+  <p class="homey-subtitle" data-i18n="pair.sauna.subtitle"></p>
+</header>
+
+<form class="homey-form" id="sa-form" onsubmit="return false;" style="display: none">
+  <div class="homey-form-group" id="sa-name-group">
+    <label class="homey-form-label" for="sa-name" data-i18n="pair.water.name"></label>
+    <input class="homey-form-input" id="sa-name" type="text" />
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="sa-temperature" data-i18n="pair.sauna.temperature"></label>
+    <select class="homey-form-select" id="sa-temperature"></select>
+  </div>
+  <div class="homey-form-group" id="sa-temperature-cap-group" style="display: none">
+    <label class="homey-form-label" for="sa-temperature-cap" data-i18n="pair.members.temperature_cap"></label>
+    <select class="homey-form-select" id="sa-temperature-cap"></select>
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="sa-humidity" data-i18n="pair.sauna.humidity"></label>
+    <select class="homey-form-select" id="sa-humidity"></select>
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="sa-power" data-i18n="pair.sauna.power"></label>
+    <select class="homey-form-select" id="sa-power"></select>
+  </div>
+  <p class="sa-error" id="sa-error"></p>
+  <button class="homey-button-primary-full" id="sa-save" data-i18n="pair.water.save"></button>
+</form>
+
+<p class="sa-error" id="sa-blocked" style="display: none"></p>
+
+<script type="application/javascript">
+  (function () {
+    // Own scope: Homey loads pairing views into one document, so top-level const/let would clash between pages.
+    let view = null;
+    const el = (id) => document.getElementById(id);
+    const errorEl = el('sa-error');
+
+    function option(value, text) {
+      const node = document.createElement('option');
+      node.value = value;
+      node.textContent = text;
+      return node;
+    }
+
+    function label(device) {
+      return device.zone ? `${device.zone} · ${device.name}` : device.name;
+    }
+
+    function fill(selectEl, first, devices, current) {
+      selectEl.appendChild(option('', first));
+      for (const device of devices) selectEl.appendChild(option(device.id, label(device)));
+      selectEl.value = current && devices.some((d) => d.id === current.id) ? current.id : '';
+    }
+
+    // A device with several temperatures: choose which one.
+    function showCaps(selected) {
+      const sensor = view.sensors.find((s) => s.id === el('sa-temperature').value);
+      const temps = sensor ? sensor.temperatures : [];
+      el('sa-temperature-cap').innerHTML = '';
+      for (const cap of temps) el('sa-temperature-cap').appendChild(option(cap.id, cap.reading ? `${cap.title}: ${cap.reading}` : cap.title));
+      if (selected && temps.some((cap) => cap.id === selected)) el('sa-temperature-cap').value = selected;
+      el('sa-temperature-cap-group').style.display = temps.length > 1 ? '' : 'none';
+    }
+
+    el('sa-temperature').addEventListener('change', () => showCaps(null));
+
+    el('sa-save').addEventListener('click', async () => {
+      errorEl.textContent = '';
+      if (!el('sa-temperature').value) {
+        errorEl.textContent = Homey.__('pair.sauna.no_temperature');
+        return;
+      }
+      const sources = {
+        temperature: { id: el('sa-temperature').value, cap: el('sa-temperature-cap').value || null },
+        humidity: el('sa-humidity').value ? { id: el('sa-humidity').value } : null,
+        power: el('sa-power').value ? { id: el('sa-power').value } : null
+      };
+      try {
+        if (view.repair) {
+          await Homey.emit('save_sauna_sources', { sources });
+          Homey.done();
+          return;
+        }
+        const device = await Homey.emit('create_sauna', { name: el('sa-name').value.trim(), sources });
+        await Homey.createDevice(device);
+        Homey.done();
+      } catch (error) {
+        errorEl.textContent = error.message || String(error);
+      }
+    });
+
+    Homey.showLoadingOverlay();
+    (async () => {
+      try {
+        view = await Homey.emit('get_sauna_sources');
+        const current = view.current || {};
+        el('sa-name-group').style.display = view.repair ? 'none' : '';
+        el('sa-name').value = Homey.__('pair.sauna.name');
+        fill(el('sa-temperature'), Homey.__('pair.water.choose'), view.sensors, current.temperature);
+        showCaps(current.temperature && current.temperature.cap);
+        fill(el('sa-humidity'), Homey.__('pair.water.none'), view.humidity, current.humidity);
+        fill(el('sa-power'), Homey.__('pair.sauna.no_power'), view.meters, current.power);
+        el('sa-form').style.display = '';
+      } catch (error) {
+        el('sa-blocked').textContent = error.message || String(error);
+        el('sa-blocked').style.display = '';
+      } finally {
+        Homey.hideLoadingOverlay();
+      }
+    })();
+  })();
+</script>

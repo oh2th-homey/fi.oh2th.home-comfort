@@ -1,0 +1,25 @@
+{
+  "title": {
+    "en": "Sauna ready"
+  },
+  "hint": {
+    "en": "Once per session, when the stove's thermostat first switches off or the ready temperature is reached. Not when someone is already bathing."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature"
+      },
+      "example": 62
+    }
+  ]
+}

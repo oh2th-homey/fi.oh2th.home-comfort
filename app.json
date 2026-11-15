@@ -497,6 +497,126 @@
       },
       {
         "title": {
+          "en": "Add wood"
+        },
+        "hint": {
+          "en": "Without a power meter (a wood-burning stove): the temperature has stopped rising, or is falling, during a session."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 45
+          }
+        ],
+        "id": "sauna_add_wood"
+      },
+      {
+        "title": {
+          "en": "Sauna bathing started"
+        },
+        "hint": {
+          "en": "Once per session, at the first löyly: the humidity jumps once the sauna is warm."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 58
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes since switched on"
+            },
+            "example": 95
+          }
+        ],
+        "id": "sauna_bathing_started"
+      },
+      {
+        "title": {
+          "en": "Sauna heating started"
+        },
+        "hint": {
+          "en": "A session started: the stove draws power, or (without a meter) the temperature rises."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 18
+          },
+          {
+            "name": "expected_ready",
+            "type": "string",
+            "title": {
+              "en": "Expected ready"
+            },
+            "example": "10:25"
+          }
+        ],
+        "id": "sauna_heating_started"
+      },
+      {
+        "title": {
+          "en": "Sauna ready"
+        },
+        "hint": {
+          "en": "Once per session, when the stove's thermostat first switches off or the ready temperature is reached. Not when someone is already bathing."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 62
+          }
+        ],
+        "id": "sauna_ready"
+      },
+      {
+        "title": {
           "en": "Heating block planned"
         },
         "hint": {
@@ -1829,6 +1949,124 @@
               "value": "",
               "hint": {
                 "en": "Last day of a long absence as YYYY-MM-DD. Setting a day starts long absence; it ends after that day. Empty: no end date."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
+        "small": "/drivers/sauna/assets/images/small.png",
+        "large": "/drivers/sauna/assets/images/large.png"
+      },
+      "name": {
+        "en": "Sauna"
+      },
+      "class": "heater",
+      "capabilities": [
+        "measure_temperature",
+        "enum_sauna_state",
+        "text_expected_ready",
+        "text_reason",
+        "alarm_problem"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Sauna temperature"
+          }
+        },
+        "alarm_problem": {
+          "title": {
+            "en": "Left on"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "sauna"
+        }
+      ],
+      "repair": [
+        {
+          "id": "sauna"
+        }
+      ],
+      "id": "sauna",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Session"
+          },
+          "children": [
+            {
+              "id": "ready_temperature",
+              "type": "number",
+              "label": {
+                "en": "Ready temperature"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 110,
+              "step": 1,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Optional: ready when the sauna sensor reaches this. 0 = when the stove's thermostat first switches off (with a power meter), or the learned temperature."
+              }
+            },
+            {
+              "id": "max_hours",
+              "type": "number",
+              "label": {
+                "en": "Left on after"
+              },
+              "value": 4,
+              "min": 1,
+              "max": 12,
+              "step": 0.5,
+              "units": {
+                "en": "h"
+              },
+              "hint": {
+                "en": "Left on alarm when a session lasts longer."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Learned"
+          },
+          "children": [
+            {
+              "id": "learned_ready",
+              "type": "label",
+              "label": {
+                "en": "Ready at"
+              },
+              "value": "-",
+              "hint": {
+                "en": "The sauna sensor's temperature when the stove's thermostat first switches off."
+              }
+            },
+            {
+              "id": "learned_rate",
+              "type": "label",
+              "label": {
+                "en": "Heats up"
+              },
+              "value": "-",
+              "hint": {
+                "en": "From switching on to ready, per hour."
               }
             }
           ]
@@ -3218,6 +3456,45 @@
       "uiComponent": "picker",
       "icon": "./assets/capabilities/enum_occupancy.svg"
     },
+    "enum_sauna_state": {
+      "type": "enum",
+      "title": {
+        "en": "State"
+      },
+      "hint": {
+        "en": "Heating: the stove is on. Ready: hot (the stove's thermostat switched off, or the ready temperature). In use: someone threw the first löyly. Off: no session."
+      },
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating"
+          }
+        },
+        {
+          "id": "ready",
+          "title": {
+            "en": "Ready"
+          }
+        },
+        {
+          "id": "in_use",
+          "title": {
+            "en": "In use"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/enum_water_state.svg"
+    },
     "enum_water_state": {
       "type": "enum",
       "title": {
@@ -3407,7 +3684,7 @@
         "en": "Expected ready"
       },
       "hint": {
-        "en": "When the water is expected at the temperature it heats to, by the learned heating curve: Now when it is there, – when nothing is planned."
+        "en": "When it is expected at the temperature it heats to, by the learned heating: Now when it is there, – when nothing is planned."
       },
       "getable": true,
       "setable": false,
