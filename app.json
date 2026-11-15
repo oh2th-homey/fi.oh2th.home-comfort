@@ -2466,7 +2466,6 @@
           "id": "water"
         }
       ],
-      "deprecated": true,
       "id": "water-heater",
       "settings": [
         {

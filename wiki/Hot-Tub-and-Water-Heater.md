@@ -33,6 +33,14 @@ Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choo
   that comes from MQTT (the MQTT Client app) or another app without a device, for example a
   DS18B20 probe on an ESP32 board. Set it at least every few hours: a value older than 6 hours
   counts as no water temperature.
+- **Top**, **Middle** and **Bottom temperature** (Water Heater, instead of one water
+  temperature): a tank's sensors at up to three heights, each a temperature of another device,
+  **From a flow** (the **Set tank temperature** card, with the height) or **None** when there is
+  no sensor there. At least one is needed. The Water Heater plans and learns with their average,
+  which follows the heat stored in the tank, and holds **Keep** on the top one (the hot water at
+  the tap). The bottom one drops with every shower, as cold water comes in at the bottom; that is
+  normal and doesn't start a reheat. Sensors on the tank wall under its insulation work well:
+  they read close to the water, a little low and a little late.
 - **Outdoor temperature** (Hot Tub) or **Room temperature** (Water Heater): another sensor, or
   none to use the HVAC Controller's outdoor sensor or the fixed temperature in the settings.
 - **Power meter** (optional): the power of the heater, or of the whole tub. Recommended:
