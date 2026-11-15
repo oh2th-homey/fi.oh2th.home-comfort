@@ -802,7 +802,7 @@ module.exports = class waterDevice extends mainDevice {
    * times as shown on the device.
    */
   async announceHeating(now, result) {
-    const told = { planned: this.getStoreValue('plannedTold'), started: this.getStoreValue('startedTold') };
+    const told = { planned: this.getStoreValue('plannedTold'), started: this.getStoreValue('startedTold'), ready: this.getStoreValue('readyTold') };
     const news = water.heatingNews(now, result, told);
     if (!news) return;
     await this.setStoreValue(news === 'started' ? 'startedTold' : 'plannedTold', result.use.start).catch(this.error);

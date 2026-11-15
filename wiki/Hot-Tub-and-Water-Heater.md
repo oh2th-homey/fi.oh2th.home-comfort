@@ -173,7 +173,8 @@ so on a day with a filter cycle before the ready time, heating starts later or n
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Triggers **Heating planned** (once per ready time, when the start of heating for it is known, at most a
   day ahead; the plan may still change with prices) and **Heating started for a ready time** (once per
-  ready time, also when it starts as pre-heating in cheap hours), with the **Ready time**, **Expected
+  ready time, also when it starts as pre-heating in cheap hours or after **Heating ready** was turned on
+  by hand; not when it heats again after the water was ready), with the **Ready time**, **Expected
   start**, **Expected ready**, **Target temperature** and **Reason**. Good for a daily confirmation.
 - Trigger **Ready reached**, once per ready time when the water first reaches the target temperature,
   with the **Ready time**, **Ready until**, **Water temperature** and **Target temperature**. Good for

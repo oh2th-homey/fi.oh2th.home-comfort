@@ -303,7 +303,11 @@ test('heatingNews: planned once up to a day ahead, started once when heating for
   assert.strictEqual(water.heatingNews(now, { ...heating, reason: { code: 'safe_start' } }, {}), 'started');
   // Not for keep, by hand, holding a reached ready temperature, or a ready time already going on.
   for (const code of ['keep_heat', 'manual_on', 'ready_hold_heat']) assert.strictEqual(water.heatingNews(now, { ...heating, reason: { code } }, {}), null, code);
-  assert.strictEqual(water.heatingNews(19 * H, heating, {}), null);
+  // A ready time already going on (e.g. Heating ready turned on by hand): started until the water was ready for it.
+  const inUse = { ...heating, reason: { code: 'in_use_heat' } };
+  assert.strictEqual(water.heatingNews(18.5 * H, inUse, {}), 'started');
+  assert.strictEqual(water.heatingNews(18.5 * H, inUse, { ready: use.start }), null);
+  assert.strictEqual(water.heatingNews(19 * H, { ...waiting, nextStart: 20 * H }, {}), null);
   // After it started, no planned message for the same ready time.
   assert.strictEqual(water.heatingNews(now, waiting, { started: use.start }), null);
 });

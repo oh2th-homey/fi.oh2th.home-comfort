@@ -3,7 +3,7 @@
     "en": "Heating started for a ready time"
   },
   "hint": {
-    "en": "Runs once per ready time, when heating for it starts, also when that is pre-heating in cheap hours."
+    "en": "Runs once per ready time, when heating for it starts: also pre-heating in cheap hours, and heating after Heating ready was turned on by hand. Not while heating again after the water was ready."
   },
   "args": [
     {
