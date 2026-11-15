@@ -734,7 +734,8 @@ module.exports = class waterDevice extends mainDevice {
    * @description Show the heating demand on on/off and fire Heating demand started/stopped when it changes. Compared with
    * the demand last announced, not with on/off: Homey has already set on/off when it was turned by hand.
    */
-  async setDemand(demand, reason) {
+  async setDemand(value, reason) {
+    const demand = value === true;
     await this.setValue(DEMAND, demand);
     if (demand === this.demanded()) return;
     await this.setStoreValue('demand', demand).catch(this.error);
