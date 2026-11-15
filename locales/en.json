@@ -202,6 +202,8 @@
       "no_prices_idle_no_keep": "No ready time ahead, no prices",
       "idle": "No ready time ahead, holds keep __keep__",
       "idle_no_keep": "No ready time ahead",
+      "long_absence": "Long absence: no ready times",
+      "long_absence_until": "Long absence until __until__: no ready times",
       "safe_start": "Must start now for __ready__",
       "skipped": "__ready__ skipped, over the price limit",
       "skipped_heat": "Cheap hour for keep __keep__, __ready__ skipped",

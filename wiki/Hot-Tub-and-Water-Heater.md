@@ -99,6 +99,14 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels.
 
+## Long absence
+
+During the HVAC Controller's **Long absence** the weekly ready times are skipped, and nothing is
+heated for them. One-off ready times (**Ready at a time**, **Heating ready** turned on) still count.
+The reason shows it, for example `Long absence until 22 Nov: no ready times`. The Hot Tub's own
+controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
+want it colder while away); a Water Heater holds only **Keep**. See [Leave for days](How-to#leave-for-days).
+
 ## How it decides
 
 1. **Safety first**: at Maximum it stops. A Water Heater below Keep heats.

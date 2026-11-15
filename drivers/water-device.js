@@ -696,13 +696,35 @@ module.exports = class waterDevice extends mainDevice {
   useList(now) {
     const settings = this.getSettings();
     const days = Object.fromEntries(water.DAYS.map((day) => [day, settings[`use_${day}`] !== false]));
+    // Long absence: no weekly ready times (issue #33); one-offs set on purpose still count.
+    const time = this.longAbsence().on ? '' : settings.use_time || '';
     return water.uses({
       now,
       timeZone: this.homey.clock.getTimezone(),
-      schedule: { time: settings.use_time || '', minutes: settings.use_minutes, days },
+      schedule: { time, minutes: settings.use_minutes, days },
       oneOffs: this.getStoreValue('oneOffs') || [],
       skipped: this.getStoreValue('skipped') || []
     });
+  }
+
+  /**
+   * @description The HVAC Controller's long absence: { on, until } (until: its last day, YYYY-MM-DD, or '' when open).
+   */
+  longAbsence() {
+    const controller = this.homey.app.findController();
+    if (!controller) return { on: false, until: '' };
+    const on = controller.getSharedState().longAbsence === true;
+    return { on, until: on ? controller.getSetting('absence_until') || '' : '' };
+  }
+
+  /**
+   * @description The reason while a long absence leaves no ready time, e.g. "Long absence until 22 Nov: no ready times".
+   */
+  absenceText(until) {
+    if (!until) return this.homey.__('water.reason.long_absence');
+    const [year, month, day] = until.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(this.homey.i18n.getLanguage(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return this.homey.__('water.reason.long_absence_until', { until: date });
   }
 
   /**
@@ -762,6 +784,8 @@ module.exports = class waterDevice extends mainDevice {
       await this.announceSkip(decided);
       const { result } = manual;
       let reason = this.reasonText(result.reason);
+      const absence = this.longAbsence();
+      if (absence.on && !result.use && !result.demand) reason = this.absenceText(absence.until);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
       const keeping = ['keep_heat', 'below_keep'].includes(result.reason.code);
       await this.showTiming(now, result, keeping ? this.keepTemperature() : this.getCapabilityValue('target_temperature'));

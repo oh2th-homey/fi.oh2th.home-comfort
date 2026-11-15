@@ -90,6 +90,10 @@ controller. All zones go to eco and nothing cools. Air conditioners set to eco f
 at the eco setpoint. Long absence ends after the given day. To end it earlier, press **Long
 absence** again or use **End long absence**.
 
+The Hot Tub and the Water Heater skip their weekly ready times during a long absence; ready times
+set with **Ready at a time** or **Heating ready** still count. Their reason says until when. The
+Hot Tub's own controller holds the water; a Water Heater holds only **Keep**.
+
 ## Control a zone manually
 
 Set the zone mode to **Manual**, and the app stops writing to the zone's devices. In Auto, a
