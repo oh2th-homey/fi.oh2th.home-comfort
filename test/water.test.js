@@ -381,6 +381,46 @@ test('decide: a tank that fell below Keep heats to full, also when the plan woul
   assert.strictEqual(full.demand, false);
 });
 
+test('heatingBlock: the cheapest whole-quarter block before the ready time, sized from the curve, at most the limit', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const from = day + 22 * H;
+  const readyBy = day + 29.75 * H; // 05:45 the next morning
+  // Cheapest at 02:00-04:00 the next night, dearer around it.
+  const quarters = Array.from({ length: 40 }, (_, i) => ({ start: from + i * Q, price: i >= 16 && i < 24 ? 0.02 : 0.1 }));
+  const tank = { heatRate: 8.5, loss: 0.003, heatHours: 10, idleHours: 50 };
+  const block = water.heatingBlock({ from, readyBy, quarters, temperature: 44, target: 59.5, outdoor: 20, model: tank, maxMinutes: 180 });
+  assert.strictEqual(block.runs, true);
+  assert.ok(block.minutes >= 120 && block.minutes <= 180, `${block.minutes} min`);
+  assert.strictEqual(block.minutes % 15, 0);
+  assert.ok(block.start >= from + 2 * H && block.end <= readyBy);
+  assert.ok(block.start <= day + 28 * H && block.end >= day + 28 * H, 'covers the cheap hours');
+  // The limit caps the length; full already: nothing to heat.
+  assert.strictEqual(water.heatingBlock({ from, readyBy, quarters, temperature: 20, target: 59.5, outdoor: 20, model: tank, maxMinutes: 90 }).minutes, 90);
+  assert.strictEqual(water.heatingBlock({ from, readyBy, quarters, temperature: 60, target: 59.5, outdoor: 20, model: tank }).runs, false);
+  // No prices: the latest block.
+  const late = water.heatingBlock({ from, readyBy, quarters: [], temperature: 50, target: 59.5, outdoor: 20, model: tank });
+  assert.strictEqual(late.end, readyBy);
+});
+
+test('decide: with a heating block for the ready time, heats inside it only', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const use = { start: day + 30 * H, end: day + 31 * H };
+  const block = { ready: use.start, runs: true, start: day + 26 * H, end: day + 28 * H };
+  const tank = { ...base, keep: 45, keepAt: 58, ready: 59.5, max: 75, outdoor: 20, useList: [use], block };
+  const before = water.decide({ ...tank, now: day + 23 * H, temperature: 44, quarters: dayPrices(day + 23 * H) });
+  assert.strictEqual(before.demand, false);
+  assert.strictEqual(before.reason.code, 'block_wait');
+  assert.strictEqual(before.nextStart, block.start);
+  const inside = water.decide({ ...tank, now: day + 27 * H, temperature: 50, quarters: dayPrices(day + 27 * H) });
+  assert.strictEqual(inside.demand, true);
+  assert.strictEqual(inside.reason.code, 'block_heat');
+  const after = water.decide({ ...tank, now: day + 28.5 * H, temperature: 58, quarters: dayPrices(day + 28.5 * H) });
+  assert.strictEqual(after.demand, false);
+  assert.strictEqual(after.reason.code, 'block_done');
+  // Started, then: Heating started is told for the block.
+  assert.strictEqual(water.heatingNews(day + 27 * H, inside, {}), 'started');
+});
+
 test('mustStart: latest safe start with the pessimistic model', () => {
   const m = water.model(LEARNED);
   const now = midnight(TZ, '2026-11-13');

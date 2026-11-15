@@ -497,6 +497,72 @@
       },
       {
         "title": {
+          "en": "Heating block planned"
+        },
+        "hint": {
+          "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. a full tank or a long absence."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "runs",
+            "type": "boolean",
+            "title": {
+              "en": "Runs"
+            },
+            "example": true
+          },
+          {
+            "name": "start",
+            "type": "string",
+            "title": {
+              "en": "Start"
+            },
+            "example": "02:00"
+          },
+          {
+            "name": "end",
+            "type": "string",
+            "title": {
+              "en": "End"
+            },
+            "example": "04:30"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": 150
+          },
+          {
+            "name": "ready_time",
+            "type": "string",
+            "title": {
+              "en": "Ready time"
+            },
+            "example": "06:00"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price"
+            },
+            "example": 0.03
+          }
+        ],
+        "id": "water_heating_block_planned"
+      },
+      {
+        "title": {
           "en": "Heating planned"
         },
         "hint": {
@@ -2626,6 +2692,42 @@
               },
               "hint": {
                 "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat. Keep is always held."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Heating block"
+          },
+          "children": [
+            {
+              "id": "block_from",
+              "type": "text",
+              "label": {
+                "en": "Plan from"
+              },
+              "value": "",
+              "hint": {
+                "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+              }
+            },
+            {
+              "id": "block_max",
+              "type": "number",
+              "label": {
+                "en": "Longest block"
+              },
+              "value": 180,
+              "min": 30,
+              "max": 360,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "At most this long, e.g. the heater's own safety time."
               }
             }
           ]

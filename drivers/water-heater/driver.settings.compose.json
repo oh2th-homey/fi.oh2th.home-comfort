@@ -229,6 +229,42 @@
   {
     "type": "group",
     "label": {
+      "en": "Heating block"
+    },
+    "children": [
+      {
+        "id": "block_from",
+        "type": "text",
+        "label": {
+          "en": "Plan from"
+        },
+        "value": "",
+        "hint": {
+          "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+        }
+      },
+      {
+        "id": "block_max",
+        "type": "number",
+        "label": {
+          "en": "Longest block"
+        },
+        "value": 180,
+        "min": 30,
+        "max": 360,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "At most this long, e.g. the heater's own safety time."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
       "en": "Heater"
     },
     "children": [

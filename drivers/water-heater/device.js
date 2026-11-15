@@ -1,7 +1,13 @@
 'use strict';
 
+const { localTime, isTime, strToMins, addDays } = require('oh2th-homey-helpers');
 const waterDevice = require('../water-device');
 const water = require('../../lib/water');
+
+// The block is planned at Plan from, or this long after it when Homey was down then.
+const BLOCK_LATE_MS = 6 * 3600000;
+// Only a ready time this soon after Plan from gets the block (the next morning's).
+const BLOCK_AHEAD_MS = 18 * 3600000;
 
 module.exports = class waterHeaterDevice extends waterDevice {
   /**
@@ -36,5 +42,50 @@ module.exports = class waterHeaterDevice extends waterDevice {
     await this.setStoreValue('reheat', false).catch(this.error);
     this.setSettings({ learned_full: `${full.toFixed(1)} °C` }).catch(this.error);
     this.setTimer('plan', () => this.plan(), 2000);
+  }
+
+  /**
+   * @description Once a day at Plan from (setting): one heating block before the next ready time (lib/water.js
+   * heatingBlock), stored for the plan and told by Heating block planned, for a heater that runs its own schedule. No
+   * ready time (e.g. a long absence) or a full tank: a block that doesn't run.
+   */
+  async planBlock(now = Date.now()) {
+    const from = this.getSetting('block_from');
+    if (!isTime(from)) return;
+    const timeZone = this.homey.clock.getTimezone();
+    const today = localTime(this, new Date(now)).date;
+    let windowStart = water.localMs(timeZone, today, strToMins(from));
+    if (windowStart > now) windowStart = water.localMs(timeZone, addDays(today, -1), strToMins(from));
+    if (now - windowStart > BLOCK_LATE_MS || this.getStoreValue('blockTold') === windowStart) return;
+    await this.setStoreValue('blockTold', windowStart).catch(this.error);
+    const aheadMs = Math.min(30, Math.max(0, Number(this.getSetting('ready_ahead')) || 0)) * 60000;
+    const use = this.useList(now).find((u) => u.start - aheadMs > now && u.start - aheadMs - windowStart <= BLOCK_AHEAD_MS);
+    const ready = this.readyTemperature();
+    const controller = this.homey.app.findController();
+    let block = { runs: false, start: null, end: null, minutes: 0, price: null };
+    if (use) {
+      block = water.heatingBlock({
+        from: now,
+        readyBy: use.start - aheadMs,
+        quarters: controller ? controller.priceQuarters(now) : [],
+        temperature: this.decideTemperature(now, ready),
+        target: ready,
+        outdoor: this.surroundingsTemperature(),
+        model: this.getStoreValue('model'),
+        maxMinutes: this.getSetting('block_max') || 180
+      });
+    }
+    await this.setStoreValue('block', { ...block, ready: use ? use.start : null }).catch(this.error);
+    const time = (ms) => (typeof ms === 'number' ? localTime(this, new Date(ms)).time : '');
+    const tokens = {
+      runs: block.runs,
+      start: time(block.start),
+      end: time(block.end),
+      minutes: block.minutes,
+      ready_time: use ? this.formatTime(use.start) : '',
+      price: typeof block.price === 'number' ? Math.round(block.price * 10000) / 10000 : 0
+    };
+    this.log(`${this.getName()} - heating block ${block.runs ? `${tokens.start}–${tokens.end} (${block.minutes} min) for ${tokens.ready_time}` : 'not needed'}`);
+    await this.triggerFlow('water_heating_block_planned', tokens);
   }
 };

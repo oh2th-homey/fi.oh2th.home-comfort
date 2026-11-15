@@ -106,6 +106,28 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   demanded. Ready times and reheats then heat to it, and the tank counts as full until it has
   cooled or been drawn by a degree.
 
+## Heating block (Water Heater)
+
+Some heaters run their own schedule, so they heat even when Homey is down: for example a relay that
+switches the element on at a set time and off again after a while. For those, set **Plan from**
+in the device settings (e.g. 22:00). Every day at that time the Water Heater plans one heating
+block before the next ready time and runs **Heating block planned**:
+
+- The block is long enough to heat the tank from where it will have cooled to by the ready time,
+  by the learned curve (on the slow side) plus a quarter, at most **Longest block** (e.g. the
+  relay's own safety time, 180 minutes), at the cheapest time before the ready time.
+- Tokens: **Runs** (yes/no), **Start** and **End** (HH:mm), **Minutes**, **Ready time** and
+  **Price** (average per kWh). **Runs** is no when nothing needs heating: the tank will still be
+  full, or there is no ready time (for example during a long absence).
+- A typical flow: **Heating block planned** → **Runs** is yes? → write Start and Minutes into
+  the heater's own schedule; else turn that schedule off.
+- The tank's thermostat ends the block early when the tank is full. The Water Heater shows the
+  block in its reason and demands heating inside it only, so its learning and Heating demand
+  follow the block too.
+
+Keep reheats still use **Heating demand**: let a flow switch the heater on and off on
+**Heating demand started** and **stopped** as well.
+
 ## Long absence
 
 During the HVAC Controller's **Long absence** the weekly ready times are skipped, and nothing is

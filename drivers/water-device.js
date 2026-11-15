@@ -257,10 +257,16 @@ module.exports = class waterDevice extends mainDevice {
     if (local.minutes % 5 === 0) await this.subscribeSources();
     await this.track(now.getTime());
     if (local.minutes % PLAN_MINUTES === 0) {
+      await this.planBlock(now.getTime());
       await this.plan(now.getTime());
       await this.planFilters(now.getTime());
     }
   }
+
+  /**
+   * @description A heating block for a heater on its own schedule: only the Water Heater (overridden).
+   */
+  async planBlock() {}
 
   /**
    * @description Filter cycles: only the Hot Tub has them (overridden).
@@ -812,6 +818,7 @@ module.exports = class waterDevice extends mainDevice {
         keep: this.keepTemperature(),
         keepAt: this.isTank() ? this.tankTemperature().keepAt : null,
         reheat,
+        block: this.getStoreValue('block') || null,
         ready,
         max: settings.max_temperature,
         powerW: this.ratedPower(),
