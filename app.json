@@ -497,6 +497,192 @@
       },
       {
         "title": {
+          "en": "Add wood"
+        },
+        "hint": {
+          "en": "Without a power meter (a wood-burning stove): the temperature has stopped rising, or is falling, during a session."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 45
+          }
+        ],
+        "id": "sauna_add_wood"
+      },
+      {
+        "title": {
+          "en": "Sauna bathing started"
+        },
+        "hint": {
+          "en": "Once per session, at the first löyly: the humidity jumps once the sauna is warm."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 58
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes since switched on"
+            },
+            "example": 95
+          }
+        ],
+        "id": "sauna_bathing_started"
+      },
+      {
+        "title": {
+          "en": "Sauna heating started"
+        },
+        "hint": {
+          "en": "A session started: the stove draws power, or (without a meter) the temperature rises."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 18
+          },
+          {
+            "name": "expected_ready",
+            "type": "string",
+            "title": {
+              "en": "Expected ready"
+            },
+            "example": "10:25"
+          }
+        ],
+        "id": "sauna_heating_started"
+      },
+      {
+        "title": {
+          "en": "Sauna ready"
+        },
+        "hint": {
+          "en": "Once per session, when the stove's thermostat first switches off or the ready temperature is reached. Not when someone is already bathing."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 62
+          }
+        ],
+        "id": "sauna_ready"
+      },
+      {
+        "title": {
+          "en": "Heating block planned"
+        },
+        "hint": {
+          "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. a full tank or a long absence."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "runs",
+            "type": "boolean",
+            "title": {
+              "en": "Runs"
+            },
+            "example": true
+          },
+          {
+            "name": "start",
+            "type": "string",
+            "title": {
+              "en": "Start"
+            },
+            "example": "02:00"
+          },
+          {
+            "name": "end",
+            "type": "string",
+            "title": {
+              "en": "End"
+            },
+            "example": "04:30"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": 150
+          },
+          {
+            "name": "ready_time",
+            "type": "string",
+            "title": {
+              "en": "Ready time"
+            },
+            "example": "06:00"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price"
+            },
+            "example": 0.03
+          }
+        ],
+        "id": "water_heating_block_planned"
+      },
+      {
+        "title": {
           "en": "Heating planned"
         },
         "hint": {
@@ -1210,6 +1396,105 @@
       },
       {
         "title": {
+          "en": "Set stove switch"
+        },
+        "titleFormatted": {
+          "en": "The stove switch is [[state]]"
+        },
+        "hint": {
+          "en": "For a stove whose main switch is seen by another device, e.g. an input on its supply. Once set, the switch starts and ends the session."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "title": {
+              "en": "Switch"
+            },
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_sauna_stove"
+      },
+      {
+        "title": {
+          "en": "Set tank temperature"
+        },
+        "titleFormatted": {
+          "en": "Set the [[position]] temperature to [[temperature]] °C"
+        },
+        "hint": {
+          "en": "For a tank's temperature at one height from a flow, e.g. MQTT. Choose From a flow for that height when adding the device or in Repair."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-heater"
+          },
+          {
+            "type": "dropdown",
+            "name": "position",
+            "title": {
+              "en": "Height"
+            },
+            "values": [
+              {
+                "id": "top",
+                "title": {
+                  "en": "top"
+                }
+              },
+              {
+                "id": "middle",
+                "title": {
+                  "en": "middle"
+                }
+              },
+              {
+                "id": "bottom",
+                "title": {
+                  "en": "bottom"
+                }
+              }
+            ]
+          },
+          {
+            "type": "number",
+            "name": "temperature",
+            "title": {
+              "en": "Temperature"
+            },
+            "placeholder": {
+              "en": "58.0"
+            },
+            "min": -5,
+            "max": 100,
+            "step": 0.1
+          }
+        ],
+        "id": "set_tank_temperature"
+      },
+      {
+        "title": {
           "en": "Set comfort heat"
         },
         "titleFormatted": {
@@ -1704,6 +1989,124 @@
               "value": "",
               "hint": {
                 "en": "Last day of a long absence as YYYY-MM-DD. Setting a day starts long absence; it ends after that day. Empty: no end date."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
+        "small": "/drivers/sauna/assets/images/small.png",
+        "large": "/drivers/sauna/assets/images/large.png"
+      },
+      "name": {
+        "en": "Sauna"
+      },
+      "class": "heater",
+      "capabilities": [
+        "measure_temperature",
+        "enum_sauna_state",
+        "text_expected_ready",
+        "text_reason",
+        "alarm_problem"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Sauna temperature"
+          }
+        },
+        "alarm_problem": {
+          "title": {
+            "en": "Left on"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "sauna"
+        }
+      ],
+      "repair": [
+        {
+          "id": "sauna"
+        }
+      ],
+      "id": "sauna",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Session"
+          },
+          "children": [
+            {
+              "id": "ready_temperature",
+              "type": "number",
+              "label": {
+                "en": "Ready temperature"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 110,
+              "step": 1,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Optional: ready when the sauna sensor reaches this. 0 = when the stove's thermostat first switches off (with a power meter), or the learned temperature."
+              }
+            },
+            {
+              "id": "max_hours",
+              "type": "number",
+              "label": {
+                "en": "Left on after"
+              },
+              "value": 4,
+              "min": 1,
+              "max": 12,
+              "step": 0.5,
+              "units": {
+                "en": "h"
+              },
+              "hint": {
+                "en": "Left on alarm when a session lasts longer."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Learned"
+          },
+          "children": [
+            {
+              "id": "learned_ready",
+              "type": "label",
+              "label": {
+                "en": "Ready at"
+              },
+              "value": "-",
+              "hint": {
+                "en": "The sauna sensor's temperature when the stove's thermostat first switches off."
+              }
+            },
+            {
+              "id": "learned_rate",
+              "type": "label",
+              "label": {
+                "en": "Heats up"
+              },
+              "value": "-",
+              "hint": {
+                "en": "From switching on to ready, per hour."
               }
             }
           ]
@@ -2292,7 +2695,8 @@
           "min": 30,
           "max": 85,
           "step": 1,
-          "decimals": 1
+          "decimals": 1,
+          "setable": false
         },
         "alarm_problem": {
           "title": {
@@ -2341,7 +2745,6 @@
           "id": "water"
         }
       ],
-      "deprecated": true,
       "id": "water-heater",
       "settings": [
         {
@@ -2364,7 +2767,7 @@
                 "en": "°C"
               },
               "hint": {
-                "en": "Never below, whatever the price: enough hot water at any time."
+                "en": "Below this the tank is heated until full, whatever the price. With tank sensors it is the top temperature (the hot water at the tap). Also keeps the water hot enough while away."
               }
             },
             {
@@ -2574,6 +2977,42 @@
         {
           "type": "group",
           "label": {
+            "en": "Heating block"
+          },
+          "children": [
+            {
+              "id": "block_from",
+              "type": "text",
+              "label": {
+                "en": "Plan from"
+              },
+              "value": "",
+              "hint": {
+                "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+              }
+            },
+            {
+              "id": "block_max",
+              "type": "number",
+              "label": {
+                "en": "Longest block"
+              },
+              "value": 180,
+              "min": 30,
+              "max": 360,
+              "step": 15,
+              "units": {
+                "en": "min"
+              },
+              "hint": {
+                "en": "At most this long, e.g. the heater's own safety time."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
             "en": "Heater"
           },
           "children": [
@@ -2652,6 +3091,17 @@
               "value": "-",
               "hint": {
                 "en": "Learned from the power meter: heating, and the base load such as a circulation pump. Above halfway between them counts as heating."
+              }
+            },
+            {
+              "id": "learned_full",
+              "type": "label",
+              "label": {
+                "en": "Full at"
+              },
+              "value": "-",
+              "hint": {
+                "en": "Where the tank's own thermostat stops the heater (learned with a power meter). Ready times and reheats heat to it."
               }
             }
           ]
@@ -3046,6 +3496,45 @@
       "uiComponent": "picker",
       "icon": "./assets/capabilities/enum_occupancy.svg"
     },
+    "enum_sauna_state": {
+      "type": "enum",
+      "title": {
+        "en": "State"
+      },
+      "hint": {
+        "en": "Heating: the stove is on. Ready: hot (the stove's thermostat switched off, or the ready temperature). In use: someone threw the first löyly. Off: no session."
+      },
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating"
+          }
+        },
+        {
+          "id": "ready",
+          "title": {
+            "en": "Ready"
+          }
+        },
+        {
+          "id": "in_use",
+          "title": {
+            "en": "In use"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/enum_water_state.svg"
+    },
     "enum_water_state": {
       "type": "enum",
       "title": {
@@ -3235,7 +3724,7 @@
         "en": "Expected ready"
       },
       "hint": {
-        "en": "When the water is expected at the temperature it heats to, by the learned heating curve: Now when it is there, – when nothing is planned."
+        "en": "When it is expected at the temperature it heats to, by the learned heating: Now when it is there, – when nothing is planned."
       },
       "getable": true,
       "setable": false,

@@ -78,13 +78,27 @@
       "none": "None",
       "choose": "Choose…",
       "from_flow": "From a flow (Set water temperature card)",
+      "from_flow_tank": "From a flow (Set tank temperature card)",
+      "top": "Top temperature",
+      "middle": "Middle temperature",
+      "bottom": "Bottom temperature",
       "save": "Save",
       "no_water": "Choose the water temperature.",
+      "no_tank": "Choose at least one tank temperature.",
       "no_prices": "Choose the prices to follow on the HVAC Controller first (Repair).",
       "filters": "Filter cycles",
       "filters_0": "None",
       "filters_1": "1 filter cycle",
       "filters_2": "2 filter cycles"
+    },
+    "sauna": {
+      "name": "Sauna",
+      "subtitle": "Follows the sauna from its temperature, and optionally its humidity and the stove's power meter. Nothing is switched.",
+      "temperature": "Sauna temperature",
+      "humidity": "Sauna humidity (optional, for the first löyly)",
+      "power": "Stove power meter (optional)",
+      "no_power": "None (e.g. a wood-burning stove)",
+      "no_temperature": "Choose the sauna temperature."
     }
   },
   "error": {
@@ -183,6 +197,10 @@
       "no_temperature": "No water temperature",
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",
+      "reheat": "Below keep: heating until full (__target__ °C)",
+      "block_wait": "Heating block __start__–__until__ for __ready__",
+      "block_heat": "Heating block until __until__ for __ready__",
+      "block_done": "Heating block done for __ready__",
       "in_use": "Ready until __until__",
       "in_use_heat": "Heating to __target__ °C, ready until __until__",
       "ready_hold": "For __ready__, held until __until__",
@@ -197,6 +215,8 @@
       "no_prices_idle_no_keep": "No ready time ahead, no prices",
       "idle": "No ready time ahead, holds keep __keep__",
       "idle_no_keep": "No ready time ahead",
+      "long_absence": "Long absence: no ready times",
+      "long_absence_until": "Long absence until __until__: no ready times",
       "safe_start": "Must start now for __ready__",
       "skipped": "__ready__ skipped, over the price limit",
       "skipped_heat": "Cheap hour for keep __keep__, __ready__ skipped",
@@ -215,6 +235,8 @@
     "error": {
       "keep_max": "Keep must be lower than Maximum.",
       "not_flow": "The water temperature comes from a device. To set it from a flow, choose From a flow in Repair.",
+      "not_flow_tank": "The __position__ temperature doesn't come from a flow. Choose From a flow for it in Repair.",
+      "tank_card": "This tank has temperatures at several heights: use the Set tank temperature card.",
       "ready_max": "The target temperature is above Maximum: lower it first.",
       "ready_range": "The target temperature must be above keep (__keep__) and at most the maximum (__max__).",
       "ready_range_no_keep": "The target temperature must be at most the maximum (__max__).",
@@ -248,6 +270,22 @@
       "cycle": "__start__–__end__",
       "off": "off (__price__/kWh)",
       "summary": "__day__: __cycles__"
+    },
+    "tank": {
+      "top": "Top",
+      "middle": "Middle",
+      "bottom": "Bottom"
+    }
+  },
+  "sauna": {
+    "cost": "Cost estimate",
+    "reason": {
+      "no_temperature": "No sauna temperature",
+      "heating": "Heating, ready about __ready__",
+      "heating_unknown": "Heating",
+      "ready": "Ready since __since__",
+      "in_use": "In use since __since__",
+      "off": "Off"
     }
   }
 }

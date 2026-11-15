@@ -19,7 +19,7 @@
           "en": "°C"
         },
         "hint": {
-          "en": "Never below, whatever the price: enough hot water at any time."
+          "en": "Below this the tank is heated until full, whatever the price. With tank sensors it is the top temperature (the hot water at the tap). Also keeps the water hot enough while away."
         }
       },
       {
@@ -229,6 +229,42 @@
   {
     "type": "group",
     "label": {
+      "en": "Heating block"
+    },
+    "children": [
+      {
+        "id": "block_from",
+        "type": "text",
+        "label": {
+          "en": "Plan from"
+        },
+        "value": "",
+        "hint": {
+          "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+        }
+      },
+      {
+        "id": "block_max",
+        "type": "number",
+        "label": {
+          "en": "Longest block"
+        },
+        "value": 180,
+        "min": 30,
+        "max": 360,
+        "step": 15,
+        "units": {
+          "en": "min"
+        },
+        "hint": {
+          "en": "At most this long, e.g. the heater's own safety time."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
       "en": "Heater"
     },
     "children": [
@@ -307,6 +343,17 @@
         "value": "-",
         "hint": {
           "en": "Learned from the power meter: heating, and the base load such as a circulation pump. Above halfway between them counts as heating."
+        }
+      },
+      {
+        "id": "learned_full",
+        "type": "label",
+        "label": {
+          "en": "Full at"
+        },
+        "value": "-",
+        "hint": {
+          "en": "Where the tank's own thermostat stops the heater (learned with a power meter). Ready times and reheats heat to it."
         }
       }
     ]

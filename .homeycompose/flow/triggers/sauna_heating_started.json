@@ -1,0 +1,33 @@
+{
+  "title": {
+    "en": "Sauna heating started"
+  },
+  "hint": {
+    "en": "A session started: the stove draws power, or (without a meter) the temperature rises."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature"
+      },
+      "example": 18
+    },
+    {
+      "name": "expected_ready",
+      "type": "string",
+      "title": {
+        "en": "Expected ready"
+      },
+      "example": "10:25"
+    }
+  ]
+}

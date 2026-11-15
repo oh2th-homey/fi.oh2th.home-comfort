@@ -1,0 +1,25 @@
+{
+  "title": {
+    "en": "Add wood"
+  },
+  "hint": {
+    "en": "Without a power meter (a wood-burning stove): the temperature has stopped rising, or is falling, during a session."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature"
+      },
+      "example": 45
+    }
+  ]
+}

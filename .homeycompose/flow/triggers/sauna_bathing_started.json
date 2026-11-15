@@ -1,0 +1,33 @@
+{
+  "title": {
+    "en": "Sauna bathing started"
+  },
+  "hint": {
+    "en": "Once per session, at the first löyly: the humidity jumps once the sauna is warm."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "type": "number",
+      "title": {
+        "en": "Temperature"
+      },
+      "example": 58
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "title": {
+        "en": "Minutes since switched on"
+      },
+      "example": 95
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "title": {
+    "en": "Set stove switch"
+  },
+  "titleFormatted": {
+    "en": "The stove switch is [[state]]"
+  },
+  "hint": {
+    "en": "For a stove whose main switch is seen by another device, e.g. an input on its supply. Once set, the switch starts and ends the session."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    },
+    {
+      "type": "dropdown",
+      "name": "state",
+      "title": {
+        "en": "Switch"
+      },
+      "values": [
+        {
+          "id": "on",
+          "title": {
+            "en": "on"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "off"
+          }
+        }
+      ]
+    }
+  ]
+}

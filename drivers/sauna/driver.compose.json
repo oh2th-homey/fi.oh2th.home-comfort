@@ -1,0 +1,36 @@
+{
+  "name": {
+    "en": "Sauna"
+  },
+  "class": "heater",
+  "capabilities": [
+    "measure_temperature",
+    "enum_sauna_state",
+    "text_expected_ready",
+    "text_reason",
+    "alarm_problem"
+  ],
+  "capabilitiesOptions": {
+    "measure_temperature": {
+      "title": {
+        "en": "Sauna temperature"
+      }
+    },
+    "alarm_problem": {
+      "title": {
+        "en": "Left on"
+      }
+    }
+  },
+  "$extends": ["device"],
+  "pair": [
+    {
+      "id": "sauna"
+    }
+  ],
+  "repair": [
+    {
+      "id": "sauna"
+    }
+  ]
+}

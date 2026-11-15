@@ -32,7 +32,8 @@
       "min": 30,
       "max": 85,
       "step": 1,
-      "decimals": 1
+      "decimals": 1,
+      "setable": false
     },
     "alarm_problem": {
       "title": {
@@ -83,6 +84,5 @@
     {
       "id": "water"
     }
-  ],
-  "deprecated": true
+  ]
 }

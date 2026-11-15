@@ -14,7 +14,8 @@ defaults:
 |---|---|---|
 | Surroundings | Outdoor temperature: a sensor, or the HVAC Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
 | Keep (default) | None: between ready times the tub's own controller holds the water | 45 °C, enough hot water at any time |
-| Ready / Maximum (default) | 38 / 40 °C | 73 / 75 °C |
+| Target temperature | 38 °C, set by you | Read only: **Full at**, learned where the tank's own thermostat stops the heater |
+| Maximum (default) | 40 °C | 75 °C |
 
 ## Before you add one
 
@@ -33,6 +34,14 @@ Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choo
   that comes from MQTT (the MQTT Client app) or another app without a device, for example a
   DS18B20 probe on an ESP32 board. Set it at least every few hours: a value older than 6 hours
   counts as no water temperature.
+- **Top**, **Middle** and **Bottom temperature** (Water Heater, instead of one water
+  temperature): a tank's sensors at up to three heights, each a temperature of another device,
+  **From a flow** (the **Set tank temperature** card, with the height) or **None** when there is
+  no sensor there. At least one is needed. The Water Heater plans and learns with their average,
+  which follows the heat stored in the tank, and holds **Keep** on the top one (the hot water at
+  the tap). The bottom one drops with every shower, as cold water comes in at the bottom; that is
+  normal and doesn't start a reheat. Sensors on the tank wall under its insulation work well:
+  they read close to the water, a little low and a little late.
 - **Outdoor temperature** (Hot Tub) or **Room temperature** (Water Heater): another sensor, or
   none to use the HVAC Controller's outdoor sensor or the fixed temperature in the settings.
 - **Power meter** (optional): the power of the heater, or of the whole tub. Recommended:
@@ -84,8 +93,12 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 ## Settings
 
-- **Keep** (Water Heater): never below, whatever the price. The Hot Tub has no Keep: between ready
-  times its own controller holds the water with its filter cycles and frost protection.
+- **Keep** (Water Heater): a reheat level. When the tank falls below it, it is heated until full,
+  whatever the price: until the tank's own thermostat stops the heater, or the target temperature.
+  With tank sensors, Keep is checked on the top temperature (the hot water at the tap). Heating
+  to full also keeps the water hot enough while nobody uses it (see [Long absence](#long-absence)).
+  The Hot Tub has no Keep: between ready times its own controller holds the water with its filter
+  cycles and frost protection.
 - **Maximum**: heating demand always stops here.
 - **Ready time**: **Ready at** (the time of day you want the water ready, empty for none), **Ready
   ahead** (0–30 minutes: be ready this long before it, default 15), **Keep ready for**, the days
@@ -95,9 +108,45 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. A Water Heater still holds Keep.
-- **Heater power**: the power while heating, used until a power meter has shown it.
+- **Heater power**: the power while heating, used until a power meter has shown it. A Water Heater also
+  starts planning from it (a 300-litre, well insulated tank) until its heating and cooling are learned.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
-  surroundings, the mixing drop (below), and the learned power levels.
+  surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
+  meter also learns **Full at**: where its own thermostat stops the heater while heating is
+  demanded. It is shown as the Water Heater's (read only) target temperature. Until it is
+  seen, the Water Heater plans with (and shows) 60 °C, at most Maximum; the first stop of the
+  thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as full until it has
+  cooled or been drawn by a degree.
+
+## Heating block (Water Heater)
+
+Some heaters run their own schedule, so they heat even when Homey is down: for example a relay that
+switches the element on at a set time and off again after a while. For those, set **Plan from**
+in the device settings (e.g. 22:00). Every day at that time the Water Heater plans one heating
+block before the next ready time and runs **Heating block planned**:
+
+- The block is long enough to heat the tank from where it will have cooled to by the ready time,
+  by the learned curve (on the slow side) plus a quarter, at most **Longest block** (e.g. the
+  relay's own safety time, 180 minutes), at the cheapest time before the ready time.
+- Tokens: **Runs** (yes/no), **Start** and **End** (HH:mm), **Minutes**, **Ready time** and
+  **Price** (average per kWh). **Runs** is no when nothing needs heating: the tank will still be
+  full, or there is no ready time (for example during a long absence).
+- A typical flow: **Heating block planned** → **Runs** is yes? → write Start and Minutes into
+  the heater's own schedule; else turn that schedule off.
+- The tank's thermostat ends the block early when the tank is full. The Water Heater shows the
+  block in its reason and demands heating inside it only, so its learning and Heating demand
+  follow the block too.
+
+Keep reheats still use **Heating demand**: let a flow switch the heater on and off on
+**Heating demand started** and **stopped** as well.
+
+## Long absence
+
+During the HVAC Controller's **Long absence** the weekly ready times are skipped, and nothing is
+heated for them. One-off ready times (**Ready at a time**, **Heating ready** turned on) still count.
+The reason shows it, for example `Long absence until 22 Nov: no ready times`. The Hot Tub's own
+controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
+want it colder while away); a Water Heater holds only **Keep**. See [Leave for days](How-to#leave-for-days).
 
 ## How it decides
 

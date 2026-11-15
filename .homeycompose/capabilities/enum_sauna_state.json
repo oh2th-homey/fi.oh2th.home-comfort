@@ -1,0 +1,39 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "State"
+  },
+  "hint": {
+    "en": "Heating: the stove is on. Ready: hot (the stove's thermostat switched off, or the ready temperature). In use: someone threw the first löyly. Off: no session."
+  },
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off"
+      }
+    },
+    {
+      "id": "heating",
+      "title": {
+        "en": "Heating"
+      }
+    },
+    {
+      "id": "ready",
+      "title": {
+        "en": "Ready"
+      }
+    },
+    {
+      "id": "in_use",
+      "title": {
+        "en": "In use"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/enum_water_state.svg"
+}
