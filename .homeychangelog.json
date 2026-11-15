@@ -7,5 +7,8 @@
   },
   "1.2.0": {
     "en": "NEW: Energy prices come straight from Power by the Hour without an import flow, and the Cost today, Price paid today and Average price today capabilities are removed."
+  },
+  "1.3.0": {
+    "en": "NEW: Hot Tub device that heats the tub in the cheapest hours to be ready at your ready times, plans its filter cycles and learns how fast the water heats and cools."
   }
 }
