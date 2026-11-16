@@ -620,7 +620,7 @@
           "en": "Heating block planned"
         },
         "hint": {
-          "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. a full tank or a long absence."
+          "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. the tank is at its target temperature or a long absence."
         },
         "args": [
           {
@@ -2767,7 +2767,7 @@
                 "en": "°C"
               },
               "hint": {
-                "en": "Below this the tank is heated until full, whatever the price. With tank sensors it is the top temperature (the hot water at the tap). Also keeps the water hot enough while away."
+                "en": "Below this the tank is heated to its target temperature, whatever the price. With tank sensors it is the top temperature (the hot water at the tap). Also keeps the water hot enough while away."
               }
             },
             {
@@ -3005,7 +3005,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "At most this long, e.g. the heater's own timer. Heating that stops well before it is the thermostat: the tank is full."
+                "en": "At most this long, e.g. the heater's own timer. Heating that stops well before it is the thermostat: the tank is at its target temperature."
               }
             }
           ]
@@ -3097,11 +3097,11 @@
               "id": "learned_full",
               "type": "label",
               "label": {
-                "en": "Full at"
+                "en": "Target temperature"
               },
               "value": "-",
               "hint": {
-                "en": "Where the tank's own thermostat stops the heater (learned with a power meter). Ready times and reheats heat to it."
+                "en": "Learned with a power meter: where the tank's own thermostat stops the heater. Ready times and reheats heat to it."
               }
             }
           ]

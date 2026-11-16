@@ -3,7 +3,7 @@
     "en": "Heating block planned"
   },
   "hint": {
-    "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. a full tank or a long absence."
+    "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. the tank is at its target temperature or a long absence."
   },
   "args": [
     {

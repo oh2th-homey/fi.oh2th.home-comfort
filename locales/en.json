@@ -197,7 +197,7 @@
       "no_temperature": "No water temperature",
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",
-      "reheat": "Below keep: heating until full (__target__ °C)",
+      "reheat": "Below keep: heating to the target temperature (__target__ °C)",
       "block_wait": "Heating block __start__–__until__ for __ready__",
       "block_heat": "Heating block until __until__ for __ready__",
       "block_done": "Heating block done for __ready__",

@@ -14,7 +14,7 @@ defaults:
 |---|---|---|
 | Surroundings | Outdoor temperature: a sensor, or the HVAC Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
 | Keep (default) | None: between ready times the tub's own controller holds the water | 45 °C, enough hot water at any time |
-| Target temperature | 38 °C, set by you | Read only: **Full at**, learned where the tank's own thermostat stops the heater |
+| Target temperature | 38 °C, set by you | Read only: learned where the tank's own thermostat stops the heater |
 | Maximum (default) | 40 °C | 75 °C |
 
 ## Before you add one
@@ -93,10 +93,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 
 ## Settings
 
-- **Keep** (Water Heater): a reheat level. When the tank falls below it, it is heated until full,
-  whatever the price: until the tank's own thermostat stops the heater, or the target temperature.
+- **Keep** (Water Heater): a reheat level. When the tank falls below it, it is heated to its target
+  temperature, whatever the price: until the tank's own thermostat stops the heater.
   With tank sensors, Keep is checked on the top temperature (the hot water at the tap). Heating
-  to full also keeps the water hot enough while nobody uses it (see [Long absence](#long-absence)).
+  to the target temperature also keeps the water hot enough while nobody uses it (see [Long absence](#long-absence)).
   The Hot Tub has no Keep: between ready times its own controller holds the water with its filter
   cycles and frost protection.
 - **Maximum**: heating demand always stops here.
@@ -112,10 +112,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   starts planning from it (a 300-litre, well insulated tank) until its heating and cooling are learned.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
-  meter also learns **Full at**: where its own thermostat stops the heater while heating is
+  meter also learns its **Target temperature**: where its own thermostat stops the heater while heating is
   demanded, or (a heater on its own timer) more than 10 minutes before **Longest block**. It is shown as the Water Heater's (read only) target temperature. Until it is
   seen, the Water Heater plans with (and shows) 60 °C, at most Maximum; the first stop of the
-  thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as full until it has
+  thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as at its target temperature until it has
   cooled or been drawn by a degree.
 
 ## Heating block (Water Heater)
@@ -130,10 +130,10 @@ block before the next ready time and runs **Heating block planned**:
   relay's own safety time, 180 minutes), at the cheapest time before the ready time.
 - Tokens: **Runs** (yes/no), **Start** and **End** (HH:mm), **Minutes**, **Ready time** and
   **Price** (average per kWh). **Runs** is no when nothing needs heating: the tank will still be
-  full, or there is no ready time (for example during a long absence).
+  at its target temperature, or there is no ready time (for example during a long absence).
 - A typical flow: **Heating block planned** → **Runs** is yes? → write Start and Minutes into
   the heater's own schedule; else turn that schedule off.
-- The tank's thermostat ends the block early when the tank is full. The Water Heater shows the
+- The tank's thermostat ends the block early when the tank reaches its target temperature. The Water Heater shows the
   block in its reason and demands heating inside it only, so its learning and Heating demand
   follow the block too.
 
