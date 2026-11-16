@@ -113,7 +113,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
   surroundings, the mixing drop (below), and the learned power levels. A Water Heater with a power
   meter also learns **Full at**: where its own thermostat stops the heater while heating is
-  demanded. It is shown as the Water Heater's (read only) target temperature. Until it is
+  demanded, or (a heater on its own timer) more than 10 minutes before **Longest block**. It is shown as the Water Heater's (read only) target temperature. Until it is
   seen, the Water Heater plans with (and shows) 60 °C, at most Maximum; the first stop of the
   thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as full until it has
   cooled or been drawn by a degree.

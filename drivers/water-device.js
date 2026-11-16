@@ -587,8 +587,10 @@ module.exports = class waterDevice extends mainDevice {
     await this.saveStill(step.state, now);
     // The heater stopped while the pump runs on, without demand from this device: its own thermostat was satisfied.
     if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse) await this.onOwnHeatingStopped(raw, now);
-    // The heater stopped while heating is demanded: a tank's thermostat may have found it full.
-    if (this.lastFlow === 'heating' && flow !== 'heating' && this.demanded() && raw !== null) await this.onDemandedHeatingStopped(raw, now);
+    // The heater stopped while heating is demanded, or before its own timer would end it: a tank's thermostat may have
+    // found it full.
+    if (this.lastFlow !== 'heating' && flow === 'heating') await this.setStoreValue('heatingSince', now).catch(this.error);
+    if (this.lastFlow === 'heating' && flow !== 'heating' && raw !== null && (this.demanded() || this.stoppedBeforeTimer(now))) await this.onDemandedHeatingStopped(raw, now);
     this.lastFlow = flow;
 
     // Heating segments: the heating rate.
@@ -791,6 +793,14 @@ module.exports = class waterDevice extends mainDevice {
    * its thermostat found the tank full (overridden).
    */
   async onDemandedHeatingStopped() {}
+
+  /**
+   * @description Heating without demand from this device stopped before the heater's own timer would end it
+   * (overridden by the Water Heater).
+   */
+  stoppedBeforeTimer() {
+    return false;
+  }
 
   /**
    * @description The HVAC Controller's long absence: { on, until } (until: its last day, YYYY-MM-DD, or '' when open).

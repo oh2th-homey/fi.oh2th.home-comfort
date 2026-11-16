@@ -13,6 +13,8 @@ const START_LOSS = 0.002;
 const BLOCK_LATE_MS = 6 * 3600000;
 // Only a ready time this soon after Plan from gets the block (the next morning's).
 const BLOCK_AHEAD_MS = 18 * 3600000;
+// Heating that stops this much (minutes) before Longest block is the thermostat, not the heater's own timer.
+const TIMER_MARGIN_MIN = 10;
 
 module.exports = class waterHeaterDevice extends waterDevice {
   /**
@@ -42,10 +44,20 @@ module.exports = class waterHeaterDevice extends waterDevice {
    * @description The heater stopped while heating was demanded: near the full temperature, the tank's thermostat found it
    * full. Learned as the full temperature (a running average); further below, the relay was switched off early.
    */
+  /**
+   * @description A heater on its own timer (e.g. a relay that switches off after Longest block): a stop well before that
+   * is its thermostat.
+   */
+  stoppedBeforeTimer(now = Date.now()) {
+    const since = this.getStoreValue('heatingSince');
+    const longest = Number(this.getSetting('block_max')) || 0;
+    return typeof since === 'number' && longest > 0 && now - since < (longest - TIMER_MARGIN_MIN) * 60000;
+  }
+
   async onDemandedHeatingStopped(temperature, now = Date.now()) {
     const before = this.getStoreValue('fullTemperature');
     if (!water.fullStop(temperature, before, this.keepTemperature())) {
-      this.log(`${this.getName()} - heater stopped at ${temperature} °C while demanded: below full, not learned`);
+      this.log(`${this.getName()} - heater stopped at ${temperature} °C: below full, not learned`);
       return;
     }
     const full = water.learnFilterTarget(before, temperature);

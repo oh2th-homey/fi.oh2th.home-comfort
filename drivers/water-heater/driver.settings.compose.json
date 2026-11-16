@@ -257,7 +257,7 @@
           "en": "min"
         },
         "hint": {
-          "en": "At most this long, e.g. the heater's own safety time."
+          "en": "At most this long, e.g. the heater's own timer. Heating that stops well before it is the thermostat: the tank is full."
         }
       }
     ]
