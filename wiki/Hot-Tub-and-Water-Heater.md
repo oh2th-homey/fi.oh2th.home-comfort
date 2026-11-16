@@ -84,7 +84,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   heating curve, for example `17:48`; `Now` when it is there.
 - **Time remaining**: while heating, how long until then, for example `1 h 5 min`.
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00`,
-  `Ready until 20:00` or, still heating after the ready time, `Heating to 37 °C, ready until 20:00`.
+  `Ready until 20:00` or, still heating after the ready time, `Heating to 37 °C until 20:00`.
 - **Heater problem**: no water temperature, heating was demanded for 1.5 hours without the
   water getting warmer, or (with a power meter) heating was demanded for 10 minutes without the
   meter showing heating power. A flow on **Heater problem turned on** can resend the heater's own
@@ -144,7 +144,7 @@ Keep reheats still use **Heating demand**: let a flow switch the heater on and o
 
 During the HVAC Controller's **Long absence** the weekly ready times are skipped, and nothing is
 heated for them. One-off ready times (**Ready at a time**, **Heating ready** turned on) still count.
-The reason shows it, for example `Long absence until 22 Nov: no ready times`. The Hot Tub's own
+The reason shows it, for example `Away until 22 Nov`. The Hot Tub's own
 controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
 want it colder while away); a Water Heater holds only **Keep**. See [Leave for days](How-to#leave-for-days).
 
