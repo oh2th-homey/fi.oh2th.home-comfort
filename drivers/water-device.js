@@ -17,6 +17,9 @@ const POWER = 'measure_power';
 const TEMPERATURE = 'measure_temperature';
 // A tank's full temperature until its thermostat has been seen stopping the heater (°C).
 const DEFAULT_FULL = 60;
+// A heater with its own thermostat shows its target this far below the learned one, in whole degrees: a tank that has
+// cooled a little since the thermostat stopped it then doesn't look short of its target in the UI.
+const SHOWN_BELOW_FULL = 2;
 // A water temperature not updated for this long counts as unknown (some spas report only while the pump runs).
 const WATER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const SURROUNDINGS_MAX_AGE_MS = 3 * 60 * 60 * 1000;
@@ -254,7 +257,7 @@ module.exports = class waterDevice extends mainDevice {
     try {
       if (this.heatsToFull()) {
         // Read only: the temperature it heats to, learned from the tank's thermostat (the starting value until seen).
-        await this.setValue('target_temperature', Math.floor(this.readyTemperature()), check);
+        await this.setValue('target_temperature', this.shownTarget(this.readyTemperature()), check);
       } else if (typeof this.getCapabilityValue('target_temperature') !== 'number') {
         await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
       }
@@ -757,6 +760,14 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
+   * @description The target shown on a heater with its own thermostat (UI only): the learned one minus SHOWN_BELOW_FULL,
+   * in whole degrees rounded down. Planning uses the learned one.
+   */
+  shownTarget(full) {
+    return Math.floor(full - SHOWN_BELOW_FULL);
+  }
+
+  /**
    * @description The temperature ready times and reheats heat to: the target temperature, or (a heater with its own
    * thermostat) the full temperature learned from it; before that, a usual hot water thermostat setting, at most
    * Maximum (its first stop above Keep then teaches the real one).
@@ -1019,7 +1030,7 @@ module.exports = class waterDevice extends mainDevice {
       ready_time: this.formatTime(result.use.start),
       until: this.formatTime(result.use.end),
       water_temperature: Number(this.waterTemperature()) || 0,
-      target_temperature: Number(this.getCapabilityValue('target_temperature')) || 0
+      target_temperature: Math.round((Number(this.readyTemperature()) || 0) * 10) / 10
     });
   }
 
