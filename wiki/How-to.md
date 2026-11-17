@@ -35,7 +35,8 @@ goes back to Always eco.
      where the price is, and **Price level changed** warns (for example by a notification):
      - **High above**: a warning only; heating runs as planned.
      - **Expensive above**: always expensive, whatever the model, also with the model Off. Zones
-       go to eco (or off, by their peak rule). Hot tubs and water heaters don't heat at all, not
+       go to eco (or off, by their peak rule), or keep comfort when their **At Expensive level** is
+       Allow comfort (e.g. an A/C). Hot tubs and water heaters don't heat at all, not
        even to hold Keep: they wait for the price to drop (a water heater's night block still
        heats). **Heating held by the price ceiling** warns when the hot water runs low meanwhile.
 3. During a peak the controller shows **Expensive now**. Zones go to eco, or off if their **At
