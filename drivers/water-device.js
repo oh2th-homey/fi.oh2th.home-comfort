@@ -33,6 +33,8 @@ const MAX_HEAT_HOURS = 3;
 const SETTLE_MS = 15 * 60000;
 // After this long without heating the water counts as standing still: it is planned with the learned mixing drop.
 const STILL_MS = 60 * 60000;
+// A heating stop this soon after the app switched the heater switch off was the app, not the heater's thermostat.
+const SWITCHED_OFF_MS = 3 * 60000;
 
 /**
  * Shared device base of the Hot Tub and the Water Heater (issue #1): reads the water temperature, the surroundings and
@@ -337,6 +339,8 @@ module.exports = class waterDevice extends mainDevice {
     for (const [key, source] of Object.entries(this.waterSources())) if (source && !source.flow) list.push({ key, ...source });
     if (surroundings) list.push({ key: 'surroundings', ...surroundings });
     if (power) list.push({ key: 'power', ...power, cap: 'measure_power' });
+    const heaterSwitch = this.getStoreValue('heaterSwitch');
+    if (heaterSwitch) list.push({ key: 'switch', ...heaterSwitch });
     return list;
   }
 
@@ -381,6 +385,8 @@ module.exports = class waterDevice extends mainDevice {
       if (changed && !this.initializing) this.setTimer('plan', () => this.plan(), 2000);
     } else if (key === 'surroundings') {
       await this.setValue(SURROUNDINGS, this.surroundingsTemperature());
+    } else if (key === 'switch') {
+      await this.onHeaterSwitch();
     } else if (key === 'power') {
       const watts = this.powerReading();
       await this.setValue(POWER, watts);
@@ -589,11 +595,12 @@ module.exports = class waterDevice extends mainDevice {
     }
     await this.saveStill(step.state, now);
     // The heater stopped while the pump runs on, without demand from this device: its own thermostat was satisfied.
-    if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse) await this.onOwnHeatingStopped(raw, now);
+    if (this.lastFlow === 'heating' && flow === 'circulating' && !this.demanded() && raw !== null && !inUse && !this.stoppedBySwitch(now)) await this.onOwnHeatingStopped(raw, now);
     // The heater stopped while heating is demanded, or before its own timer would end it: a tank's thermostat may have
     // found it full.
     if (this.lastFlow !== 'heating' && flow === 'heating') await this.setStoreValue('heatingSince', now).catch(this.error);
-    if (this.lastFlow === 'heating' && flow !== 'heating' && raw !== null && (this.demanded() || this.stoppedBeforeTimer(now))) await this.onDemandedHeatingStopped(raw, now);
+    const thermostat = (this.demanded() || this.stoppedBeforeTimer(now)) && !this.stoppedBySwitch(now);
+    if (this.lastFlow === 'heating' && flow !== 'heating' && raw !== null && thermostat) await this.onDemandedHeatingStopped(raw, now);
     this.lastFlow = flow;
 
     // Heating segments: the heating rate.
@@ -919,12 +926,43 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
+   * @description The heater switch's state (true/false), null when there is none or it isn't known.
+   */
+  heaterSwitchOn() {
+    const source = this.sourceListeners.switch;
+    const reading = source ? this.homey.app.members.read(source.id, source.cap) : null;
+    return reading && typeof reading.value === 'boolean' ? reading.value : null;
+  }
+
+  /**
+   * @description The heater switch changed by something else, e.g. the heater's own fallback schedule for when Homey is
+   * down: while this device runs, it is switched back to the heating demand (not in mode Off).
+   */
+  async onHeaterSwitch() {
+    const on = this.heaterSwitchOn();
+    if (on === null || this.initializing || this.mode() === 'off' || on === this.demanded()) return;
+    this.log(`${this.getName()} - heater switch turned ${on ? 'on' : 'off'} elsewhere: back to the heating demand`);
+    await this.writeHeaterSwitch(this.demanded());
+  }
+
+  /**
+   * @description With a heater switch: the heater stopped because the switch is (or was just switched) off, not by its
+   * thermostat. Such a stop teaches nothing about the target temperature.
+   */
+  stoppedBySwitch(now) {
+    if (!this.getStoreValue('heaterSwitch')) return false;
+    if (this.heaterSwitchOn() === false) return true;
+    return typeof this.switchedOffAt === 'number' && now - this.switchedOffAt < SWITCHED_OFF_MS;
+  }
+
+  /**
    * @description The heater's switch chosen at pairing or repair (optional): follows the heating demand, so no flow is
    * needed. Written when the demand changes; a failed write is logged (the problem alarm tells when no power comes).
    */
   async writeHeaterSwitch(on) {
     const target = this.getStoreValue('heaterSwitch');
     if (!target) return;
+    if (!on) this.switchedOffAt = Date.now();
     try {
       await this.homey.app.members.write(target.id, target.cap, on);
       this.log(`${this.getName()} - heater switch ${target.name} ${target.cap} ${on ? 'on' : 'off'}`);

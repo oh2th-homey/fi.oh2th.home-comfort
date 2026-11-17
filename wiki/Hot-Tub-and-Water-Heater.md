@@ -55,6 +55,10 @@ Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choo
   left alone. A device with several switches (for example a meter with a relay add-on) also asks
   **Switch to use**; switches with the same name show their number, such as "Turned on (1)".
   Without a switch, let a flow switch the heater on **Heating demand started** and **stopped**.
+  When something else switches it, the device switches it back to the demand while Homey runs. So
+  a schedule in the relay itself (for example every night 02:45 for 3 hours, with an automatic
+  switch-off) works as a fallback: it heats only when Homey is down. Stops the device makes itself
+  aren't learned as the thermostat's.
 
 The app reads only standard capabilities. If a reading is only available in a non-standard
 form, a virtual device updated by a flow can pass it on. To change the choices later, use
