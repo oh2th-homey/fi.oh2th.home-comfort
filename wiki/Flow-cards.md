@@ -35,7 +35,9 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
   planned also with the end, minutes and price (a Water Heater with Plan from: its night block, see
   [Night heat-up](Hot-Tub-and-Water-Heater#night-heat-up-water-heater)); **Ready
   reached** (once per ready time), with the ready time, until when and the temperatures;
-  **Heating ready turned on** and **Heating ready turned off**. Homey's own cards cover Heating demand (on/off, also by hand), the
+  **Heating ready turned on** and **Heating ready turned off**; **Heating held by the price
+  ceiling** (once, when the water falls below Keep while the price is over the home's ceiling),
+  with the ceiling, the water temperature and Keep. Homey's own cards cover Heating demand (on/off, also by hand), the
   mode (Automatic, Heat, Off) and the target temperature.
 
 ## Sauna

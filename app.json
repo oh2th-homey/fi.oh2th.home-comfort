@@ -617,6 +617,48 @@
       },
       {
         "title": {
+          "en": "Heating held by the price ceiling"
+        },
+        "hint": {
+          "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (HVAC Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=spa|water-heater"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "ceiling",
+            "type": "number",
+            "title": {
+              "en": "Price ceiling"
+            },
+            "example": 0.3
+          },
+          {
+            "name": "water_temperature",
+            "type": "number",
+            "title": {
+              "en": "Water temperature"
+            },
+            "example": 43.5
+          },
+          {
+            "name": "keep",
+            "type": "number",
+            "title": {
+              "en": "Keep"
+            },
+            "example": 45
+          }
+        ],
+        "id": "water_heating_held"
+      },
+      {
+        "title": {
           "en": "Heating planned"
         },
         "hint": {
@@ -1876,6 +1918,23 @@
                   }
                 }
               ]
+            },
+            {
+              "id": "price_ceiling",
+              "type": "number",
+              "label": {
+                "en": "Expensive above"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 10,
+              "step": 0.01,
+              "units": {
+                "en": "per kWh"
+              },
+              "hint": {
+                "en": "Price ceiling for the whole home, 0 for none. Above it the price is always expensive, whatever the model: zones follow their peak rule, and hot tubs and water heaters don't heat at all (not even to hold Keep), except a water heater's night block."
+              }
             },
             {
               "id": "price_min_delta",

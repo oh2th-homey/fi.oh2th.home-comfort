@@ -1,0 +1,41 @@
+{
+  "title": {
+    "en": "Heating held by the price ceiling"
+  },
+  "hint": {
+    "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (HVAC Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=spa|water-heater"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "ceiling",
+      "type": "number",
+      "title": {
+        "en": "Price ceiling"
+      },
+      "example": 0.3
+    },
+    {
+      "name": "water_temperature",
+      "type": "number",
+      "title": {
+        "en": "Water temperature"
+      },
+      "example": 43.5
+    },
+    {
+      "name": "keep",
+      "type": "number",
+      "title": {
+        "en": "Keep"
+      },
+      "example": 45
+    }
+  ]
+}

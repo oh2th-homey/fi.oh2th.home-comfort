@@ -962,3 +962,23 @@ test('holdTarget: mode Heat holds the ready temperature with a band, Maximum sto
   assert.strictEqual(water.holdTarget({ ...opts, temperature: null }).demand, false);
   assert.strictEqual(water.state(water.holdTarget({ ...opts, temperature: 36 })), 'heating');
 });
+
+test('decide: over the price ceiling nothing heats, not even Keep (held), except inside the night block', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const use = { start: day + 30 * H, end: day + 31 * H };
+  const block = { ready: use.start, runs: true, start: day + 26 * H, end: day + 28 * H, price: 0.02 };
+  const tank = { ...base, keep: 45, ready: 59.5, max: 75, outdoor: 20, useList: [use], block };
+  // dayPrices: 0.3 from 06:00 to midnight, 0.02 at night.
+  const low = water.decide({ ...tank, now: day + 20 * H, temperature: 50, keepAt: 40, ceiling: 0.25, quarters: dayPrices(day + 20 * H) });
+  assert.strictEqual(low.demand, false);
+  assert.strictEqual(low.reason.code, 'over_ceiling');
+  assert.strictEqual(low.held, true);
+  // Above Keep: waiting, not held.
+  assert.strictEqual(water.decide({ ...tank, now: day + 20 * H, temperature: 50, keepAt: 55, ceiling: 0.25, quarters: dayPrices(day + 20 * H) }).held, false);
+  // Without a ceiling: Keep heats.
+  assert.strictEqual(water.decide({ ...tank, now: day + 20 * H, temperature: 50, keepAt: 40, quarters: dayPrices(day + 20 * H) }).demand, true);
+  // Inside the night block it heats whatever the price.
+  const night = water.decide({ ...tank, now: day + 27 * H, temperature: 50, keepAt: 55, ceiling: 0.01, quarters: dayPrices(day + 27 * H) });
+  assert.strictEqual(night.reason.code, 'block_heat');
+  assert.strictEqual(night.demand, true);
+});

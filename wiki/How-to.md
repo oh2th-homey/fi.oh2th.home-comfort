@@ -31,6 +31,11 @@ goes back to Always eco.
      bumps have no peaks: a smaller peak only moves the heat by a quarter and saves nothing.
    - **Above average**: every quarter more than the percentage (default 30 %) above today's
      average counts.
+   - **Expensive above** (a price ceiling, 0 for none): a price over it always counts as
+     expensive, whatever the model, also with the model Off. Hot tubs and water heaters don't
+     heat at all over it, not even to hold Keep: they wait for the price to drop (a water heater's
+     night block still heats). **Heating held by the price ceiling** warns when the hot water runs
+     low meanwhile.
 3. During a peak the controller shows **Expensive now**. Zones go to eco, or off if their **At
    price peaks** setting is Off, and return when the peak ends. Zones set to Ignore stay as they
    are.

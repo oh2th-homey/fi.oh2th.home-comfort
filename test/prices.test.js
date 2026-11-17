@@ -175,3 +175,15 @@ test('evaluate: off, unknown, hourly fallback, until', () => {
   // Stored with another resolution than the setting: unknown.
   assert.strictEqual(prices.evaluate({ days: hourly, timeZone: TZ, now, resolution: 15 }).price, null);
 });
+
+test('evaluate: over the price ceiling is always expensive, also with the model off', () => {
+  const now = prices.dayInfo(TZ, '2026-11-10', 15).start + 32 * 900000;
+  const days = { '2026-11-10': { resolution: 15, values: NORMAL } };
+  // The price now is 0.12.
+  const over = prices.evaluate({ days, timeZone: TZ, now, model: 'off', ceiling: 0.1 });
+  assert.strictEqual(over.expensive, true);
+  assert.deepStrictEqual(over.reasons[over.reasons.length - 1], { code: 'over_ceiling', args: { price: 0.12, ceiling: 0.1 } });
+  assert.strictEqual(prices.evaluate({ days, timeZone: TZ, now, model: 'off', ceiling: 0.2 }).expensive, false);
+  // 0: no ceiling.
+  assert.strictEqual(prices.evaluate({ days, timeZone: TZ, now, model: 'off', ceiling: 0 }).expensive, false);
+});

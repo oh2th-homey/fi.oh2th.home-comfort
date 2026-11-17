@@ -25,8 +25,8 @@ The controller holds what all zones share. You can add only one.
 
 ## Settings
 
-- **Currency** (follows the Power by the Hour price device), **Price model**, **Minimum price difference** and the **Percentage above
-  average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
+- **Currency** (follows the Power by the Hour price device), **Price model**, **Expensive above** (the home's price ceiling),
+  **Minimum price difference** and the **Percentage above average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
 - **Check tomorrow's prices at** (default 16:00): the time of the daily check that fires
   **Prices missing for tomorrow**.
 - **Long absence until**: the last day of a long absence. See

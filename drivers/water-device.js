@@ -891,6 +891,7 @@ module.exports = class waterDevice extends mainDevice {
         reheat,
         // Plan from cleared: a block already planned no longer holds.
         block: isTime(settings.block_from) ? this.getStoreValue('block') || null : null,
+        ceiling: controller ? controller.priceCeiling() : null,
         ready,
         max: settings.max_temperature,
         powerW: this.ratedPower(),
@@ -925,6 +926,7 @@ module.exports = class waterDevice extends mainDevice {
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
       await this.announceHeating(now, result);
+      await this.announceHeld(result, controller);
       await this.setValue(READY, READY_CODES.includes(result.reason.code));
       await this.announceReady(result);
       await this.checkProblem(now, result);
@@ -1081,6 +1083,22 @@ module.exports = class waterDevice extends mainDevice {
     }
     this.log(`${this.getName()} - heating ${news} for ${tokens.ready_time}: start ${tokens.expected_start}, ready ${tokens.expected_ready}`);
     await this.triggerFlow(news === 'started' ? 'water_heating_started' : 'water_heating_planned', tokens);
+  }
+
+  /**
+   * @description Heating held by the price ceiling while the hot water runs out (below Keep): told once when it starts.
+   */
+  async announceHeld(result, controller) {
+    const held = result.held === true;
+    if (held === (this.getStoreValue('heldTold') === true)) return;
+    await this.setStoreValue('heldTold', held).catch(this.error);
+    if (!held || this.initializing) return;
+    this.log(`${this.getName()} - heating held by the price ceiling, water ${this.waterTemperature()} °C`);
+    await this.triggerFlow('water_heating_held', {
+      ceiling: (controller && controller.priceCeiling()) || 0,
+      water_temperature: Number(this.isTank() ? this.tankTemperature().keepAt : this.waterTemperature()) || 0,
+      keep: Number(this.keepTemperature()) || 0
+    });
   }
 
   /**

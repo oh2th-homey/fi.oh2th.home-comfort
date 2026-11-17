@@ -503,7 +503,8 @@ module.exports = class hvacDevice extends mainDevice {
       resolution: this.priceResolution(),
       model: settings.price_model,
       pct: settings.price_above_average_pct,
-      minDelta: settings.price_min_delta
+      minDelta: settings.price_min_delta,
+      ceiling: settings.price_ceiling
     });
     // Prices from Power by the Hour that could not be read: say why, before the price reason.
     if (this.getStoreValue('priceSource') && this.pricesError) result.reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
@@ -530,6 +531,15 @@ module.exports = class hvacDevice extends mainDevice {
   /**
    * @description The known prices from now as quarters, for the water devices' planner: [{ start, price }], unknown null.
    */
+  /**
+   * @description The home's price ceiling (setting Expensive above, per kWh): above it nothing heats except a Water
+   * Heater's night block, and the zones count it as expensive. Null when not set.
+   */
+  priceCeiling() {
+    const value = Number(this.getSetting('price_ceiling'));
+    return value > 0 ? value : null;
+  }
+
   priceQuarters(now = Date.now()) {
     const timeZone = this.homey.clock.getTimezone();
     const resolution = this.priceResolution();

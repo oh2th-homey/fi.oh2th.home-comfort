@@ -145,7 +145,7 @@ The main heating of a hot water tank is one heat-up in the night before the morn
   tank then heats in the night also when Homey is down.
 - Outside the block the Water Heater only tops up: when the hour is cheaper than the block and the
   tank is short of its target temperature (after hot water was used), and whenever the top falls
-  below **Keep**, whatever the price.
+  below **Keep**, up to the home's price ceiling (below).
 - With a **Heater switch**, the device switches the heater itself, also in the block. When the
   heater's own schedule turns the switch on while no heating is needed (the tank is already
   full), the device switches it back off.
@@ -163,7 +163,10 @@ want it colder while away); a Water Heater holds only **Keep**. See [Leave for d
 
 ## How it decides
 
-1. **Safety first**: at Maximum it stops. A Water Heater below Keep heats.
+1. **Safety first**: at Maximum it stops. Over the home's price ceiling (HVAC Controller:
+   **Expensive above**) it doesn't heat at all, not even for Keep, except in a Water Heater's night
+   block; **Heating held by the price ceiling** runs when the water falls below Keep meanwhile.
+   Otherwise a Water Heater below Keep heats.
 2. **From the ready time** it holds the target temperature for **Keep ready for**. Ready reached
    within **Hold before ready time** of it is held too, so the water doesn't cool again before
    you need it.

@@ -133,6 +133,7 @@
     "not_peak": "Normal",
     "above_average": "Expensive (over __threshold__)",
     "not_above_average": "Normal",
+    "over_ceiling": "Over the price ceiling __ceiling__",
     "source_error": "Power by the Hour: __detail__"
   },
   "import": {
@@ -205,6 +206,7 @@
       "block_heat": "Block until __until__ for __ready__",
       "block_done": "Heating block done for __ready__",
       "topup_heat": "Topping up to __target__ °C, cheaper than the block",
+      "over_ceiling": "Price over __ceiling__/kWh: waiting",
       "in_use": "Ready until __until__",
       "in_use_heat": "Heating to __target__ °C until __until__",
       "ready_hold": "For __ready__, held until __until__",
