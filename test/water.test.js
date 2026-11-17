@@ -433,6 +433,30 @@ test('decide: with a heating block for the ready time, heats inside it only', ()
   assert.strictEqual(after.reason.code, 'block_done');
   // Started, then: Heating started is told for the block.
   assert.strictEqual(water.heatingNews(day + 27 * H, inside, {}), 'started');
+  // Outside the block: a top-up when the hour is cheaper than the block and the water short of ready.
+  const priced = { ...block, price: 1 };
+  const cheap = water.decide({ ...tank, block: priced, now: day + 23 * H, temperature: 50, quarters: dayPrices(day + 23 * H) });
+  assert.strictEqual(cheap.demand, true);
+  assert.strictEqual(cheap.reason.code, 'topup_heat');
+  // At ready (or within FULL_HOLD of it): no top-up.
+  assert.strictEqual(water.decide({ ...tank, block: priced, now: day + 23 * H, temperature: 59, quarters: dayPrices(day + 23 * H) }).demand, false);
+  // Dearer than the block: wait for it.
+  const dear = water.decide({ ...tank, block: { ...block, price: 0 }, now: day + 23 * H, temperature: 50, quarters: dayPrices(day + 23 * H) });
+  assert.strictEqual(dear.reason.code, 'block_wait');
+});
+
+test('cheapestBlock: the full night heat-up at the cheapest place, once the prices cover the window', () => {
+  const Q = 15 * 60000;
+  const from = 90 * H;
+  const readyBy = 98 * H;
+  const quarters = [];
+  for (let t = from - 4 * H; t < readyBy + 2 * H; t += Q) quarters.push({ start: t, price: t >= 93 * H && t < 96 * H ? 0.02 : 0.1 });
+  const block = water.cheapestBlock({ from, readyBy, quarters, minutes: 180 });
+  assert.deepStrictEqual({ ...block, price: Math.round(block.price * 1000) / 1000 }, { runs: true, start: 93 * H, end: 96 * H, minutes: 180, price: 0.02 });
+  // A missing price in the window: not yet (the prices for the night aren't published).
+  assert.strictEqual(water.cheapestBlock({ from, readyBy, quarters: quarters.filter((q) => q.start !== readyBy - Q), minutes: 180 }), null);
+  // Flat prices: as late as possible.
+  assert.strictEqual(water.cheapestBlock({ from, readyBy, quarters: quarters.map((q) => ({ ...q, price: 0.05 })), minutes: 180 }).end, readyBy);
 });
 
 test('mustStart: latest safe start with the pessimistic model', () => {

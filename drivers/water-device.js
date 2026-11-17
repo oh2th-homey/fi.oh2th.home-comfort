@@ -300,9 +300,16 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description A heating block for a heater on its own schedule: only the Water Heater (overridden).
+   * @description The night heating block: only the Water Heater, with Plan from (overridden).
    */
   async planBlock() {}
+
+  /**
+   * @description Plans a night heating block (Water Heater with Plan from): its Heating planned comes from the block.
+   */
+  plansBlock() {
+    return false;
+  }
 
   /**
    * @description Filter cycles: only the Hot Tub has them (overridden).
@@ -325,7 +332,11 @@ module.exports = class waterDevice extends mainDevice {
    * @description Prices or the surroundings on the controller changed.
    */
   async onSharedStateChanged() {
-    this.setTimer('plan', () => this.plan(), 2000);
+    // New prices: the night block can be planned now (before the plan, which heats by it).
+    this.setTimer('plan', async () => {
+      await this.planBlock();
+      await this.plan();
+    }, 2000);
   }
 
   /**
@@ -1046,6 +1057,8 @@ module.exports = class waterDevice extends mainDevice {
     const told = { planned: this.getStoreValue('plannedTold'), started: this.getStoreValue('startedTold'), ready: this.getStoreValue('readyTold') };
     const news = water.heatingNews(now, result, told);
     if (!news) return;
+    // A Water Heater with a night block tells its plan when the block is planned (planBlock), not from the price plan.
+    if (news === 'planned' && this.plansBlock()) return;
     await this.setStoreValue(news === 'started' ? 'startedTold' : 'plannedTold', result.use.start).catch(this.error);
     const tokens = {
       ready_time: this.formatTime(result.use.start),
@@ -1054,6 +1067,18 @@ module.exports = class waterDevice extends mainDevice {
       target_temperature: Number(this.readyTemperature()) || 0,
       reason: this.getCapabilityValue('text_reason') || ''
     };
+    if (news === 'planned') {
+      // The planned heating from its start: until it stops, and its mean price.
+      const controller = this.homey.app.findController();
+      const start = result.nextStart;
+      const end = typeof result.until === 'number' ? result.until : null;
+      const price = end && controller ? water.meanPrice(controller.priceQuarters(now), start, end) : null;
+      Object.assign(tokens, {
+        end: end ? localTime(this, new Date(end)).time : '',
+        minutes: end ? Math.round((end - start) / 60000) : 0,
+        price: typeof price === 'number' ? Math.round(price * 10000) / 10000 : 0
+      });
+    }
     this.log(`${this.getName()} - heating ${news} for ${tokens.ready_time}: start ${tokens.expected_start}, ready ${tokens.expected_ready}`);
     await this.triggerFlow(news === 'started' ? 'water_heating_started' : 'water_heating_planned', tokens);
   }

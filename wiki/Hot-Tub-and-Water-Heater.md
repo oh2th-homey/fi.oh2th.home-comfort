@@ -129,27 +129,29 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   has only cooled as standing water does (its thermostat won't heat for that), for up to 36 hours, until the next
   daily heating. Hot water used (a shower, a bath) drops it further, and then ready times heat it again.
 
-## Heating block (Water Heater)
+## Night heat-up (Water Heater)
 
-Some heaters run their own schedule, so they heat even when Homey is down: for example a relay that
-switches the element on at a set time and off again after a while. For those, set **Plan from**
-in the device settings (e.g. 22:00). Every day at that time the Water Heater plans one heating
-block before the next ready time and runs **Heating block planned**:
+The main heating of a hot water tank is one heat-up in the night before the morning ready time. Set
+**Plan from** in the device settings (e.g. 22:00, after the evening's showers) to use it:
 
-- The block is long enough to heat the tank from where it will have cooled to by the ready time,
-  by the learned curve (on the slow side) plus a quarter, at most **Longest block** (e.g. the
-  relay's own safety time, 180 minutes), at the cheapest time before the ready time.
-- Tokens: **Runs** (yes/no), **Start** and **End** (HH:mm), **Minutes**, **Ready time** and
-  **Price** (average per kWh). **Runs** is no when nothing needs heating: the tank will still be
-  at its target temperature, or there is no ready time (for example during a long absence).
-- A typical flow: **Heating block planned** → **Runs** is yes? → write Start and Minutes into
-  the heater's own schedule; else turn that schedule off.
-- The tank's thermostat ends the block early when the tank reaches its target temperature. The Water Heater shows the
-  block in its reason and demands heating inside it only, so its learning and Heating demand
-  follow the block too.
+- As soon as the prices for the night are published (usually in the afternoon), the Water Heater
+  plans one block: the cheapest **Longest block** (e.g. 180 minutes, enough for a cold tank) between
+  Plan from and the ready time (minus **Ready ahead**). The tank's thermostat ends it early when
+  the tank is at its target temperature.
+- **Heating planned** runs then, once per ready time, with the block: **Expected start** and
+  **End** (HH:mm), **Minutes**, **Ready time**, **Price** (average per kWh) and the reason.
+- A typical flow: **Heating planned** → write Start and Minutes into the heater's own daily
+  schedule (for example a relay that switches on at a set time and off again after a while). The
+  tank then heats in the night also when Homey is down.
+- Outside the block the Water Heater only tops up: when the hour is cheaper than the block and the
+  tank is short of its target temperature (after hot water was used), and whenever the top falls
+  below **Keep**, whatever the price.
+- With a **Heater switch**, the device switches the heater itself, also in the block. When the
+  heater's own schedule turns the switch on while no heating is needed (the tank is already
+  full), the device switches it back off.
 
-Keep reheats still use **Heating demand**: choose the **Heater switch** at pairing (or Repair),
-or let a flow switch the heater on and off on **Heating demand started** and **stopped**.
+Leave **Plan from** empty to heat on the price plan alone: in the cheapest hours before each ready
+time, without a fixed night block.
 
 ## Long absence
 

@@ -617,76 +617,10 @@
       },
       {
         "title": {
-          "en": "Heating block planned"
-        },
-        "hint": {
-          "en": "Runs once a day at Plan from (device settings), for a heater that runs its own schedule. Runs is no when nothing needs heating, e.g. the tank is at its target temperature or a long absence."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=water-heater"
-          }
-        ],
-        "tokens": [
-          {
-            "name": "runs",
-            "type": "boolean",
-            "title": {
-              "en": "Runs"
-            },
-            "example": true
-          },
-          {
-            "name": "start",
-            "type": "string",
-            "title": {
-              "en": "Start"
-            },
-            "example": "02:00"
-          },
-          {
-            "name": "end",
-            "type": "string",
-            "title": {
-              "en": "End"
-            },
-            "example": "04:30"
-          },
-          {
-            "name": "minutes",
-            "type": "number",
-            "title": {
-              "en": "Minutes"
-            },
-            "example": 150
-          },
-          {
-            "name": "ready_time",
-            "type": "string",
-            "title": {
-              "en": "Ready time"
-            },
-            "example": "06:00"
-          },
-          {
-            "name": "price",
-            "type": "number",
-            "title": {
-              "en": "Price"
-            },
-            "example": 0.03
-          }
-        ],
-        "id": "water_heating_block_planned"
-      },
-      {
-        "title": {
           "en": "Heating planned"
         },
         "hint": {
-          "en": "Runs once per ready time, when the start of heating for it is known, at most a day ahead. The plan may still change with prices."
+          "en": "Runs once per ready time, when the start of heating for it is known, at most a day ahead. A Water Heater with Plan from: when the prices for the night are known, with its night block (write Start and Minutes into a schedule in the heater, so it heats also when Homey is down). Otherwise the plan may still change with prices."
         },
         "args": [
           {
@@ -735,6 +669,30 @@
               "en": "Reason"
             },
             "example": "Starts 15:30 for 18:00"
+          },
+          {
+            "name": "end",
+            "type": "string",
+            "title": {
+              "en": "End"
+            },
+            "example": "05:00"
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": 180
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price"
+            },
+            "example": 0.03
           }
         ],
         "id": "water_heating_planned"
@@ -2988,7 +2946,7 @@
               },
               "value": "",
               "hint": {
-                "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+                "en": "HH:mm, empty for none. The night heat-up: the cheapest Longest block from this time to the next ready time, planned when its prices are known and told by Heating planned (for the heater's own schedule). Outside it only cheaper top-ups and Keep. Empty: the price plan alone."
               }
             },
             {
@@ -3005,7 +2963,7 @@
                 "en": "min"
               },
               "hint": {
-                "en": "At most this long, e.g. the heater's own timer. Heating that stops well before it is the thermostat: the tank is at its target temperature."
+                "en": "The night block's length, e.g. the heater's own timer: enough to heat a cold tank. Heating that stops well before it is the thermostat: the tank is at its target temperature."
               }
             }
           ]

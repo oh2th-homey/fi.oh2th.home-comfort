@@ -240,7 +240,7 @@
         },
         "value": "",
         "hint": {
-          "en": "HH:mm, empty for none. For a heater that runs its own schedule: at this time one heating block before the next ready time is planned and told by Heating block planned. Empty: heating follows the price plan."
+          "en": "HH:mm, empty for none. The night heat-up: the cheapest Longest block from this time to the next ready time, planned when its prices are known and told by Heating planned (for the heater's own schedule). Outside it only cheaper top-ups and Keep. Empty: the price plan alone."
         }
       },
       {
@@ -257,7 +257,7 @@
           "en": "min"
         },
         "hint": {
-          "en": "At most this long, e.g. the heater's own timer. Heating that stops well before it is the thermostat: the tank is at its target temperature."
+          "en": "The night block's length, e.g. the heater's own timer: enough to heat a cold tank. Heating that stops well before it is the thermostat: the tank is at its target temperature."
         }
       }
     ]
