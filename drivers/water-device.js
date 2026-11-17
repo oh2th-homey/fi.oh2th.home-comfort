@@ -769,11 +769,11 @@ module.exports = class waterDevice extends mainDevice {
 
   /**
    * @description The temperature to decide with: the planned one, but while the tank is still full since its thermostat
-   * stopped the heater, at least the ready temperature (the sensors on its wall may read a little low).
+   * stopped the heater (cooled only by standby losses, lib/water.js stillFull), at least the ready temperature.
    */
   decideTemperature(now, ready) {
     const temperature = this.planTemperature(now);
-    if (!this.heatsToFull() || !water.stillFull(this.getStoreValue('fullAt'), temperature)) return temperature;
+    if (!this.heatsToFull() || !water.stillFull(this.getStoreValue('fullAt'), temperature, { now, outdoor: this.surroundingsTemperature(), model: this.getStoreValue('model') })) return temperature;
     return Math.max(temperature, ready);
   }
 

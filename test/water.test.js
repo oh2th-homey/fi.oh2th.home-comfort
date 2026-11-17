@@ -366,10 +366,22 @@ test('fullStop and stillFull: the tank thermostat stopping the heater near full,
   // Far below full: the relay was switched off early (e.g. a safety timer), not the thermostat.
   assert.strictEqual(water.fullStop(55, 59.8, 50), false);
   assert.strictEqual(water.fullStop(null, 59.8, 50), false);
-  const fullAt = { temperature: 59.6, at: 0 };
-  assert.strictEqual(water.stillFull(fullAt, 59.2), true);
-  assert.strictEqual(water.stillFull(fullAt, 58.4), false);
-  assert.strictEqual(water.stillFull(null, 60), false);
+  const H = 3600000;
+  const fullAt = { temperature: 59.7, at: 0 };
+  const m = { heatRate: 7.6, loss: 0.0067, heatHours: 4, idleHours: 15 };
+  const at = (hours) => ({ now: hours * H, outdoor: 20, model: m });
+  // Right after the stop: within FULL_HOLD.
+  assert.strictEqual(water.stillFull(fullAt, 59.2, at(0.5)), true);
+  assert.strictEqual(water.stillFull(fullAt, 58.4, at(0.5)), false);
+  // A night's standby cooling (about 0.25 °C/h) keeps it full until the next nightly heating, ~24 h later.
+  assert.strictEqual(water.stillFull(fullAt, 58.3, at(6)), true);
+  assert.strictEqual(water.stillFull(fullAt, 54.5, at(24)), true);
+  // A draw (a shower) drops it more than standby losses: not full, ready times heat again.
+  assert.strictEqual(water.stillFull(fullAt, 54, at(6)), false);
+  // Too long since the stop, or nothing known about the surroundings: only FULL_HOLD.
+  assert.strictEqual(water.stillFull(fullAt, 59.5, at(40)), false);
+  assert.strictEqual(water.stillFull(fullAt, 58.3, { now: 6 * H }), false);
+  assert.strictEqual(water.stillFull(null, 60, at(1)), false);
 });
 
 test('decide: a tank that fell below Keep heats to full, also when the plan would wait', () => {

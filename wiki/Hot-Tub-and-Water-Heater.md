@@ -115,8 +115,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   meter also learns its **Target temperature**: where its own thermostat stops the heater while heating is
   demanded, or (a heater on its own timer) more than 10 minutes before **Longest block**. It is shown as the Water Heater's (read only) target temperature. Until it is
   seen, the Water Heater plans with (and shows) 60 °C, at most Maximum; the first stop of the
-  thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as at its target temperature until it has
-  cooled or been drawn by a degree.
+  thermostat above **Keep** teaches the real one. Ready times and reheats then heat to it, and the tank counts as at its target temperature while it
+  has only cooled as standing water does (its thermostat won't heat for that), for up to 36 hours, until the next
+  daily heating. Hot water used (a shower, a bath) drops it further, and then ready times heat it again.
 
 ## Heating block (Water Heater)
 
