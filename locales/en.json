@@ -65,7 +65,7 @@
       "missing": "That price device is no longer in Power by the Hour. Choose another one."
     },
     "water": {
-      "subtitle": "Heats in the cheapest hours on the HVAC Controller's prices. Your flows switch the heater on the Heating demand cards.",
+      "subtitle": "Heats in the cheapest hours on the HVAC Controller's prices. Choose the heater's switch below, or switch it from your flows on the Heating demand cards.",
       "name": "Name",
       "name_spa": "Hot Tub",
       "name_water-heater": "Water Heater",
@@ -75,6 +75,9 @@
       "surroundings_controller": "HVAC Controller's outdoor sensor",
       "surroundings_fixed": "Fixed temperature (device settings)",
       "power": "Power meter (optional)",
+      "switch": "Heater switch (optional)",
+      "switch_none": "None: my flows switch it",
+      "switch_cap": "Switch to use",
       "none": "None",
       "choose": "Choose…",
       "from_flow": "From a flow (Set water temperature card)",

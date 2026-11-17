@@ -5,7 +5,7 @@ const assert = require('node:assert');
 
 const zone = require('../lib/zone');
 const pipeline = require('../lib/pipeline');
-const { offSwitch, isAirConditioner, temperatureCapabilities } = require('../lib/members');
+const { offSwitch, isAirConditioner, temperatureCapabilities, switchCapabilities } = require('../lib/members');
 
 const NOW = Date.UTC(2026, 10, 10, 12);
 const ZONE = { mode: 'auto', boostUntil: null, heat: 21, eco: 19, cool: 24, ecoCool: 26, boostDelta: 1, occupancyRule: 'follows', lowAlarm: 5 };
@@ -360,4 +360,19 @@ test('auxiliary: price peaks change nothing while not needed, still apply when n
   // Away, boost and window keep their own rules.
   assert.strictEqual(decide({ occupancy: 'away' }, { auxiliary: true }, { temperature: 15 }).aim, 'eco');
   assert.strictEqual(decide({}, { auxiliary: true, boostUntil: NOW + 60000 }, { temperature: 22 }).aim, 'boost');
+});
+
+test('switchCapabilities: setable on/off switches, repeated titles told apart by the sub-capability', () => {
+  const cap = (title, setable = true) => ({ title, setable, type: 'boolean' });
+  // A meter with a relay add-on: two switches with the same title.
+  assert.deepStrictEqual(switchCapabilities({ 'onoff.1': cap('Turned on'), 'onoff': cap('Turned on'), 'measure_power': { title: 'Power' } }), [
+    { id: 'onoff', title: 'Turned on' },
+    { id: 'onoff.1', title: 'Turned on (1)' }
+  ]);
+  // Own titles are kept; read-only ones are left out.
+  assert.deepStrictEqual(switchCapabilities({ 'onoff': cap('Turned on'), 'onoff.heater': cap('Heater'), 'onoff.led': cap('LED', false) }), [
+    { id: 'onoff', title: 'Turned on' },
+    { id: 'onoff.heater', title: 'Heater' }
+  ]);
+  assert.deepStrictEqual(switchCapabilities({}), []);
 });

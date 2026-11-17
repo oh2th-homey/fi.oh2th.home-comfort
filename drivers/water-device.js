@@ -907,6 +907,21 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
+   * @description The heater's switch chosen at pairing or repair (optional): follows the heating demand, so no flow is
+   * needed. Written when the demand changes; a failed write is logged (the problem alarm tells when no power comes).
+   */
+  async writeHeaterSwitch(on) {
+    const target = this.getStoreValue('heaterSwitch');
+    if (!target) return;
+    try {
+      await this.homey.app.members.write(target.id, target.cap, on);
+      this.log(`${this.getName()} - heater switch ${target.name} ${target.cap} ${on ? 'on' : 'off'}`);
+    } catch (error) {
+      this.error(`${this.getName()} - heater switch ${target.name} ${target.cap} - ${error}`);
+    }
+  }
+
+  /**
    * @description Show the heating demand on on/off and fire Heating demand started/stopped when it changes. Compared with
    * the demand last announced, not with on/off: Homey has already set on/off when it was turned by hand.
    */
@@ -915,6 +930,8 @@ module.exports = class waterDevice extends mainDevice {
     await this.setValue(DEMAND, demand);
     if (demand === this.demanded()) return;
     await this.setStoreValue('demand', demand).catch(this.error);
+    // Mode Off leaves the heater to its own controls.
+    if (this.mode() !== 'off') await this.writeHeaterSwitch(demand);
     if (this.initializing) return;
     const tokens = { target_temperature: Number(this.readyTemperature()) || 0, reason };
     await this.triggerFlow(demand ? 'heating_demand_started' : 'heating_demand_stopped', tokens);
@@ -1137,24 +1154,29 @@ module.exports = class waterDevice extends mainDevice {
    * cycles) are handled by the driver's device class.
    */
   // eslint-disable-next-line no-unused-vars
-  async onRepairSources({ water: waterSource, tank = null, surroundings, power }, options = {}) {
+  async onRepairSources({ water: waterSource, tank = null, surroundings, power, heaterSwitch = null }, options = {}) {
     const name = (source) => {
       if (!source) return 'none';
       return source.flow ? 'flow' : source.name;
     };
     const tankText = tank ? water.TANK_POSITIONS.map((position) => `${position} ${name(tank[position])}`).join(', ') : null;
-    this.log(`${this.getName()} - onRepairSources - water ${tankText || name(waterSource)}, surroundings ${name(surroundings)}, power ${name(power)}`);
+    this.log(`${this.getName()} - onRepairSources - water ${tankText || name(waterSource)}, surroundings ${name(surroundings)}, power ${name(power)}, switch ${name(heaterSwitch)}`);
     this.unsubscribeSources();
     await this.setStoreValue('water', waterSource || null);
     await this.setStoreValue('tank', tank);
     await this.setStoreValue('surroundings', surroundings);
     await this.setStoreValue('power', power);
+    const switchBefore = this.getStoreValue('heaterSwitch');
+    await this.setStoreValue('heaterSwitch', heaterSwitch);
     await this.saveSegment(null);
     await this.saveStill(null, Date.now());
     await this.checkCapabilities();
     await this.subscribeSources();
     await this.setCapabilityValues();
     await this.plan();
+    // A newly chosen switch starts from the current demand.
+    const changed = JSON.stringify(switchBefore || null) !== JSON.stringify(heaterSwitch);
+    if (changed && heaterSwitch && this.mode() !== 'off') await this.writeHeaterSwitch(this.demanded());
     return true;
   }
 };

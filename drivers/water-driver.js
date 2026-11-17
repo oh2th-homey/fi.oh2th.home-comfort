@@ -6,7 +6,7 @@ const { TANK_POSITIONS } = require('../lib/water');
 
 /**
  * Shared driver base of the Hot Tub and the Water Heater (issue #1): one pairing page that picks the water temperature,
- * the surroundings and an optional power meter from other devices. The same page repairs a device.
+ * the surroundings, an optional power meter and an optional heater switch from other devices. The same page repairs a device.
  * The HVAC Controller must exist and follow prices: the planner heats on its prices.
  */
 module.exports = class waterDriver extends mainDriver {
@@ -83,7 +83,8 @@ module.exports = class waterDriver extends mainDriver {
     const candidates = await this.homey.app.members.candidates();
     const sensors = candidates.filter((d) => d.temperatures.length > 0).map(({ id, name, zone, temperatures }) => ({ id, name, zone, temperatures }));
     const meters = candidates.filter((d) => d.power).map(({ id, name, zone }) => ({ id, name, zone }));
-    this.log(`sourcesView - ${sensors.length} sensors, ${meters.length} meters`);
+    const switches = candidates.filter((d) => d.switches.length > 0).map(({ id, name, zone, switches: caps }) => ({ id, name, zone, switches: caps }));
+    this.log(`sourcesView - ${sensors.length} sensors, ${meters.length} meters, ${switches.length} switches`);
     return {
       blocked: device ? null : blocked,
       repair: !!device,
@@ -93,6 +94,7 @@ module.exports = class waterDriver extends mainDriver {
       tank: this.hasTank(),
       sensors,
       meters,
+      switches,
       current: device ? this.currentChoices(device) : null
     };
   }
@@ -106,13 +108,15 @@ module.exports = class waterDriver extends mainDriver {
       tank: device.getStoreValue('tank'),
       surroundings: device.getStoreValue('surroundings'),
       power: device.getStoreValue('power'),
+      heaterSwitch: device.getStoreValue('heaterSwitch'),
       filterCycles: this.filterCyclesValue(device.getSetting('filter_cycles'))
     };
   }
 
   /**
    * @description Picked sources as stored: { water: { id, cap, name } | { flow: true } | null, tank: { top, middle, bottom }
-   * (each a source or null when not installed) | null, surroundings: … | null, power: { id, name } | null }.
+   * (each a source or null when not installed) | null, surroundings: … | null, power: { id, name } | null,
+   * heaterSwitch: { id, cap, name } | null }.
    * The water temperature is required: one source, or (a tank) at least one installed position. A capability must exist
    * on its device.
    */
@@ -136,6 +140,11 @@ module.exports = class waterDriver extends mainDriver {
       if (!waterSource) throw new Error(this.homey.__('pair.water.no_water'));
     }
     const meter = sources.power && candidates.find((d) => d.id === sources.power.id && d.power);
-    return { water: waterSource, tank, surroundings: temperature(sources.surroundings), power: meter ? { id: meter.id, name: meter.name } : null };
+    const switchPick = sources.heaterSwitch;
+    const switchDevice = switchPick && switchPick.id && candidates.find((d) => d.id === switchPick.id && d.switches.length > 0);
+    const heaterSwitch = switchDevice
+      ? { id: switchDevice.id, cap: switchDevice.switches.some((s) => s.id === switchPick.cap) ? switchPick.cap : switchDevice.switches[0].id, name: switchDevice.name }
+      : null;
+    return { water: waterSource, tank, surroundings: temperature(sources.surroundings), power: meter ? { id: meter.id, name: meter.name } : null, heaterSwitch };
   }
 };

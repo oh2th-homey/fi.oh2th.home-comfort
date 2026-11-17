@@ -4,8 +4,9 @@ Stored heat: an outdoor hot tub (spa) or a hot water tank (boiler). The device h
 in the cheapest hours so that it is warm when you need it, and never lets it get too cold or too
 hot. It learns how fast the water heats and cools.
 
-The device doesn't switch the heater itself. It says when heating is needed (**Heating
-demand**), and your flows turn that into the heater's own actions, with whatever app runs it.
+The device says when heating is needed (**Heating demand**). Choose the heater's switch when you
+pair it, and the device switches the heater itself. Or leave the switch out and let your flows
+turn Heating demand into the heater's own actions, with whatever app runs it.
 
 The two device types work the same way. They differ in what surrounds the water and in their
 defaults:
@@ -49,6 +50,11 @@ Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choo
   switches it on and off. The device learns two power levels from it: **heating**, and the
   **base load** such as a circulation pump (for example 3.2 kW and 0.2 kW). A reading above
   halfway between them counts as heating. Standby below 50 W is left out.
+- **Heater switch** (optional): a relay or plug that switches the heater, from any app. It
+  follows **Heating demand**: on when heating is demanded, off when not. In mode **Off** it is
+  left alone. A device with several switches (for example a meter with a relay add-on) also asks
+  **Switch to use**; switches with the same name show their number, such as "Turned on (1)".
+  Without a switch, let a flow switch the heater on **Heating demand started** and **stopped**.
 
 The app reads only standard capabilities. If a reading is only available in a non-standard
 form, a virtual device updated by a flow can pass it on. To change the choices later, use
@@ -138,8 +144,8 @@ block before the next ready time and runs **Heating block planned**:
   block in its reason and demands heating inside it only, so its learning and Heating demand
   follow the block too.
 
-Keep reheats still use **Heating demand**: let a flow switch the heater on and off on
-**Heating demand started** and **stopped** as well.
+Keep reheats still use **Heating demand**: choose the **Heater switch** at pairing (or Repair),
+or let a flow switch the heater on and off on **Heating demand started** and **stopped**.
 
 ## Long absence
 

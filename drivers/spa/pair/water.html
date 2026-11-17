@@ -1,5 +1,5 @@
 <!-- The Hot Tub's and Water Heater's only pairing page: the water temperature (the Water Heater: a tank's top, middle
-     and bottom), the surroundings and an optional power meter, from other devices, and the Hot Tub's filter cycles. The same file serves both drivers, pair and repair (kept identical by a test). -->
+     and bottom), the surroundings, an optional power meter and an optional heater switch, from other devices, and the Hot Tub's filter cycles. The same file serves both drivers, pair and repair (kept identical by a test). -->
 <style>
   .wh-error {
     color: var(--homey-color-red-500, #d33);
@@ -63,6 +63,14 @@
     <label class="homey-form-label" for="wh-power" data-i18n="pair.water.power"></label>
     <select class="homey-form-select" id="wh-power"></select>
   </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="wh-switch" data-i18n="pair.water.switch"></label>
+    <select class="homey-form-select" id="wh-switch"></select>
+  </div>
+  <div class="homey-form-group" id="wh-switch-cap-group" style="display: none">
+    <label class="homey-form-label" for="wh-switch-cap" data-i18n="pair.water.switch_cap"></label>
+    <select class="homey-form-select" id="wh-switch-cap"></select>
+  </div>
   <div class="homey-form-group" id="wh-filters-group" style="display: none">
     <label class="homey-form-label" for="wh-filters" data-i18n="pair.water.filters"></label>
     <select class="homey-form-select" id="wh-filters"></select>
@@ -118,6 +126,17 @@
       return selectEl.value ? { id: selectEl.value, cap: capEl.value || null } : null;
     }
 
+    // A device with several switches (e.g. a relay add-on): choose which one.
+    function showSwitchCaps(selected) {
+      const device = view.switches.find((d) => d.id === el('wh-switch').value);
+      const caps = device ? device.switches : [];
+      el('wh-switch-cap').innerHTML = '';
+      for (const cap of caps) el('wh-switch-cap').appendChild(option(cap.id, cap.title));
+      if (selected && caps.some((cap) => cap.id === selected)) el('wh-switch-cap').value = selected;
+      el('wh-switch-cap-group').style.display = caps.length > 1 ? '' : 'none';
+    }
+
+    el('wh-switch').addEventListener('change', () => showSwitchCaps(null));
     el('wh-water').addEventListener('change', () => showCaps(el('wh-water'), el('wh-water-cap'), el('wh-water-cap-group'), null));
     for (const position of POSITIONS) {
       el(`wh-${position}`).addEventListener('change', () => showCaps(el(`wh-${position}`), el(`wh-${position}-cap`), el(`wh-${position}-cap-group`), null));
@@ -131,7 +150,8 @@
         water: view.tank ? null : pick(el('wh-water'), el('wh-water-cap')),
         tank,
         surroundings: pick(el('wh-surroundings'), el('wh-surroundings-cap')),
-        power: el('wh-power').value ? { id: el('wh-power').value } : null
+        power: el('wh-power').value ? { id: el('wh-power').value } : null,
+        heaterSwitch: el('wh-switch').value ? { id: el('wh-switch').value, cap: el('wh-switch-cap').value || null } : null
       };
       const filterCycles = view.filters ? el('wh-filters').value : null;
       if (view.tank && !POSITIONS.some((position) => tank[position])) {
@@ -193,6 +213,11 @@
         el('wh-power').appendChild(option('', Homey.__('pair.water.none')));
         for (const meter of view.meters) el('wh-power').appendChild(option(meter.id, label(meter, false)));
         el('wh-power').value = current.power && view.meters.some((m) => m.id === current.power.id) ? current.power.id : '';
+        el('wh-switch').appendChild(option('', Homey.__('pair.water.switch_none')));
+        for (const device of view.switches) el('wh-switch').appendChild(option(device.id, label(device, false)));
+        const heaterSwitch = current.heaterSwitch;
+        el('wh-switch').value = heaterSwitch && view.switches.some((d) => d.id === heaterSwitch.id) ? heaterSwitch.id : '';
+        showSwitchCaps(heaterSwitch && heaterSwitch.cap);
         if (view.filters) {
           for (const n of ['0', '1', '2']) el('wh-filters').appendChild(option(n, Homey.__(`pair.water.filters_${n}`)));
           el('wh-filters').value = current.filterCycles || '0';
