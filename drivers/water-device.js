@@ -475,9 +475,14 @@ module.exports = class waterDevice extends mainDevice {
     return this.fallbackSurroundings();
   }
 
+  /**
+   * @description Heater power (W) from the meter. Meters report small negative values at idle (noise): read them as 0,
+   * not as missing, or the capability flips 0 → empty → 0 and Homey's "power dropped below" cards run while idle.
+   */
   powerReading() {
     const value = this.read('power');
-    return value === null || value < 0 ? null : Math.round(value);
+    if (value === null) return null;
+    return Math.max(0, Math.round(value));
   }
 
   /**
