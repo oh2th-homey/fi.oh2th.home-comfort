@@ -1,0 +1,33 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Price level"
+  },
+  "hint": {
+    "en": "The price now against the home's levels: High above (a warning, heating as planned) and Expensive above (zones to eco, hot tubs and water heaters don't heat)."
+  },
+  "values": [
+    {
+      "id": "normal",
+      "title": {
+        "en": "Normal"
+      }
+    },
+    {
+      "id": "high",
+      "title": {
+        "en": "High"
+      }
+    },
+    {
+      "id": "expensive",
+      "title": {
+        "en": "Expensive"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/is_expensive.svg"
+}

@@ -7,8 +7,9 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 - Actions: **Set occupancy**, **Set long absence until**, **End long absence**. **Import
   prices** is deprecated (see [Prices](Prices#import-prices-card-deprecated)).
-- Conditions: **Occupancy is**, **Long absence is on**, **Price is expensive**.
-- Triggers: **Occupancy changed**, **Long absence changed**, **Expensive now changed**, **Prices
+- Conditions: **Occupancy is**, **Long absence is on**, **Price is expensive**, **Price level is**.
+- Triggers: **Occupancy changed**, **Long absence changed**, **Expensive now changed**, **Price
+  level changed** (`normal`, `high` or `expensive`: a warning for notifications), **Prices
   missing for tomorrow** (once a day at the check time). **Prices imported** is deprecated. The **Occupancy
   changed** token is `present`, `coming_home` or `away`.
 

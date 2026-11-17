@@ -108,6 +108,34 @@
       },
       {
         "title": {
+          "en": "Price level changed"
+        },
+        "hint": {
+          "en": "Normal, High (over High above: a warning) or Expensive (over Expensive above: no heating)."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=hvac"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "enum_price_level",
+            "type": "string",
+            "title": {
+              "en": "Price level"
+            },
+            "example": {
+              "en": "high"
+            }
+          }
+        ],
+        "id": "enum_price_level_changed"
+      },
+      {
+        "title": {
           "en": "State changed"
         },
         "args": [
@@ -933,6 +961,49 @@
           }
         ],
         "id": "enum_occupancy_is"
+      },
+      {
+        "title": {
+          "en": "Price level is"
+        },
+        "titleFormatted": {
+          "en": "Price level !{{is|is not}} [[level]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=hvac"
+          },
+          {
+            "type": "dropdown",
+            "name": "level",
+            "title": {
+              "en": "Price level"
+            },
+            "values": [
+              {
+                "id": "normal",
+                "title": {
+                  "en": "Normal"
+                }
+              },
+              {
+                "id": "high",
+                "title": {
+                  "en": "High"
+                }
+              },
+              {
+                "id": "expensive",
+                "title": {
+                  "en": "Expensive"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "enum_price_level_is"
       },
       {
         "title": {
@@ -1812,6 +1883,7 @@
         "thermostat_mode",
         "is_long_absence",
         "is_expensive",
+        "enum_price_level",
         "measure_temperature.outdoor",
         "measure_monetary",
         "text_prices_until",
@@ -1920,6 +1992,23 @@
               ]
             },
             {
+              "id": "price_high",
+              "type": "number",
+              "label": {
+                "en": "High above"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 10,
+              "step": 0.01,
+              "units": {
+                "en": "per kWh"
+              },
+              "hint": {
+                "en": "High level for the whole home, 0 for none. Above it Price level is High: a warning for flows, heating runs as planned."
+              }
+            },
+            {
               "id": "price_ceiling",
               "type": "number",
               "label": {
@@ -1933,7 +2022,7 @@
                 "en": "per kWh"
               },
               "hint": {
-                "en": "Price ceiling for the whole home, 0 for none. Above it the price is always expensive, whatever the model: zones follow their peak rule, and hot tubs and water heaters don't heat at all (not even to hold Keep), except a water heater's night block."
+                "en": "Expensive level for the whole home, 0 for none. Above it the price is always expensive, whatever the model: Price level is Expensive, zones follow their peak rule, and hot tubs and water heaters don't heat at all (not even to hold Keep), except a water heater's night block."
               }
             },
             {
@@ -3512,6 +3601,39 @@
       "setable": true,
       "uiComponent": "picker",
       "icon": "./assets/capabilities/enum_occupancy.svg"
+    },
+    "enum_price_level": {
+      "type": "enum",
+      "title": {
+        "en": "Price level"
+      },
+      "hint": {
+        "en": "The price now against the home's levels: High above (a warning, heating as planned) and Expensive above (zones to eco, hot tubs and water heaters don't heat)."
+      },
+      "values": [
+        {
+          "id": "normal",
+          "title": {
+            "en": "Normal"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High"
+          }
+        },
+        {
+          "id": "expensive",
+          "title": {
+            "en": "Expensive"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/is_expensive.svg"
     },
     "enum_sauna_state": {
       "type": "enum",

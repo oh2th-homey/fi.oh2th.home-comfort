@@ -187,3 +187,15 @@ test('evaluate: over the price ceiling is always expensive, also with the model 
   // 0: no ceiling.
   assert.strictEqual(prices.evaluate({ days, timeZone: TZ, now, model: 'off', ceiling: 0 }).expensive, false);
 });
+
+test('evaluate: price level normal, high (warning only) and expensive', () => {
+  const now = prices.dayInfo(TZ, '2026-11-10', 15).start + 32 * 900000;
+  const days = { '2026-11-10': { resolution: 15, values: NORMAL } };
+  // The price now is 0.12.
+  const level = (high, ceiling) => prices.evaluate({ days, timeZone: TZ, now, model: 'off', high, ceiling });
+  assert.strictEqual(level(0, 0).level, 'normal');
+  assert.strictEqual(level(0.1, 0.2).level, 'high');
+  assert.strictEqual(level(0.1, 0.2).expensive, false);
+  assert.strictEqual(level(0.05, 0.1).level, 'expensive');
+  assert.strictEqual(level(0.05, 0.1).expensive, true);
+});

@@ -105,6 +105,7 @@
     }
   },
   "error": {
+    "price_levels": "High above must be lower than Expensive above.",
     "no_controller": "Add the HVAC Controller first",
     "invalid_value": "Invalid value: __value__",
     "invalid_date": "Enter the date as YYYY-MM-DD",
@@ -133,7 +134,8 @@
     "not_peak": "Normal",
     "above_average": "Expensive (over __threshold__)",
     "not_above_average": "Normal",
-    "over_ceiling": "Over the price ceiling __ceiling__",
+    "over_ceiling": "Expensive: over __ceiling__",
+    "over_high": "High: over __high__",
     "source_error": "Power by the Hour: __detail__"
   },
   "import": {

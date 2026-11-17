@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "Price level changed"
+  },
+  "hint": {
+    "en": "Normal, High (over High above: a warning) or Expensive (over Expensive above: no heating)."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=hvac"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "enum_price_level",
+      "type": "string",
+      "title": {
+        "en": "Price level"
+      },
+      "example": {
+        "en": "high"
+      }
+    }
+  ]
+}

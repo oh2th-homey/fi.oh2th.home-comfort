@@ -53,6 +53,7 @@ module.exports = class hvacDevice extends mainDevice {
     if (currency.length < 1 || currency.length > 5) throw new Error(this.homey.__('error.invalid_currency'));
     if (changedKeys.includes('currency')) await this.applyCurrency(currency);
     if (newSettings.absence_until !== '' && !isDate(newSettings.absence_until)) throw new Error(this.homey.__('error.invalid_date'));
+    if (newSettings.price_high > 0 && newSettings.price_ceiling > 0 && newSettings.price_high >= newSettings.price_ceiling) throw new Error(this.homey.__('error.price_levels'));
 
     if (changedKeys.includes('absence_until')) {
       if (newSettings.absence_until !== '') await this.changeLongAbsence(true);
@@ -504,7 +505,8 @@ module.exports = class hvacDevice extends mainDevice {
       model: settings.price_model,
       pct: settings.price_above_average_pct,
       minDelta: settings.price_min_delta,
-      ceiling: settings.price_ceiling
+      ceiling: settings.price_ceiling,
+      high: settings.price_high
     });
     // Prices from Power by the Hour that could not be read: say why, before the price reason.
     if (this.getStoreValue('priceSource') && this.pricesError) result.reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
@@ -512,6 +514,7 @@ module.exports = class hvacDevice extends mainDevice {
 
     await this.setValue('measure_monetary', result.price, firstRun);
     await this.setValue('is_expensive', result.expensive, firstRun);
+    await this.setValue('enum_price_level', result.level, firstRun);
     await this.setValue('text_prices_until', result.until ? this.formatLocal(result.until) : this.homey.__('price.none'), firstRun);
     await this.setValue('text_reason', this.reasonText(result.reasons), firstRun);
 

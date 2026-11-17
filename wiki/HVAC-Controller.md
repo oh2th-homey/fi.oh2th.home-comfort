@@ -9,7 +9,8 @@ The controller holds what all zones share. You can add only one.
 - **Long absence**: on for trips of several days. All zones go to eco and nothing cools. To stop
   all heating and cooling, set the season to Off.
 - **Price now**, in the currency set in the settings (default €).
-- **Expensive now**: on during a price peak.
+- **Expensive now**: on during a price peak, or over **Expensive above**.
+- **Price level**: Normal, High (over **High above**) or Expensive (over **Expensive above**).
 - **Prices until**: the end of the last known price.
 - **Outdoor temperature**, from the sensor you picked. Zones with an outdoor limit use it. To pick
   another sensor, or other prices to follow (see [Prices](Prices)), use **Repair** in the
@@ -25,7 +26,7 @@ The controller holds what all zones share. You can add only one.
 
 ## Settings
 
-- **Currency** (follows the Power by the Hour price device), **Price model**, **Expensive above** (the home's price ceiling),
+- **Currency** (follows the Power by the Hour price device), **Price model**, **High above** and **Expensive above** (the home's price levels),
   **Minimum price difference** and the **Percentage above average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
 - **Check tomorrow's prices at** (default 16:00): the time of the daily check that fires
   **Prices missing for tomorrow**.
