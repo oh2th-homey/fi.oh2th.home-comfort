@@ -173,6 +173,9 @@ module.exports = class hvacDevice extends mainDevice {
       season: this.getSeason(),
       longAbsence: this.getCapabilityValue('is_long_absence') === true,
       expensive: this.getCapabilityValue('is_expensive') === true,
+      // The price model's own peak, and the home's price level (normal, high, expensive).
+      peak: this.pricePeakNow === true,
+      priceLevel: this.getCapabilityValue('enum_price_level'),
       price: this.getCapabilityValue('measure_monetary'),
       outdoor: this.outdoorTemperature(),
       priceReason: this.getCapabilityValue('text_reason'),
@@ -511,6 +514,9 @@ module.exports = class hvacDevice extends mainDevice {
     // Prices from Power by the Hour that could not be read: say why, before the price reason.
     if (this.getStoreValue('priceSource') && this.pricesError) result.reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
     const wasExpensive = this.getCapabilityValue('is_expensive') === true;
+    const wasLevel = this.getCapabilityValue('enum_price_level');
+    const wasPeak = this.pricePeakNow === true;
+    this.pricePeakNow = result.peak === true;
 
     await this.setValue('measure_monetary', result.price, firstRun);
     await this.setValue('is_expensive', result.expensive, firstRun);
@@ -518,7 +524,7 @@ module.exports = class hvacDevice extends mainDevice {
     await this.setValue('text_prices_until', result.until ? this.formatLocal(result.until) : this.homey.__('price.none'), firstRun);
     await this.setValue('text_reason', this.reasonText(result.reasons), firstRun);
 
-    if (!firstRun && wasExpensive !== result.expensive) await this.homey.app.onSharedStateChanged();
+    if (!firstRun && (wasExpensive !== result.expensive || wasLevel !== result.level || wasPeak !== this.pricePeakNow)) await this.homey.app.onSharedStateChanged();
     return result;
   }
 

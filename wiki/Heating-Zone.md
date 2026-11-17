@@ -43,6 +43,9 @@ The zone shows:
 - **Eco after door/window open**: how long a door or window may be open before the zone goes to
   eco (default 2 minutes).
 - **At price peaks**: Eco (default), Off (switch the zone's devices off) or Ignore.
+- **At Expensive level** (over the controller's **Expensive above**): As at price peaks (default),
+  or Allow comfort: the zone stays at comfort, for example an A/C on a hot day, unless the price
+  model finds a peak at the same time.
 - **Heat only when cold outside**, with **Heat below** and **Stop above**.
 - **Relay minimum on and off time**.
 

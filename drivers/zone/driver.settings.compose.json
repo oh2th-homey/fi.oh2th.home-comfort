@@ -164,6 +164,31 @@
             }
           }
         ]
+      },
+      {
+        "id": "price_expensive",
+        "type": "dropdown",
+        "label": {
+          "en": "At Expensive level"
+        },
+        "value": "peak",
+        "hint": {
+          "en": "Over Expensive above (HVAC Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
+        },
+        "values": [
+          {
+            "id": "peak",
+            "label": {
+              "en": "As at price peaks"
+            }
+          },
+          {
+            "id": "comfort",
+            "label": {
+              "en": "Allow comfort"
+            }
+          }
+        ]
       }
     ]
   },

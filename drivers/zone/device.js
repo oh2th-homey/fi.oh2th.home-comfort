@@ -655,6 +655,7 @@ module.exports = class zoneDevice extends mainDevice {
         auxiliary: this.getSetting('auxiliary') === true,
         auxiliaryComfort: this.getStoreValue('auxiliaryComfort'),
         pricePeak: this.pricePeak(),
+        priceExpensive: this.getSetting('price_expensive') === 'comfort' ? 'comfort' : 'peak',
         outdoorLimit: { enabled: this.getSetting('outdoor_limit') === true, onBelow: this.getSetting('outdoor_on_below'), offAbove: this.getSetting('outdoor_off_above') },
         outdoorAllowed: this.getStoreValue('outdoorAllowed')
       },

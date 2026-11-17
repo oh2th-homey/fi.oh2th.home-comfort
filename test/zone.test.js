@@ -99,6 +99,11 @@ test('price use per zone and off when expensive', () => {
   assert.strictEqual(decide({ expensive: true }, { pricePeak: 'ignore' }).aim, 'comfort');
   const offExpensive = decide({ expensive: true }, { pricePeak: 'off' });
   assert.deepStrictEqual([offExpensive.action, offExpensive.offCause, offExpensive.priceDriven], ['off', 'expensive_off', true]);
+  // Over the home's Expensive level: a zone allowing comfort keeps it, unless the price model finds a peak too.
+  const level = { expensive: true, priceLevel: 'expensive', peak: false, season: 'cooling' };
+  assert.strictEqual(decide(level, { priceExpensive: 'comfort' }).aim, 'comfort');
+  assert.strictEqual(decide(level, { priceExpensive: 'peak' }).aim, 'eco');
+  assert.strictEqual(decide({ ...level, peak: true }, { priceExpensive: 'comfort' }).aim, 'eco');
 });
 
 test('boost until a time, then normal; not in manual or off', () => {
