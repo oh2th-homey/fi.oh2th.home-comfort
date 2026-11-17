@@ -254,7 +254,7 @@ module.exports = class waterDevice extends mainDevice {
     try {
       if (this.heatsToFull()) {
         // Read only: the temperature it heats to, learned from the tank's thermostat (the starting value until seen).
-        await this.setValue('target_temperature', Math.round(this.readyTemperature() * 10) / 10, check);
+        await this.setValue('target_temperature', Math.floor(this.readyTemperature()), check);
       } else if (typeof this.getCapabilityValue('target_temperature') !== 'number') {
         await this.setValue('target_temperature', this.getStoreValue('ready') || this.getSettings().max_temperature - 2, check);
       }
