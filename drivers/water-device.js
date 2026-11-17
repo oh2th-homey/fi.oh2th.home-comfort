@@ -860,7 +860,8 @@ module.exports = class waterDevice extends mainDevice {
         keep: this.keepTemperature(),
         keepAt: this.isTank() ? this.tankTemperature().keepAt : null,
         reheat,
-        block: this.getStoreValue('block') || null,
+        // Plan from cleared: a block already planned no longer holds.
+        block: isTime(settings.block_from) ? this.getStoreValue('block') || null : null,
         ready,
         max: settings.max_temperature,
         powerW: this.ratedPower(),
