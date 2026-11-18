@@ -488,6 +488,16 @@ module.exports = class waterDevice extends mainDevice {
   /**
    * @description Heater power (W) from the settings, used until the meter has shown heating.
    */
+  /**
+   * @description The price per kWh over which a ready time is skipped (the heating for it, or the ready time itself);
+   * null = always heat. Here the device's Price limit setting; the Hot Tub uses the home's Expensive above.
+   */
+  // eslint-disable-next-line no-unused-vars
+  readyPriceLimit(controller) {
+    const limit = this.getSetting('price_limit');
+    return limit > 0 ? limit : null;
+  }
+
   ratedSetting() {
     return this.getSetting('heater_power') || 3000;
   }
@@ -900,7 +910,7 @@ module.exports = class waterDevice extends mainDevice {
         ready,
         max: settings.max_temperature,
         powerW: this.ratedPower(),
-        priceLimit: settings.price_limit > 0 ? settings.price_limit : null,
+        priceLimit: this.readyPriceLimit(controller),
         heatingNow: this.demanded(),
         holdBefore: settings.hold_before,
         readyAhead: settings.ready_ahead,
@@ -1054,7 +1064,7 @@ module.exports = class waterDevice extends mainDevice {
     await this.triggerFlow('water_ready_skipped', {
       ready_time: localTime(this, new Date(decided.use.start)).time,
       price: round(decided.skipPrice),
-      price_limit: round(this.getSetting('price_limit'))
+      price_limit: round(decided.reason && decided.reason.args ? decided.reason.args.limit : null)
     });
   }
 

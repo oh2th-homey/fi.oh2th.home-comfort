@@ -170,31 +170,6 @@
   {
     "type": "group",
     "label": {
-      "en": "Prices"
-    },
-    "children": [
-      {
-        "id": "price_limit",
-        "type": "number",
-        "label": {
-          "en": "Price limit"
-        },
-        "value": 0,
-        "min": 0,
-        "max": 10,
-        "step": 0.01,
-        "units": {
-          "en": "/kWh"
-        },
-        "hint": {
-          "en": "Skip a ready time when heating for it, or the ready time itself, would cost more per kWh. 0 = always heat."
-        }
-      }
-    ]
-  },
-  {
-    "type": "group",
-    "label": {
       "en": "Heater"
     },
     "children": [

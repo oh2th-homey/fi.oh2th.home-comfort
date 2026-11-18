@@ -118,7 +118,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   of the week, **Hold before ready time** and **Ready by hand at most**. One-off ready times and
   skipped ones come from flows;
   the **Set ready time** card sets Ready at, Ready ahead and the days together.
-- **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
+- **Price limit** (Water Heater; a Hot Tub uses the home's **Expensive above** of the
+  [HVAC Controller](HVAC-Controller) instead): skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. A ready time is also skipped when the price during
   it (the mean from Ready at to its end, once known) is over the limit, however cheap heating

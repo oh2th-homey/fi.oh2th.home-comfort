@@ -22,6 +22,13 @@ module.exports = class spaDevice extends waterDevice {
    * @description No keep: between ready times the tub's own controller holds the water (filter cycles, frost
    * protection), and the plan counts on the temperature its filter cycles were seen to heat to.
    */
+  /**
+   * @description The home's Expensive above (HVAC Controller) skips a ready time: no own Price limit.
+   */
+  readyPriceLimit(controller) {
+    return controller ? controller.priceCeiling() : null;
+  }
+
   keepTemperature() {
     return null;
   }
