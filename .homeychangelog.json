@@ -13,5 +13,8 @@
   },
   "1.4.0": {
     "en": "NEW: Water Heater control with tank sensors and a heating block for its own timer, and a Sauna device that tells when the sauna heats, is ready and is in use."
+  },
+  "1.5.0": {
+    "en": "NEW: Price levels for the home (High and Expensive) with warnings, a night heat-up for the Water Heater planned from the next day's prices, and an optional heater switch for hot tubs and water heaters."
   }
 }
