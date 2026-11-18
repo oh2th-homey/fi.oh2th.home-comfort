@@ -608,7 +608,8 @@ module.exports = class waterDevice extends mainDevice {
     const raw = this.waterTemperature();
     const surroundings = this.surroundingsTemperature();
     const inUse = this.inUseNow(now);
-    const step = water.stillStep(this.still, { now, flow, raw, outdoor: surroundings, inUse, model: this.getStoreValue('model') });
+    const step = water.stillStep(this.still, { now, flow, raw, outdoor: surroundings, inUse, model: this.getStoreValue('model'), draws: this.isTank() });
+    if (step.draw) this.log(`${this.getName()} - hot water drawn: ${raw} °C, cooling stretch ended before it`);
     if (step.mix) {
       const mix = water.learnMix(this.getStoreValue('model'), step.mix);
       if (mix.value !== null) {

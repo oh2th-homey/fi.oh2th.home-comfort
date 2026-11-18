@@ -202,6 +202,11 @@ it stirred starts the next one. Without a power meter it can't see
 the pump: it learns the mixing drop when heating starts after the water stood still, and the
 heat loss from the readings while it waits.
 
+A Water Heater with a power meter also watches for **hot water draws**: when the tank's
+temperature falls 0.5 °C or more within 15 minutes, water was drawn, not lost through the
+insulation. The stretch then ends at the reading before the draw, and a new one starts once the
+temperature has settled, so showers don't make the tank look poorly insulated.
+
 Bathing is left out of learning too, from the ready time until 30 minutes after **Keep ready
 for** ends: with the lid open, the jets on and people in the water, the heat loss and heating say nothing about
 the closed tub. When you finish early, turn **Heating ready** off: the ready time ends, and learning starts again 30

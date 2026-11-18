@@ -879,6 +879,66 @@ test('stillStep: a still stretch from the last mixed reading to the first mixed 
   assert.ok(result.value > 0.006 && result.value < 0.0075, String(result.value));
 });
 
+test('drawWatch: a fall of 0.5 °C within 15 minutes is a draw, slow cooling is not', () => {
+  const M = 60000;
+  let recent;
+  // Standby cooling, 0.3 °C/h for an hour: never a draw.
+  for (let i = 0; i <= 60; i++) {
+    const w = water.drawWatch(recent, i * M, 55 - (0.3 * i) / 60);
+    assert.strictEqual(w.draw, false, `minute ${i}`);
+    recent = w.recent;
+  }
+  // Only the last 15 minutes are kept.
+  assert.ok(recent.every((r) => 60 * M - r.at < 15 * M));
+  // A draw: 0.6 °C down in 5 minutes; the reading before it is the highest in the window.
+  const w = water.drawWatch(recent, 65 * M, 54.1 - 0.6);
+  assert.strictEqual(w.draw, true);
+  assert.ok(Math.abs(w.before.temp - (55 - 0.3 * (51 / 60))) < 1e-9, String(w.before.temp));
+});
+
+test('stillStep: a tank draw ends the stretch before it and a new one starts once settled (#31)', () => {
+  const M = 60000;
+  const opts = { flow: 'still', outdoor: 20, model: null, draws: true };
+  // Heated to 60 (moving), then still: 4 h of standby at 0.15 °C/h, a draw of 2 °C over 10 minutes, then standby again.
+  let state = { phase: 'moving', at: 0, temp: 60 };
+  const results = [];
+  const temp = (m) => {
+    if (m <= 240) return 60 - (0.15 * m) / 60;
+    if (m <= 250) return 59.4 - (2 * (m - 240)) / 10;
+    return 57.4 - (0.15 * (m - 250)) / 60;
+  };
+  for (let m = 1; m <= 8 * 60; m++) {
+    const step = water.stillStep(state, { ...opts, now: m * M, raw: temp(m) });
+    if (step.draw) results.push({ m, loss: step.loss });
+    state = step.state;
+  }
+  // One draw, found within the first minutes of it; the stretch ends at the highest reading of the 15 minutes before,
+  // a real reading from before the drop.
+  assert.strictEqual(results.length, 1);
+  const [{ m, loss }] = results;
+  assert.ok(m > 240 && m <= 244, String(m));
+  assert.ok(loss.hours >= 3.7 && loss.hours <= 4, String(loss.hours));
+  assert.strictEqual(loss.from, 60);
+  // The stretch started at minute 1 (the first still minute).
+  assert.ok(Math.abs(loss.to - temp(Math.round(loss.hours * 60) + 1)) < 1e-9, String(loss.to));
+  // Learned as standby only: 0.15 °C/h over about 40 °C above the room.
+  const learned = water.learn(null, { heating: false, ...loss });
+  assert.strictEqual(learned.learned, 'loss');
+  assert.ok(Math.abs(learned.value - 0.15 / 39.8) < 0.0005, String(learned.value));
+  // Settled: a new still stretch 30 minutes after the 15-minute window last saw the drop (about 40 minutes after it).
+  assert.strictEqual(state.phase, 'still');
+  assert.ok(state.at >= 285 * M && state.at <= 295 * M, String(state.at / M));
+  // Without draws (a hot tub) the same readings stay one stretch.
+  let tub = { phase: 'moving', at: 0, temp: 60 };
+  for (let i = 1; i <= 8 * 60; i++) {
+    const step = water.stillStep(tub, { ...opts, draws: false, now: i * M, raw: temp(i) });
+    assert.ok(!step.draw);
+    tub = step.state;
+  }
+  assert.strictEqual(tub.phase, 'still');
+  assert.strictEqual(tub.at, M);
+});
+
 test('stillStep: no stretch without a mixed start, when the pump stops while mixing, or during a use', () => {
   // Starts still (after a restart): only the mixing after the pump starts, nothing learned.
   assert.strictEqual(runStill([{ minutes: 120, flow: 'still', raw: 36 }, { minutes: 30, flow: 'circulating', raw: 35.5 }]).learned.length, 0);
