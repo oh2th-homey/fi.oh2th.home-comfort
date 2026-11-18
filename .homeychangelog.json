@@ -16,5 +16,8 @@
   },
   "1.5.0": {
     "en": "NEW: Price levels for the home (High and Expensive) with warnings, a night heat-up for the Water Heater planned from the next day's prices, and an optional heater switch for hot tubs and water heaters."
+  },
+  "1.5.1": {
+    "en": "FIX: The Water Heater no longer heats during the use time after hot water is used; it heats again below Keep, at cheaper times, or in the next night heat-up."
   }
 }
