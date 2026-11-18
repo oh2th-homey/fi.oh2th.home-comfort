@@ -25,5 +25,8 @@
   },
   "1.5.3": {
     "en": "FIX: The Hot Tub skips a ready time only when heating for it would cost over Expensive above, not because the bathing time itself is expensive."
+  },
+  "1.5.4": {
+    "en": "FIX: The Hot Tub skips a ready time when heating just before it would cost over Expensive above, instead of heating many hours early."
   }
 }
