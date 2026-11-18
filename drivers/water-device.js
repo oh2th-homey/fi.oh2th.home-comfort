@@ -807,7 +807,7 @@ module.exports = class waterDevice extends mainDevice {
    */
   decideTemperature(now, ready) {
     const temperature = this.planTemperature(now);
-    if (!this.heatsToFull() || !water.stillFull(this.getStoreValue('fullAt'), temperature, { now, outdoor: this.surroundingsTemperature(), model: this.getStoreValue('model') })) return temperature;
+    if (!this.heatsToFull() || !water.stillFull(this.getStoreValue('fullAt'), temperature, { now, outdoor: this.surroundingsTemperature(), model: this.getStoreValue('model'), heatedSince: this.getStoreValue('heatingSince') })) return temperature;
     return Math.max(temperature, ready);
   }
 

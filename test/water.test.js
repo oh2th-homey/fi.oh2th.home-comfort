@@ -378,6 +378,9 @@ test('fullStop and stillFull: the tank thermostat stopping the heater near full,
   assert.strictEqual(water.stillFull(fullAt, 54.5, at(24)), true);
   // A draw (a shower) drops it more than standby losses: not full, ready times heat again.
   assert.strictEqual(water.stillFull(fullAt, 54, at(6)), false);
+  // Drawn and then partly reheated back onto the standby curve: heated since the stop, so not full.
+  assert.strictEqual(water.stillFull(fullAt, 54.5, { ...at(24), heatedSince: 18 * H }), false);
+  assert.strictEqual(water.stillFull(fullAt, 54.5, { ...at(24), heatedSince: -H }), true);
   // Too long since the stop, or nothing known about the surroundings: only FULL_HOLD.
   assert.strictEqual(water.stillFull(fullAt, 59.5, at(40)), false);
   assert.strictEqual(water.stillFull(fullAt, 58.3, { now: 6 * H }), false);
