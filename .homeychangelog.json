@@ -31,5 +31,8 @@
   },
   "1.5.5": {
     "en": "FIX: Hot Tub filter cycle 1 always runs; only cycle 2 can be skipped over its price limit."
+  },
+  "1.5.6": {
+    "en": "FIX: Water Heater no longer learns hot water draws as heat loss."
   }
 }
