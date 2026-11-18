@@ -216,19 +216,22 @@ cycles** when you add it (or in **Repair**), then set each cycle in the device s
 - **Window from** and **to**: the cycle runs somewhere in between, within one day, for example
   00:00–06:00 for a night cycle and 12:00–18:00 for a day cycle.
 - **Length**: the same length as on the tub's own filter cycle card.
-- **Price limit**: on a day when the cycle's cheapest time costs more per kWh on average, it
-  doesn't run. 0 = always runs.
+- **Price limit** (cycle 2 only): on a day when the cycle's cheapest time costs more per kWh on
+  average, it doesn't run. 0 = always runs. Cycle 1 always runs, in the cheapest time of its window:
+  a tub needs one filter cycle a day, and many can't turn their first cycle off.
 
 Once the next day's prices are known and the current day's cycles are over, the device picks
 the cheapest time in each window and runs **Filter cycles planned**. Tokens: **Cycle 1 start**
-and **Cycle 2 start** (HH:mm), **Cycle 1 runs** and **Cycle 2 runs** (yes/no), and a **Summary**
+and **Cycle 2 start** (HH:mm), **Cycle 2 runs** (yes/no), **Cycle 1 runs** (always yes, kept for
+older flows), and a **Summary**
 such as `Sun: 02:00–04:00, 14:00–15:00`. The tub repeats its schedule daily, so the new times are
 sent only after the day's last cycle is over; until the prices come, the tub keeps the times it
 has. **Planned** in the settings shows the last plan.
 
 A typical flow: **Filter cycles planned** → set the tub's filter cycle 1 to **Cycle 1 start**;
-then **Cycle 2 runs** is yes? → set cycle 2 to **Cycle 2 start**, else disable cycle 2 (length
-0 on the tub's card). Add a notification with the **Summary** if you like.
+then **Cycle 2 runs** is yes? → turn cycle 2 on and set it to **Cycle 2 start**, else turn cycle 2
+off (with the tub app's own on/off for the cycle; on some tubs that isn't the same as a length of 0).
+Add a notification with the **Summary** if you like.
 
 The heating plan counts the heat the tub adds in its filter cycles: during each planned cycle
 (and the same times on the following days, as the tub repeats them) the water warms up to

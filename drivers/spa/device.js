@@ -6,7 +6,7 @@ const water = require('../../lib/water');
 
 // An outdoor spa without any outdoor temperature plans as if it were freezing: safe, not cheap.
 const UNKNOWN_OUTDOOR = 0;
-const FILTER_KEYS = ['filter_cycles', 'filter1_from', 'filter1_to', 'filter1_minutes', 'filter1_price_limit', 'filter2_from', 'filter2_to', 'filter2_minutes', 'filter2_price_limit'];
+const FILTER_KEYS = ['filter_cycles', 'filter1_from', 'filter1_to', 'filter1_minutes', 'filter2_from', 'filter2_to', 'filter2_minutes', 'filter2_price_limit'];
 
 module.exports = class spaDevice extends waterDevice {
   /**
@@ -65,16 +65,11 @@ module.exports = class spaDevice extends waterDevice {
   }
 
   /**
-   * @description The filter cycles in use from the settings: [{ from, to, minutes, priceLimit }].
+   * @description The filter cycles in use from the settings: [{ from, to, minutes, priceLimit }]. Cycle 1 always runs
+   * (a tub needs one filter cycle a day); only cycle 2 has a price limit.
    */
   filterCycles(settings = this.getSettings()) {
-    const count = Number(settings.filter_cycles) || 0;
-    return [1, 2].slice(0, count).map((n) => ({
-      from: settings[`filter${n}_from`],
-      to: settings[`filter${n}_to`],
-      minutes: settings[`filter${n}_minutes`],
-      priceLimit: settings[`filter${n}_price_limit`] > 0 ? settings[`filter${n}_price_limit`] : null
-    }));
+    return water.filterCycles(settings);
   }
 
   /**

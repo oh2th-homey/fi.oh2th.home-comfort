@@ -266,23 +266,6 @@
         }
       },
       {
-        "id": "filter1_price_limit",
-        "type": "number",
-        "label": {
-          "en": "Cycle 1 price limit"
-        },
-        "value": 0,
-        "min": 0,
-        "max": 10,
-        "step": 0.01,
-        "units": {
-          "en": "/kWh"
-        },
-        "hint": {
-          "en": "Skip the cycle on a day when its cheapest time costs more per kWh on average. 0 = always runs."
-        }
-      },
-      {
         "id": "filter2_from",
         "type": "text",
         "label": {

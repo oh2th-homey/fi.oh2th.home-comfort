@@ -735,6 +735,31 @@ test('filterTimes: the cheapest run inside each window, ties to the earliest', (
   assert.deepStrictEqual(flat.map((c) => at(c.start)), [0, 13]);
 });
 
+test('filterCycles: cycle 1 always runs, only cycle 2 has a price limit (#38)', () => {
+  const settings = {
+    filter_cycles: '2',
+    filter1_from: '00:00',
+    filter1_to: '06:00',
+    filter1_minutes: 120,
+    filter1_price_limit: 0.15,
+    filter2_from: '12:00',
+    filter2_to: '18:00',
+    filter2_minutes: 60,
+    filter2_price_limit: 0.15
+  };
+  const [first, second] = water.filterCycles(settings);
+  // An old cycle 1 limit left in the settings is ignored.
+  assert.deepStrictEqual(first, { from: '00:00', to: '06:00', minutes: 120, priceLimit: null });
+  assert.deepStrictEqual(second, { from: '12:00', to: '18:00', minutes: 60, priceLimit: 0.15 });
+  assert.strictEqual(water.filterCycles({ ...settings, filter2_price_limit: 0 })[1].priceLimit, null);
+  assert.strictEqual(water.filterCycles({ ...settings, filter_cycles: '1' }).length, 1);
+  assert.deepStrictEqual(water.filterCycles({ ...settings, filter_cycles: '0' }), []);
+  // Over the limit all day: cycle 1 still runs at its cheapest time, cycle 2 doesn't.
+  const [night, day] = water.filterTimes({ quarters: quartersFrom('2026-11-14', () => 0.2), date: '2026-11-14', timeZone: TZ, cycles: water.filterCycles(settings) });
+  assert.strictEqual(night.runs, true);
+  assert.strictEqual(day.runs, false);
+});
+
 test('filterTimes: over its price limit a cycle is planned but does not run; uncovered windows wait', () => {
   const quarters = quartersFrom('2026-11-14', () => 0.2);
   const [night, day] = water.filterTimes({ quarters, date: '2026-11-14', timeZone: TZ, cycles: CYCLES });

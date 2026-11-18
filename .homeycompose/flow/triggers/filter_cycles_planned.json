@@ -3,7 +3,7 @@
     "en": "Filter cycles planned"
   },
   "hint": {
-    "en": "Set the tub's own filter cycles here: the start times for the next day, once its prices are known. Disable a cycle that doesn't run."
+    "en": "Set the tub's own filter cycles here: the start times for the next day, once its prices are known. Cycle 1 always runs; disable cycle 2 when it doesn't run."
   },
   "args": [
     {

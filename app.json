@@ -164,7 +164,7 @@
           "en": "Filter cycles planned"
         },
         "hint": {
-          "en": "Set the tub's own filter cycles here: the start times for the next day, once its prices are known. Disable a cycle that doesn't run."
+          "en": "Set the tub's own filter cycles here: the start times for the next day, once its prices are known. Cycle 1 always runs; disable cycle 2 when it doesn't run."
         },
         "args": [
           {
@@ -2576,23 +2576,6 @@
               },
               "hint": {
                 "en": "The same length as set on the tub's own filter cycle card."
-              }
-            },
-            {
-              "id": "filter1_price_limit",
-              "type": "number",
-              "label": {
-                "en": "Cycle 1 price limit"
-              },
-              "value": 0,
-              "min": 0,
-              "max": 10,
-              "step": 0.01,
-              "units": {
-                "en": "/kWh"
-              },
-              "hint": {
-                "en": "Skip the cycle on a day when its cheapest time costs more per kWh on average. 0 = always runs."
               }
             },
             {
