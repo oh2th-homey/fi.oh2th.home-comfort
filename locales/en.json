@@ -211,6 +211,7 @@
       "over_ceiling": "Price over __ceiling__/kWh: waiting",
       "in_use": "Ready until __until__",
       "in_use_heat": "Heating to __target__ °C until __until__",
+      "ready": "Ready for __ready__",
       "ready_hold": "For __ready__, held until __until__",
       "ready_hold_heat": "For __ready__, held until __until__",
       "learning": "Starts __start__ for __ready__ (learning)",

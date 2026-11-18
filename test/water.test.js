@@ -562,6 +562,22 @@ test('decide: once ready is reached before a use, it is held until the use ends'
   assert.notStrictEqual(next.reason.code, 'ready_hold');
 });
 
+test('decide: a water heater (hold off) is just ready: no heating to hold ready before or during the use', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const useList = [{ start: day + 18 * H, end: day + 20 * H }];
+  const quarters = dayPrices(day + 16 * H);
+  const reached = water.decide({ ...base, now: day + 16 * H, temperature: 38.1, outdoor: 0, quarters, useList, hold: false });
+  assert.strictEqual(reached.reason.code, 'ready');
+  assert.strictEqual(water.state(reached), 'ready');
+  assert.strictEqual(water.readyNews(reached, null), true);
+  // Cooled or drawn after that, before or during the use: still no heating for it.
+  for (const now of [day + 17 * H, day + 19 * H]) {
+    const later = water.decide({ ...base, now, temperature: 36, outdoor: 0, quarters: dayPrices(now), useList, reachedFor: reached.reachedFor, hold: false });
+    assert.strictEqual(later.demand, false);
+    assert.strictEqual(later.reason.code, 'ready');
+  }
+});
+
 test('decide: the hold before a use follows the setting', () => {
   const day = midnight(TZ, '2026-11-13');
   const useList = [{ start: day + 18 * H, end: day + 20 * H }];

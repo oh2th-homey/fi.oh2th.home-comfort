@@ -11,7 +11,7 @@ const MODES = ['auto', 'heat', 'off'];
 const READY = 'heating_ready';
 const STATE = 'enum_water_state';
 // Reasons while the water is held at ready for a use (lib/water.js decide).
-const READY_CODES = ['in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
+const READY_CODES = ['ready', 'in_use', 'in_use_heat', 'ready_hold', 'ready_hold_heat'];
 const SURROUNDINGS = 'measure_temperature.ambient';
 const POWER = 'measure_power';
 const TEMPERATURE = 'measure_temperature';
@@ -906,7 +906,9 @@ module.exports = class waterDevice extends mainDevice {
         readyAhead: settings.ready_ahead,
         reachedFor: this.getStoreValue('reachedFor'),
         filters: this.filterList(now),
-        filterTarget: this.getStoreValue('filterTarget')
+        filterTarget: this.getStoreValue('filterTarget'),
+        // A water heater heats to full on its own thermostat: nothing to hold through the use.
+        hold: !this.heatsToFull()
       });
       if (decided.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', decided.reachedFor).catch(this.error);
       // A manual on/off from the button over the decision.

@@ -95,6 +95,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Time remaining**: while heating, how long until then, for example `1 h 5 min`.
 - **Reason**: why, for example `Starts 15:30 for 18:00`, `For 18:00, held until 20:00`,
   `Ready until 20:00` or, still heating after the ready time, `Heating to 37 °C until 20:00`.
+  A Water Heater heats to full on its own thermostat and doesn't hold the water through the use:
+  once full it shows `Ready for 06:00`. Hot water used after that is heated again only below
+  Keep, by a top-up cheaper than the night block, or by the next block.
 - **Heater problem**: no water temperature, heating was demanded for 1.5 hours without the
   water getting warmer, or (with a power meter) heating was demanded for 10 minutes without the
   meter showing heating power. A flow on **Heater problem turned on** can resend the heater's own
