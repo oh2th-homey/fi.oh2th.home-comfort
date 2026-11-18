@@ -41,7 +41,8 @@ goes back to Always eco.
        heats). **Heating held by the price ceiling** warns when the hot water runs low meanwhile.
 3. During a peak the controller shows **Expensive now**. Zones go to eco, or off if their **At
    price peaks** setting is Off, and return when the peak ends. Zones set to Ignore stay as they
-   are.
+   are. Set heat pump and A/C zones to Ignore: a peak lasts a quarter or two, too short to be worth
+   stopping a compressor.
 
 Use **Expensive now changed** or **Price is expensive** for other things that should follow the
 price, such as a water heater.

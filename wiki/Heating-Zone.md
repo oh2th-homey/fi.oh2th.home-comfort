@@ -42,7 +42,9 @@ The zone shows:
 - **Boost amount** and **Boost time**.
 - **Eco after door/window open**: how long a door or window may be open before the zone goes to
   eco (default 2 minutes).
-- **At price peaks**: Eco (default), Off (switch the zone's devices off) or Ignore.
+- **At price peaks**: Eco (default), Off (switch the zone's devices off) or Ignore. For a heat pump
+  or A/C, choose **Ignore**: a price peak lasts only a quarter or two, so going to eco stops and
+  restarts the compressor for a fraction of a cent, and the heat is made up right after.
 - **At Expensive level** (over the controller's **Expensive above**): As at price peaks (default),
   or Allow comfort: the zone stays at comfort, for example an A/C on a hot day, unless the price
   model finds a peak at the same time.
