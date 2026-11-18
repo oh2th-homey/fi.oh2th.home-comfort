@@ -1021,19 +1021,22 @@ test('decide: a ready time whose own time costs over the price limit is skipped,
   assert.strictEqual(water.decide({ ...tub, priceLimit: 0.12, heatingNow: true }).skip, false);
 });
 
-test('decide: a Hot Tub skips a ready time only when heating for it costs over the limit, not for its own price', () => {
+test('decide: a Hot Tub skips a ready time when its main heating, just before it, costs over the limit', () => {
   const day = midnight(TZ, '2026-11-13');
   const useList = [{ start: day + 18 * H, end: day + 19 * H + 30 * 60000 }];
   const now = day + 2 * H;
   const tub = { ...base, keep: null, now, temperature: 33, outdoor: 5, quarters: dayPrices(now), useList, priceLimit: 0.12, ceiling: 0.12, usePriceSkips: false };
-  // The use is at 0.3, but the night quarters at 0.02 heat for it: not skipped, heats now.
-  const cheap = water.decide(tub);
-  assert.strictEqual(cheap.skip, false);
-  assert.strictEqual(cheap.demand, true);
-  // Heating for it too would be over the limit (one cheap quarter left, the rest at 0.3): skipped.
-  const late = day + 5 * H + 45 * 60000;
-  const dear = water.decide({ ...tub, now: late, temperature: 30, quarters: dayPrices(late) });
+  // Cheap at night, 0.3 before the use: no pre-heating at night, skipped; also when it was already pre-heating.
+  const dear = water.decide(tub);
   assert.strictEqual(dear.skip, true);
   assert.strictEqual(dear.demand, false);
-  assert.ok(dear.skipPrice > 0.12 && dear.skipPrice < 1, `real price, not the priced-out one: ${dear.skipPrice}`);
+  assert.ok(Math.abs(dear.skipPrice - 0.3) < 1e-9);
+  assert.strictEqual(water.decide({ ...tub, heatingNow: true }).skip, true);
+  // Cheap from 12:00 to 18:00 (latest start 13:00), the use itself at 0.3: heats for it.
+  const values = Array.from({ length: 96 * 2 }, (_, i) => (i % 96 < 24 || (i % 96 >= 48 && i % 96 < 72) ? 0.02 : 0.3));
+  const cheap = (at) => water.quarterPrices(values, day, 15, at, 36 * H);
+  assert.strictEqual(water.decide({ ...tub, quarters: cheap(now) }).skip, false);
+  // Heating in the main period has started: no stop halfway, whatever the price.
+  const late = day + 17 * H;
+  assert.strictEqual(water.decide({ ...tub, now: late, quarters: dayPrices(late), heatingNow: true }).skip, false);
 });
