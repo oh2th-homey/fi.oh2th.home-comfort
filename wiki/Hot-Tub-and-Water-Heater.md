@@ -120,7 +120,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   the **Set ready time** card sets Ready at, Ready ahead and the days together.
 - **Price limit**: skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
-  ready time, decided before the heating starts. A Water Heater still holds Keep.
+  ready time, decided before the heating starts. A ready time is also skipped when the price during
+  it (the mean from Ready at to its end, once known) is over the limit, however cheap heating
+  ahead would be: holding the water while in use costs at those prices. A Water Heater still holds Keep.
 - **Heater power**: the power while heating, used until a power meter has shown it. A Water Heater also
   starts planning from it (a 300-litre, well insulated tank) until its heating and cooling are learned.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the
@@ -250,7 +252,8 @@ so on a day with a filter cycle before the ready time, heating starts later or n
 - Triggers **Heating ready turned on** and **Heating ready turned off**: a ready time started or ended
   (or it was turned on or off by hand).
 - Trigger **Ready time skipped**, once when the price limit skips a ready time, with the **Ready
-  time**, the **Price** (average per kWh of the heating it would need) and the **Price limit**.
+  time**, the **Price** (average per kWh of the heating it would need, or of the ready time itself)
+  and the **Price limit**.
 - Trigger **State changed**, with the state as a token (`preheating`, `heating`, `ready`, `waiting`,
   `stopped` or `off`).
 - Conditions **Heating ready is on** and **State is**.

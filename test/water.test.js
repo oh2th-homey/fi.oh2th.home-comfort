@@ -1001,3 +1001,22 @@ test('decide: over the price ceiling nothing heats, not even Keep (held), except
   assert.strictEqual(night.reason.code, 'block_heat');
   assert.strictEqual(night.demand, true);
 });
+
+test('decide: a ready time whose own time costs over the price limit is skipped, however cheap heating ahead is', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const useList = [{ start: day + 18 * H, end: day + 19 * H + 30 * 60000 }];
+  const now = day + 2 * H;
+  const tub = { ...base, keep: null, now, temperature: 35, outdoor: 5, quarters: dayPrices(now), useList };
+  // Night quarters at 0.02 are cheap; the use itself is at 0.3.
+  assert.strictEqual(water.decide(tub).skip, false);
+  const skipped = water.decide({ ...tub, priceLimit: 0.12 });
+  assert.strictEqual(skipped.demand, false);
+  assert.strictEqual(skipped.skip, true);
+  assert.strictEqual(skipped.reason.code, 'skipped');
+  assert.strictEqual(Math.round(skipped.skipPrice * 100) / 100, 0.3);
+  // Under the limit, or the use already started: decided as before.
+  assert.strictEqual(water.decide({ ...tub, priceLimit: 0.5 }).skip, false);
+  assert.notStrictEqual(water.decide({ ...tub, now: day + 18 * H + 15 * 60000, quarters: dayPrices(day + 18 * H + 15 * 60000), priceLimit: 0.12 }).reason.code, 'skipped');
+  // Already heating for it: no stop halfway.
+  assert.strictEqual(water.decide({ ...tub, priceLimit: 0.12, heatingNow: true }).skip, false);
+});

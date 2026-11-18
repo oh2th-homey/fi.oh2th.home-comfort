@@ -187,7 +187,7 @@
           "en": "/kWh"
         },
         "hint": {
-          "en": "Skip a ready time when heating for it would cost more per kWh. 0 = always heat."
+          "en": "Skip a ready time when heating for it, or the ready time itself, would cost more per kWh. 0 = always heat."
         }
       }
     ]
