@@ -17,7 +17,7 @@ module.exports = class HvacControlApp extends Homey.App {
 
     // Other apps' devices (zone members), through the Homey Web API.
     this.members = new Members(this);
-    // Quarter-hour history on disk for learning and replay.
+    // Quarter-hour history on disk for learning and analysis.
     this.history = new History(this);
 
     await flowActions.init(this);

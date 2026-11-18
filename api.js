@@ -5,7 +5,7 @@ const { isDate } = require('oh2th-homey-helpers');
 module.exports = {
   /**
    * @description GET /history?date=YYYY-MM-DD: one day of the quarter-hour history (lib/history.js, base64) and the
-   * zone slot map, for analysis and replay.
+   * zone slot map, for learning and analysis.
    */
   async getHistory({ homey, query }) {
     const date = String((query && query.date) || '');
