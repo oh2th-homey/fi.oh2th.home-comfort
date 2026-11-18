@@ -19,5 +19,8 @@
   },
   "1.5.1": {
     "en": "FIX: The Water Heater no longer heats during the use time after hot water is used; it heats again below Keep, at cheaper times, or in the next night heat-up."
+  },
+  "1.5.2": {
+    "en": "FIX: A Hot Tub skips a ready time when the home's prices are over Expensive above during it, however cheap heating ahead would be; it no longer has its own price limit."
   }
 }
