@@ -1,6 +1,6 @@
 {
   "name": "fi.oh2th.hvac-control",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "main": "app.js",
   "scripts": {
     "test": "node --test",
