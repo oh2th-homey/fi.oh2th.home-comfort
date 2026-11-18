@@ -29,6 +29,13 @@ module.exports = class spaDevice extends waterDevice {
     return controller ? controller.priceCeiling() : null;
   }
 
+  /**
+   * @description A ready time is skipped only when heating for it would cost over the limit, not for its own price.
+   */
+  usePriceSkips() {
+    return false;
+  }
+
   keepTemperature() {
     return null;
   }

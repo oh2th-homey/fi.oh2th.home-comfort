@@ -498,6 +498,13 @@ module.exports = class waterDevice extends mainDevice {
     return limit > 0 ? limit : null;
   }
 
+  /**
+   * @description Whether a ready time is skipped when its own time costs over the price limit (the Hot Tub: no).
+   */
+  usePriceSkips() {
+    return true;
+  }
+
   ratedSetting() {
     return this.getSetting('heater_power') || 3000;
   }
@@ -911,6 +918,7 @@ module.exports = class waterDevice extends mainDevice {
         max: settings.max_temperature,
         powerW: this.ratedPower(),
         priceLimit: this.readyPriceLimit(controller),
+        usePriceSkips: this.usePriceSkips(),
         heatingNow: this.demanded(),
         holdBefore: settings.hold_before,
         readyAhead: settings.ready_ahead,

@@ -121,9 +121,10 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Price limit** (Water Heater; a Hot Tub uses the home's **Expensive above** of the
   [HVAC Controller](HVAC-Controller) instead): skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
-  ready time, decided before the heating starts. A ready time is also skipped when the price during
+  ready time, decided before the heating starts. A Water Heater's ready time is also skipped when the price during
   it (the mean from Ready at to its end, once known) is over the limit, however cheap heating
-  ahead would be: holding the water while in use costs at those prices. A Water Heater still holds Keep.
+  ahead would be. A Hot Tub's ready time is not skipped for its own price: when it can heat in cheaper hours
+  ahead, it does, and it doesn't heat while in use over Expensive above. A Water Heater still holds Keep.
 - **Heater power**: the power while heating, used until a power meter has shown it. A Water Heater also
   starts planning from it (a 300-litre, well insulated tank) until its heating and cooling are learned.
 - **Learned heating curve** (read only): how fast the water heats, how fast it loses heat to the

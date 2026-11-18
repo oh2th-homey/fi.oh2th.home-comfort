@@ -1020,3 +1020,20 @@ test('decide: a ready time whose own time costs over the price limit is skipped,
   // Already heating for it: no stop halfway.
   assert.strictEqual(water.decide({ ...tub, priceLimit: 0.12, heatingNow: true }).skip, false);
 });
+
+test('decide: a Hot Tub skips a ready time only when heating for it costs over the limit, not for its own price', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const useList = [{ start: day + 18 * H, end: day + 19 * H + 30 * 60000 }];
+  const now = day + 2 * H;
+  const tub = { ...base, keep: null, now, temperature: 33, outdoor: 5, quarters: dayPrices(now), useList, priceLimit: 0.12, ceiling: 0.12, usePriceSkips: false };
+  // The use is at 0.3, but the night quarters at 0.02 heat for it: not skipped, heats now.
+  const cheap = water.decide(tub);
+  assert.strictEqual(cheap.skip, false);
+  assert.strictEqual(cheap.demand, true);
+  // Heating for it too would be over the limit (one cheap quarter left, the rest at 0.3): skipped.
+  const late = day + 5 * H + 45 * 60000;
+  const dear = water.decide({ ...tub, now: late, temperature: 30, quarters: dayPrices(late) });
+  assert.strictEqual(dear.skip, true);
+  assert.strictEqual(dear.demand, false);
+  assert.ok(dear.skipPrice > 0.12 && dear.skipPrice < 1, `real price, not the priced-out one: ${dear.skipPrice}`);
+});
