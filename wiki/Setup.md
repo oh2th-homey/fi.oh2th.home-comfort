@@ -36,6 +36,10 @@ becomes the **Home Controller**, and its import also brings the history.
 1. Install Adaptive Home Comfort next to Smart HVAC Control.
 2. Add the Home Controller and import it, then the Heating Zones, Hot Tub, Water Heater and Sauna
    the same way.
-3. Move your flows to the new app's cards and devices.
+3. Move your flows to the new app's cards and devices. In the app's folder (see
+   [Install](Home#install)), `node tools/migrate-flows.js --homey-id <your Homey's id>` shows what
+   it would change in each flow (`homey select` lists the ids). Add `--write` to change them; it
+   first saves all your flows to a backup file. Flows that use a device you haven't imported yet
+   are left as they are.
 4. Disable or uninstall Smart HVAC Control soon: until then both apps drive the same devices.
    Insights history of the old devices is not moved.
