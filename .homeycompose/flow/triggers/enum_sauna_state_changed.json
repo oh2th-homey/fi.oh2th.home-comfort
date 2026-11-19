@@ -1,0 +1,24 @@
+{
+  "title": {
+    "en": "State changed"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "enum_sauna_state",
+      "type": "string",
+      "title": {
+        "en": "State"
+      },
+      "example": {
+        "en": "ready"
+      }
+    }
+  ]
+}

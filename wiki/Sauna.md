@@ -57,6 +57,9 @@ it depends on where the sensor hangs, so it is learned rather than set.
 ## Flow cards
 
 - Triggers **Sauna heating started** (temperature, expected ready), **Sauna ready** (temperature),
-  **Sauna bathing started** (temperature, minutes since switched on), **Add wood** (temperature).
+  **Sauna bathing started** (temperature, minutes since switched on), **Add wood** (temperature),
+  **State changed** (`off`, `heating`, `ready` or `in_use`), for example to turn a panel light off
+  when the sauna goes Off.
+- Condition **State is**: for example **State is not Off** while the sauna is on.
 - Action **Set stove switch** (on or off).
 - Homey's own cards for the temperature, humidity, power and **Left on**.
