@@ -64,5 +64,8 @@
   },
   "2.3.0": {
     "en": "CHANGE: Long absence is now called Away, and the occupancy states are Home, Coming home and Out."
+  },
+  "2.4.0": {
+    "en": "NEW: Sauna State changed trigger and State is condition, for example to turn a panel light off when the sauna goes Off."
   }
 }
