@@ -102,13 +102,6 @@
       "power": "Stove power meter (optional)",
       "no_power": "None (e.g. a wood-burning stove)",
       "no_temperature": "Choose the sauna temperature."
-    },
-    "import": {
-      "title": "Import from Smart HVAC Control",
-      "subtitle": "Devices of the old app, with their settings, learned state and history. Pick the ones to bring over.",
-      "import": "Import",
-      "new": "Add a new one instead",
-      "none_picked": "Pick at least one device, or add a new one instead."
     }
   },
   "error": {

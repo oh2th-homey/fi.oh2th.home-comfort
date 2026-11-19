@@ -13,7 +13,7 @@
 
 const { decodeDay, decodeDays, CONTROLLER_SLOT } = require('../lib/history');
 
-const APP_ID = process.env.HOMEY_APP || 'fi.oh2th.home-comfort'; // HOMEY_APP=fi.oh2th.hvac-control reads the old app
+const APP_ID = 'fi.oh2th.home-comfort';
 
 function today() {
   const now = new Date();

@@ -77,13 +77,6 @@
   ],
   "pair": [
     {
-      "id": "import",
-      "$template": "import",
-      "navigation": {
-        "next": "water"
-      }
-    },
-    {
       "id": "water"
     }
   ],

@@ -9,7 +9,6 @@ const mainDriver = require('../main-driver');
  */
 module.exports = class saunaDriver extends mainDriver {
   async onPair(session) {
-    this.setImportHandlers(session);
     session.setHandler('get_sauna_sources', async () => this.sourcesView(null));
     session.setHandler('create_sauna', async ({ name, sources }) => ({
       name: name || this.homey.__('pair.sauna.name'),
