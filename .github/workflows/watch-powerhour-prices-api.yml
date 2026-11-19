@@ -1,0 +1,61 @@
+name: Watch Power by the Hour Prices API
+
+# The HVAC Controller reads prices from the Power by the Hour Prices API (#23). This checks its documentation once a
+# day and opens an issue when it changes, so the code can be checked against it.
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+env:
+  UPSTREAM: gruijter/com.gruijter.powerhour
+  DOC: README.prices-api.md
+  # The version the code was written against (beta-v9, 2026-11-04). Newer commits to the doc are reported.
+  BASELINE: 1932f469502bc20a3f92c664353e5e579f0365fb
+  LABEL: HVAC Controller
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the Prices API documentation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          default=$(gh api "repos/$UPSTREAM" -q .default_branch)
+          for branch in beta-v9 "$default"; do
+            # The branch may be gone (e.g. beta-v9 after the release) or not have the doc yet.
+            sha=$(gh api "repos/$UPSTREAM/commits?sha=$branch&path=$DOC&per_page=1" -q '.[0].sha // empty' 2>/dev/null || true)
+            [ -z "$sha" ] && { echo "$branch: no $DOC"; continue; }
+            if [ "$sha" = "$BASELINE" ]; then echo "$branch: unchanged"; continue; fi
+            short=${sha:0:12}
+            if [ -n "$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "$short in:title" --json number -q '.[0].number')" ]; then
+              echo "$branch: $short already reported"; continue
+            fi
+            date=$(gh api "repos/$UPSTREAM/commits/$sha" -q .commit.committer.date)
+            message=$(gh api "repos/$UPSTREAM/commits/$sha" -q '.commit.message | split("\n")[0]')
+            body=$(cat <<EOF
+          The Power by the Hour Prices API documentation changed on \`$branch\`:
+
+          - Commit: https://github.com/$UPSTREAM/commit/$sha ($date): $message
+          - Changes since the version the code was written against: https://github.com/$UPSTREAM/compare/$BASELINE...$sha
+          - Document: https://github.com/$UPSTREAM/blob/$branch/$DOC
+
+          ## Check
+          - [ ] Payload: \`lib/prices.js\` (\`apiEntry\`, the slot fields \`time\`, \`importPrice\`, \`exportPrice\`, \`isForecast\`, \`priceInterval\`, \`currency\`).
+          - [ ] Endpoint and realtime event: \`drivers/hvac/device.js\` (\`GET /prices\`, \`prices-updated\`).
+          - [ ] Pairing and repair: the price device list (\`commodity\`, \`tariffType\`).
+          - [ ] Tests with the new payload (\`test/prices-api.test.js\`).
+          - [ ] When done, set \`BASELINE\` in \`.github/workflows/watch-powerhour-prices-api.yml\` to this commit.
+
+          Related: #23
+          EOF
+          )
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Power by the Hour Prices API changed ($short)" --label "$LABEL" --body "$body"
+            echo "$branch: reported $short"
+          done
