@@ -20,7 +20,7 @@
   },
   "overrides": {
     "@typescript-eslint/typescript-estree": {
-      "minimatch": "9.0.7"
+      "minimatch": "11.0.9"
     }
   }
 }
