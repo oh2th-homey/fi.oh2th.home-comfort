@@ -20,8 +20,7 @@
   ],
   "permissions": [
     "homey:manager:api",
-    "homey:app:com.gruijter.powerhour",
-    "homey:app:fi.oh2th.hvac-control"
+    "homey:app:com.gruijter.powerhour"
   ],
   "api": {
     "getHistory": {
@@ -35,10 +34,6 @@
     "getWater": {
       "method": "GET",
       "path": "/water"
-    },
-    "getExport": {
-      "method": "GET",
-      "path": "/export"
     }
   },
   "images": {
@@ -1853,12 +1848,6 @@
       },
       "pair": [
         {
-          "id": "import",
-          "navigation": {
-            "next": "outdoor"
-          }
-        },
-        {
           "id": "outdoor"
         }
       ],
@@ -2061,12 +2050,6 @@
       },
       "pair": [
         {
-          "id": "import",
-          "navigation": {
-            "next": "sauna"
-          }
-        },
-        {
           "id": "sauna"
         }
       ],
@@ -2233,12 +2216,6 @@
         }
       },
       "pair": [
-        {
-          "id": "import",
-          "navigation": {
-            "next": "water"
-          }
-        },
         {
           "id": "water"
         }
@@ -2739,12 +2716,6 @@
       },
       "pair": [
         {
-          "id": "import",
-          "navigation": {
-            "next": "water"
-          }
-        },
-        {
           "id": "water"
         }
       ],
@@ -3184,12 +3155,6 @@
         }
       },
       "pair": [
-        {
-          "id": "import",
-          "navigation": {
-            "next": "select"
-          }
-        },
         {
           "id": "select",
           "navigation": {

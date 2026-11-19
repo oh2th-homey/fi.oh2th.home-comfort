@@ -62,13 +62,6 @@
   ],
   "pair": [
     {
-      "id": "import",
-      "$template": "import",
-      "navigation": {
-        "next": "select"
-      }
-    },
-    {
       "id": "select",
       "navigation": {
         "next": "configure"

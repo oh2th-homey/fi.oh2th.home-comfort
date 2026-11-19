@@ -19,8 +19,7 @@
   ],
   "permissions": [
     "homey:manager:api",
-    "homey:app:com.gruijter.powerhour",
-    "homey:app:fi.oh2th.hvac-control"
+    "homey:app:com.gruijter.powerhour"
   ],
   "api": {
     "getHistory": {
@@ -34,10 +33,6 @@
     "getWater": {
       "method": "GET",
       "path": "/water"
-    },
-    "getExport": {
-      "method": "GET",
-      "path": "/export"
     }
   },
   "images": {
