@@ -40,5 +40,8 @@
   },
   "1.5.8": {
     "en": "FIX: Hot Tub no longer pre-heats a day ahead of the bath."
+  },
+  "1.5.9": {
+    "en": "FIX: Hot Tub announces only its main heating, and a heater that stops at its own set point no longer shows a heater problem."
   }
 }
