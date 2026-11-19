@@ -42,6 +42,8 @@ module.exports = class controllerDriver extends mainDriver {
    * @description Importing the Home Controller also brings the old app's history files.
    */
   async onImport(device, exported) {
+    // The old default name becomes the new one; a name the user chose stays.
+    if (device.name === 'HVAC Controller') device.name = this.homey.__('pair.controller_name');
     const written = await this.homey.app.history.importFiles(exported.history);
     this.log(`onImport - ${written} history files`);
   }
