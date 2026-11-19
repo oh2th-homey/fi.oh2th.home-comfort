@@ -562,8 +562,9 @@ module.exports = class controllerDevice extends mainDevice {
       ceiling: settings.price_ceiling,
       high: settings.price_high
     });
-    // Prices from Power by the Hour that could not be read: say why, before the price reason.
-    if (this.getStoreValue('priceSource') && this.pricesError) result.reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
+    // One reason (issue #44); prices from Power by the Hour that could not be read: say why, before it.
+    const reasons = [prices.headline(result)];
+    if (this.getStoreValue('priceSource') && this.pricesError) reasons.unshift({ code: 'source_error', args: { detail: this.pricesError } });
     const wasExpensive = this.getCapabilityValue('is_expensive') === true;
     const wasLevel = this.getCapabilityValue('enum_price_level');
     const wasPeak = this.pricePeakNow === true;
@@ -573,7 +574,7 @@ module.exports = class controllerDevice extends mainDevice {
     await this.setValue('is_expensive', result.expensive, firstRun);
     await this.setValue('enum_price_level', result.level, firstRun);
     await this.setValue('text_prices_until', result.until ? this.formatLocal(result.until) : this.homey.__('price.none'), firstRun);
-    await this.setValue('text_reason', this.reasonText(result.reasons), firstRun);
+    await this.setValue('text_reason', this.reasonText(reasons), firstRun);
 
     if (!firstRun && (wasExpensive !== result.expensive || wasLevel !== result.level || wasPeak !== this.pricePeakNow)) await this.homey.app.onSharedStateChanged();
     return result;
@@ -610,9 +611,11 @@ module.exports = class controllerDevice extends mainDevice {
   }
 
   reasonText(reasons) {
+    // Prices with two decimals and the unit, e.g. "0.15 €/kWh".
+    const unit = `${String(this.getSetting('currency') || '€').trim() || '€'}/kWh`;
     return reasons
       .map(({ code, args }) => {
-        const formatted = Object.fromEntries(Object.entries(args).map(([key, value]) => [key, typeof value === 'number' && !['pct', 'minutes'].includes(key) ? value.toFixed(4) : value]));
+        const formatted = Object.fromEntries(Object.entries(args).map(([key, value]) => [key, typeof value === 'number' && !['pct', 'minutes'].includes(key) ? `${value.toFixed(2)} ${unit}` : value]));
         return this.homey.__(`price.${code}`, formatted);
       })
       .join('; ');

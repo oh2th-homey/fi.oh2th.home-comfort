@@ -146,6 +146,24 @@ test('evaluate: over the price ceiling is always expensive, also with the model 
   assert.strictEqual(prices.evaluate({ days, timeZone: TZ, now, model: 'off', ceiling: 0 }).expensive, false);
 });
 
+test('headline: one reason, the strongest first (issue #44)', () => {
+  const r = (...reasons) => ({ reasons });
+  const peak = { code: 'peak', args: { price: 0.28, threshold: 0.27 } };
+  const notPeak = { code: 'not_peak', args: { price: 0.12, threshold: 0.2 } };
+  const ceiling = { code: 'over_ceiling', args: { price: 0.28, ceiling: 0.15 } };
+  const high = { code: 'over_high', args: { price: 0.12, high: 0.1 } };
+  assert.deepStrictEqual(prices.headline(r(peak, ceiling)), ceiling);
+  assert.deepStrictEqual(prices.headline(r(notPeak, ceiling)), ceiling);
+  assert.deepStrictEqual(prices.headline(r(peak, high)), peak);
+  assert.deepStrictEqual(prices.headline(r(notPeak, high)), high);
+  assert.deepStrictEqual(prices.headline(r(notPeak)), notPeak);
+  const average = { code: 'above_average', args: { threshold: 0.2 } };
+  assert.deepStrictEqual(prices.headline(r({ code: 'hourly_fallback', args: { minutes: 60 } }, average)), average);
+  assert.deepStrictEqual(prices.headline(r({ code: 'off', args: {} }, ceiling)), ceiling);
+  assert.deepStrictEqual(prices.headline(r({ code: 'unknown', args: {} })), { code: 'unknown', args: {} });
+  assert.strictEqual(prices.headline(r()).code, 'not_peak');
+});
+
 test('evaluate: price level normal, high (warning only) and expensive', () => {
   const now = prices.dayInfo(TZ, '2026-11-10', 15).start + 32 * 900000;
   const days = { '2026-11-10': { resolution: 15, values: NORMAL } };

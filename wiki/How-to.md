@@ -126,5 +126,5 @@ Each zone shows a **Reason**, for example:
 - `Season off; <device>: fan`
 - `<device>: manual change, restoring later`
 
-The Home Controller shows the price reason, for example `Normal` or `Peak (over 0.0668)`. The
-**Target changed** trigger has the reason as a token.
+The Home Controller shows the price reason, for example `Normal`, `Price peak: over 0.27 €/kWh` or
+`Expensive: over 0.15 €/kWh`. The **Target changed** trigger has the reason as a token.
