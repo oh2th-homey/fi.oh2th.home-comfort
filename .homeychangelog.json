@@ -73,5 +73,8 @@
   },
   "2.5.0": {
     "en": "CHANGE: The Home Controller's reason is one short phrase, for example Expensive: over 0.15 €/kWh."
+  },
+  "2.6.0": {
+    "en": "NEW: Optional outdoor forecast from Open-Meteo on the Home Controller, with the lowest temperature in the next 24 hours."
   }
 }
