@@ -5,6 +5,7 @@ const mainDevice = require('../main-device');
 const zone = require('../../lib/zone');
 const pipeline = require('../../lib/pipeline');
 const daily = require('../../lib/daily');
+const meters = require('../../lib/meters');
 
 const VERIFY_MS = 60 * 1000;
 const RETRY_BACKOFF_MIN = [15, 30, 60];
@@ -527,12 +528,7 @@ module.exports = class zoneDevice extends mainDevice {
       this.climate[cap] = value;
       this.setValue(cap, value, false, 0).catch(this.error);
     }
-    const watts = this.getMembers()
-      .filter((member) => member.power)
-      .map((member) => this.members.read(member.id, 'measure_power'))
-      .filter((reading) => reading && typeof reading.value === 'number' && reading.available)
-      .map((reading) => reading.value);
-    const exact = watts.length ? watts.reduce((sum, value) => sum + value, 0) : null;
+    const exact = meters.sumPower(this.getMembers().filter((member) => member.power).map((member) => this.members.read(member.id, 'measure_power')));
     // Energy from every reading as it is; only the shown value has a dead band.
     this.addEnergy(ms, exact);
     const power = exact === null ? null : Math.round(exact);
@@ -550,9 +546,7 @@ module.exports = class zoneDevice extends mainDevice {
    * @description Heating energy since the last history sample (Wh): each power reading times how long it lasted.
    */
   addEnergy(ms, power) {
-    const last = this.energy;
-    const wh = last ? last.wh + (typeof last.power === 'number' ? (last.power * Math.max(0, ms - last.at)) / 3600000 : 0) : 0;
-    this.energy = { power, at: ms, wh };
+    this.energy = meters.integrate(this.energy, ms, power);
   }
 
   /**

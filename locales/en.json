@@ -46,7 +46,7 @@
     },
     "outdoor": {
       "title": "Home Controller",
-      "subtitle": "Both optional: an outdoor sensor for zones with an outdoor limit, and the prices to follow.",
+      "subtitle": "All optional: an outdoor sensor for zones with an outdoor limit, the prices to follow, and heating meters outside the zones.",
       "sensor": "Outdoor temperature sensor",
       "none": "None",
       "exists": "You already have the Home Controller \"__name__\". One is enough for the whole home, so keep using it.",
@@ -63,6 +63,13 @@
       "no_api": "Update Power by the Hour to version 9 or later to use its prices.",
       "no_power": "Add an energy price device in Power by the Hour to use its prices.",
       "missing": "That price device is no longer in Power by the Hour. Choose another one."
+    },
+    "meters": {
+      "label": "Other heating meters",
+      "hint": "Heating or cooling outside the zones, such as a ventilation unit. Added to the heating power and energy.",
+      "none": "No devices with a power meter found.",
+      "in_zone": "__name__ is a power meter of the zone __zone__ already.",
+      "in_zone_short": "in __zone__"
     },
     "water": {
       "subtitle": "Heats in the cheapest hours on the Home Controller's prices. Choose the heater's switch below, or switch it from your flows on the Heating demand cards.",

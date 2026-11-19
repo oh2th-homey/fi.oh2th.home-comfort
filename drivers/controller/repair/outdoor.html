@@ -1,9 +1,10 @@
-<!-- The Home Controller's only pairing page: the optional outdoor temperature sensor and the prices to follow
-     (Power by the Hour price devices).
+<!-- The Home Controller's only pairing page: the optional outdoor temperature sensor, the prices to follow
+     (Power by the Hour price devices) and other heating meters outside the zones (issue #40).
      The same file serves pair and repair (drivers/controller/repair/outdoor.html, kept identical by a test). -->
 <style>
   .hz-error { color: var(--homey-color-red-500, #d33); margin: 0.8em 0; }
   .hz-note { margin: 0.4em 0 0; opacity: 0.8; }
+  .hz-meters { margin: 0.4em 0 0; }
 </style>
 
 <header class="homey-header">
@@ -24,6 +25,11 @@
     <label class="homey-form-label" for="out-prices" data-i18n="pair.prices.label"></label>
     <select class="homey-form-select" id="out-prices"></select>
     <p class="hz-note" id="out-prices-note"></p>
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" data-i18n="pair.meters.label"></label>
+    <p class="hz-note" data-i18n="pair.meters.hint"></p>
+    <fieldset class="homey-form-checkbox-set hz-meters" id="out-meters"></fieldset>
   </div>
   <p class="hz-error" id="out-error"></p>
   <button class="homey-button-primary-full" id="out-save" data-i18n="pair.members.save"></button>
@@ -48,6 +54,7 @@
     const saveEl = document.getElementById('out-save');
     const pricesEl = document.getElementById('out-prices');
     const pricesNoteEl = document.getElementById('out-prices-note');
+    const metersEl = document.getElementById('out-meters');
     let sensors = [];
 
     function option(value, text) {
@@ -83,17 +90,47 @@
       pricesNoteEl.textContent = note ? Homey.__(`pair.prices.${note}`) : '';
     }
 
+    // Devices with a power meter; a zone's meter is shown but can't be picked, so nothing is counted twice.
+    function showMeters(meters, picked) {
+      if (!meters.length) {
+        const none = document.createElement('p');
+        none.className = 'hz-note';
+        none.textContent = Homey.__('pair.meters.none');
+        metersEl.appendChild(none);
+        return;
+      }
+      for (const meter of meters) {
+        const label = document.createElement('label');
+        label.className = 'homey-form-checkbox';
+        const input = document.createElement('input');
+        input.className = 'homey-form-checkbox-input';
+        input.type = 'checkbox';
+        input.dataset.id = meter.id;
+        input.checked = picked.includes(meter.id);
+        input.disabled = !!meter.inZone && !input.checked;
+        const mark = document.createElement('span');
+        mark.className = 'homey-form-checkbox-checkmark';
+        const text = document.createElement('span');
+        text.className = 'homey-form-checkbox-text';
+        const name = meter.zone ? `${meter.zone} · ${meter.name}` : meter.name;
+        text.textContent = meter.inZone ? `${name} (${Homey.__('pair.meters.in_zone_short', { zone: meter.inZone })})` : name;
+        label.append(input, mark, text);
+        metersEl.appendChild(label);
+      }
+    }
+
     saveEl.addEventListener('click', async () => {
       errorEl.textContent = '';
       const outdoor = sensorEl.value ? { id: sensorEl.value, cap: capEl.value || null } : null;
       const priceSource = pricesEl.value;
+      const otherMeters = [...metersEl.querySelectorAll('input:checked')].map((input) => input.dataset.id);
       try {
         if (repair) {
-          await Homey.emit('save_outdoor', { outdoor, priceSource });
+          await Homey.emit('save_outdoor', { outdoor, priceSource, otherMeters });
           Homey.done();
           return;
         }
-        const device = await Homey.emit('create_controller', { outdoor, priceSource });
+        const device = await Homey.emit('create_controller', { outdoor, priceSource, otherMeters });
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
@@ -125,6 +162,7 @@
         sensorEl.value = result.outdoor ? result.outdoor.id : '';
         showCaps(result.outdoor ? result.outdoor.cap : null);
         showPrices(result.prices);
+        showMeters(result.meters || [], result.otherMeters || []);
       } catch (error) {
         errorEl.textContent = error.message || String(error);
         saveEl.disabled = true;

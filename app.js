@@ -8,6 +8,9 @@ const Members = require('./lib/members');
 const { History, QUARTER_MS, CONTROLLER_SLOT } = require('./lib/history');
 const daily = require('./lib/daily');
 
+// The history slot of the Home Controller's other heating meters (issue #40); zones use their data id.
+const OTHER_METERS_SLOT_ID = 'other-meters';
+
 module.exports = class HomeComfortApp extends Homey.App {
   /**
    * onInit is called when the app is initialized.
@@ -62,7 +65,16 @@ module.exports = class HomeComfortApp extends Homey.App {
     }
     if (controller) {
       const metered = zones.filter((zone) => typeof zone.energy === 'number');
-      const energy = metered.length ? metered.reduce((sum, zone) => sum + zone.energy, 0) : null;
+      let energy = metered.length ? metered.reduce((sum, zone) => sum + zone.energy, 0) : null;
+      // Other heating meters (issue #40): their own slot, like a zone with only energy, and in the controller's total.
+      const other = typeof controller.otherSample === 'function' ? controller.otherSample(now.getTime()) : null;
+      if (other !== null) {
+        const slot = await this.history.slot(OTHER_METERS_SLOT_ID, 'Other heating meters');
+        zones.push({ slot, energy: other });
+        const otherDay = await controller.addOtherToDay(date, other, shared.price);
+        if (otherDay) days.push(daily.row(otherDay, slot));
+        energy = (energy || 0) + other;
+      }
       const finished = await controller.addToDay(date, { energy, price: shared.price, outdoor: shared.outdoor, expensive: shared.expensive });
       if (finished) days.push(daily.row(finished, CONTROLLER_SLOT));
     }
