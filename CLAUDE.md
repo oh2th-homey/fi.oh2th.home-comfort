@@ -163,14 +163,17 @@ immediately); use `.then(() => this.log(…))`.
   settings. The app never calls another app's flow cards; users build the flows they need (our
   triggers → their app's actions). Member devices (thermostats, relays, A/C, sensors) are read
   and written only through standard Homey capabilities, whatever app owns them. Other data
-  sources come in only as tokens on this app's own action cards (e.g. a forecast). Other apps
+  sources come in only as tokens on this app's own action cards. Other apps
   may appear in wiki examples only.
-- **The only exception: prices from the Power by the Hour Prices API** (issue #23, user's decision
-  2026-11-13). The Home Controller reads `GET /prices` and the `prices-updated` realtime event of
-  `com.gruijter.powerhour` (permission `homey:app:com.gruijter.powerhour`). Prices stay optional:
-  without Power by the Hour the app works on occupancy alone. The Import prices card is deprecated
-  when the API arrives and removed in a later major version. Make no other exceptions without
-  asking.
+- **Exceptions (user's decisions); make no others without asking:**
+  - **Prices from the Power by the Hour Prices API** (issue #23, 2026-11-13). The Home Controller
+    reads `GET /prices` and the `prices-updated` realtime event of `com.gruijter.powerhour`
+    (permission `homey:app:com.gruijter.powerhour`). Prices stay optional: without Power by the
+    Hour the app works on occupancy alone.
+  - **Outdoor forecast from Open-Meteo** (issue #5, 2026-11-19). The Home Controller fetches the
+    hourly outdoor temperature forecast from the Open-Meteo web API (no API key) for the Homey's
+    location (permission `homey:manager:geolocation`). Optional, off by default: without it the
+    current outdoor temperature counts as the forecast.
 - Inputs are **facts, not modes** (occupancy, long absence, prices, forecast). Never make the user
   translate facts into modes in flows; that is what made Homey Heating Scheduler too complex.
 - Few concepts: Heating Zone devices, one required Home Controller device (shared state), per zone

@@ -16,6 +16,8 @@ The controller holds what all zones share. You can add only one.
 - **Outdoor temperature**, from the sensor you picked. Zones with an outdoor limit use it. To pick
   another sensor, other prices to follow (see [Prices](Prices)) or other heating meters, use
   **Repair** in the controller's device settings.
+- **Forecast low (24 h)**, with the [outdoor forecast](#outdoor-forecast) on: the lowest outdoor
+  temperature in the next 24 hours.
 - **Heating power**, when a zone has power meters or you picked other heating meters: the sum of
   the zones' heating power and the other meters. With other meters, **Zones** and **Other meters**
   show the two parts. In Homey Energy, count either the controller, the zones or the meters, not
@@ -46,3 +48,15 @@ The app only reads these meters; it never switches them.
   **Prices missing for tomorrow**.
 - **Away until**: the last day away. See
   [Leave for days](How-to#leave-for-days).
+- **Outdoor forecast from Open-Meteo** (default off): see [Outdoor forecast](#outdoor-forecast).
+
+## Outdoor forecast
+
+With **Outdoor forecast from Open-Meteo** on, the controller fetches the hourly outdoor
+temperature for the next three days from [Open-Meteo](https://open-meteo.com/) once an hour: no
+account or API key. It sends only the Homey's location, rounded to about 1 km. The controller then
+shows **Forecast low (24 h)**, the lowest temperature in the next 24 hours.
+
+The forecast is for planning ahead; the current outdoor temperature still comes from your own
+sensor. Without the forecast, or when it can't be fetched for 6 hours, the current outdoor
+temperature counts for the hours ahead too.

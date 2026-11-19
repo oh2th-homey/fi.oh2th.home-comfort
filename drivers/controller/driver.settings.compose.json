@@ -154,5 +154,24 @@
         }
       }
     ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Forecast"
+    },
+    "children": [
+      {
+        "id": "forecast_open_meteo",
+        "type": "checkbox",
+        "label": {
+          "en": "Outdoor forecast from Open-Meteo"
+        },
+        "value": false,
+        "hint": {
+          "en": "Hourly outdoor temperature for the next days from open-meteo.com, for the Homey's location rounded to about 1 km. Off: the current outdoor temperature counts."
+        }
+      }
+    ]
   }
 ]
