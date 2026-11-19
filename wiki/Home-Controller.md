@@ -1,4 +1,4 @@
-# HVAC Controller
+# Home Controller
 
 The controller holds what all zones share. You can add only one.
 
@@ -22,7 +22,7 @@ The controller holds what all zones share. You can add only one.
   energy app, for example Power by the Hour's consumption devices, with your own tariff.
 - **Reason**: why the price is expensive or not, for example `Normal`.
 
-<img src="images/controller-device.png" alt="HVAC Controller during a price peak" width="300">
+<img src="images/controller-device.png" alt="Home Controller during a price peak" width="300">
 
 ## Settings
 

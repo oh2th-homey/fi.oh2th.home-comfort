@@ -13,14 +13,14 @@ defaults:
 
 | | Hot Tub | Water Heater |
 |---|---|---|
-| Surroundings | Outdoor temperature: a sensor, or the HVAC Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
+| Surroundings | Outdoor temperature: a sensor, or the Home Controller's outdoor sensor | Room temperature: a sensor, or a fixed temperature from the settings |
 | Keep (default) | None: between ready times the tub's own controller holds the water | 45 °C, enough hot water at any time |
 | Target temperature | 38 °C, set by you | Read only: learned where the tank's own thermostat stops the heater |
 | Maximum (default) | 40 °C | 75 °C |
 
 ## Before you add one
 
-The [HVAC Controller](HVAC-Controller) must exist and follow a price device (see
+The [Home Controller](Home-Controller) must exist and follow a price device (see
 [Prices](Prices)): the device plans on its prices. Without prices it heats just in time for each ready time,
 without looking at prices (a Water Heater also holds Keep).
 
@@ -44,7 +44,7 @@ Add device → Adaptive Home Comfort → **Hot Tub** or **Water Heater**, then c
   normal and doesn't start a reheat. Sensors on the tank wall under its insulation work well:
   they read close to the water, a little low and a little late.
 - **Outdoor temperature** (Hot Tub) or **Room temperature** (Water Heater): another sensor, or
-  none to use the HVAC Controller's outdoor sensor or the fixed temperature in the settings.
+  none to use the Home Controller's outdoor sensor or the fixed temperature in the settings.
 - **Power meter** (optional): the power of the heater, or of the whole tub. Recommended:
   learning then knows when the heater really heats, also when the heater's own thermostat
   switches it on and off. The device learns two power levels from it: **heating**, and the
@@ -121,7 +121,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   skipped ones come from flows;
   the **Set ready time** card sets Ready at, Ready ahead and the days together.
 - **Price limit** (Water Heater; a Hot Tub uses the home's **Expensive above** of the
-  [HVAC Controller](HVAC-Controller) instead): skip a ready time when heating for it would cost more per kWh on average. 0 = always
+  [Home Controller](Home-Controller) instead): skip a ready time when heating for it would cost more per kWh on average. 0 = always
   heat. While the device is still learning, this is the mean price from the latest start to the
   ready time, decided before the heating starts. A Water Heater's ready time is also skipped when the price during
   it (the mean from Ready at to its end, once known) is over the limit, however cheap heating
@@ -165,7 +165,7 @@ time, without a fixed night block.
 
 ## Long absence
 
-During the HVAC Controller's **Long absence** the weekly ready times are skipped, and nothing is
+During the Home Controller's **Long absence** the weekly ready times are skipped, and nothing is
 heated for them. One-off ready times (**Ready at a time**, **Heating ready** turned on) still count.
 The reason shows it, for example `Away until 22 Nov`. The Hot Tub's own
 controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
@@ -184,7 +184,7 @@ on** → **Ready at 06:00**. The one-off ready time plans the night's cheapest b
 
 ## How it decides
 
-1. **Safety first**: at Maximum it stops. Over the home's price ceiling (HVAC Controller:
+1. **Safety first**: at Maximum it stops. Over the home's price ceiling (Home Controller:
    **Expensive above**) it doesn't heat at all, not even for Keep, except in a Water Heater's night
    block; **Heating held by the price ceiling** runs when the water falls below Keep meanwhile.
    Otherwise a Water Heater below Keep heats.

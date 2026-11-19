@@ -10,7 +10,7 @@ const FILTER_KEYS = ['filter_cycles', 'filter1_from', 'filter1_to', 'filter1_min
 
 module.exports = class spaDevice extends waterDevice {
   /**
-   * @description Without an own sensor: the HVAC Controller's outdoor temperature.
+   * @description Without an own sensor: the Home Controller's outdoor temperature.
    */
   fallbackSurroundings() {
     const controller = this.homey.app.findController();
@@ -23,7 +23,7 @@ module.exports = class spaDevice extends waterDevice {
    * protection), and the plan counts on the temperature its filter cycles were seen to heat to.
    */
   /**
-   * @description The home's Expensive above (HVAC Controller) skips a ready time: no own Price limit.
+   * @description The home's Expensive above (Home Controller) skips a ready time: no own Price limit.
    */
   readyPriceLimit(controller) {
     return controller ? controller.priceCeiling() : null;

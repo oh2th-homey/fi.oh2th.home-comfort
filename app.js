@@ -8,7 +8,7 @@ const Members = require('./lib/members');
 const { History, QUARTER_MS, CONTROLLER_SLOT } = require('./lib/history');
 const daily = require('./lib/daily');
 
-module.exports = class HvacControlApp extends Homey.App {
+module.exports = class HomeComfortApp extends Homey.App {
   /**
    * onInit is called when the app is initialized.
    */
@@ -82,18 +82,18 @@ module.exports = class HvacControlApp extends Homey.App {
   }
 
   /**
-   * @description The HVAC Controller device (single instance).
+   * @description The Home Controller device (single instance).
    * @returns {Object} Device
    * @throws when it has not been added
    */
   getController() {
-    const [controller] = this.homey.drivers.getDriver('hvac').getDevices();
+    const [controller] = this.homey.drivers.getDriver('controller').getDevices();
     if (!controller) throw new Error(this.homey.__('error.no_controller'));
     return controller;
   }
 
   /**
-   * @description The HVAC Controller, or null when it has not been added.
+   * @description The Home Controller, or null when it has not been added.
    */
   findController() {
     try {

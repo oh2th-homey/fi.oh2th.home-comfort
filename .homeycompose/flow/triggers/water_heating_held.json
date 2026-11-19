@@ -3,7 +3,7 @@
     "en": "Heating held by the price ceiling"
   },
   "hint": {
-    "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (HVAC Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
+    "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (Home Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
   },
   "args": [
     {

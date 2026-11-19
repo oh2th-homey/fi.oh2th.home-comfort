@@ -82,7 +82,7 @@ test('a cut-off last row and a wrong version are ignored', () => {
 });
 
 test('History appends day files, keeps zone slots and prunes old days', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hvac-history-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-history-'));
   try {
     const history = new History({}, dir);
     assert.strictEqual(await history.slot('zone-a', 'Kitchen'), 0);
@@ -125,7 +125,7 @@ test('daily summary rows round trip, 23 bytes each', () => {
 });
 
 test('History appends daily rows to days.bin', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hvac-days-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-days-'));
   try {
     const history = new History({}, dir);
     assert.strictEqual((await history.readDays()).data, null);

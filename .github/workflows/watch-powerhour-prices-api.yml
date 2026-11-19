@@ -1,6 +1,6 @@
 name: Watch Power by the Hour Prices API
 
-# The HVAC Controller reads prices from the Power by the Hour Prices API (#23). This checks its documentation once a
+# The Home Controller reads prices from the Power by the Hour Prices API (#23). This checks its documentation once a
 # day and opens an issue when it changes, so the code can be checked against it.
 
 on:
@@ -16,7 +16,7 @@ env:
   DOC: README.prices-api.md
   # The version the code was written against (beta-v9, 2026-11-04). Newer commits to the doc are reported.
   BASELINE: 1932f469502bc20a3f92c664353e5e579f0365fb
-  LABEL: HVAC Controller
+  LABEL: Home Controller
 
 jobs:
   watch:
@@ -48,7 +48,7 @@ jobs:
 
           ## Check
           - [ ] Payload: \`lib/prices.js\` (\`apiEntry\`, the slot fields \`time\`, \`importPrice\`, \`exportPrice\`, \`isForecast\`, \`priceInterval\`, \`currency\`).
-          - [ ] Endpoint and realtime event: \`drivers/hvac/device.js\` (\`GET /prices\`, \`prices-updated\`).
+          - [ ] Endpoint and realtime event: \`drivers/controller/device.js\` (\`GET /prices\`, \`prices-updated\`).
           - [ ] Pairing and repair: the price device list (\`commodity\`, \`tariffType\`).
           - [ ] Tests with the new payload (\`test/prices-api.test.js\`).
           - [ ] When done, set \`BASELINE\` in \`.github/workflows/watch-powerhour-prices-api.yml\` to this commit.

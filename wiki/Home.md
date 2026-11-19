@@ -31,7 +31,7 @@ homey app install
 ## Contents
 
 - [Setup](Setup): what to add first.
-- [HVAC Controller](HVAC-Controller): the shared state for all zones.
+- [Home Controller](Home-Controller): the shared state for all zones.
 - [Heating Zone](Heating-Zone): one room or area.
 - [Zone devices](Zone-devices): thermostats, relays, air conditioners, sensors, windows.
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater): heat stored water in the cheapest hours.

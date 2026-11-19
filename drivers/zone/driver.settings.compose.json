@@ -173,7 +173,7 @@
         },
         "value": "peak",
         "hint": {
-          "en": "Over Expensive above (HVAC Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
+          "en": "Over Expensive above (Home Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
         },
         "values": [
           {
@@ -206,7 +206,7 @@
         },
         "value": false,
         "hint": {
-          "en": "Uses the outdoor temperature set on the HVAC Controller."
+          "en": "Uses the outdoor temperature set on the Home Controller."
         }
       },
       {

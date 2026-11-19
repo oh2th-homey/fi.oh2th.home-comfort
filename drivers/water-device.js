@@ -39,7 +39,7 @@ const SWITCHED_OFF_MS = 3 * 60000;
 /**
  * Shared device base of the Hot Tub and the Water Heater (issue #1): reads the water temperature, the surroundings and
  * an optional power meter from other devices, learns the heating curve (lib/water.js), and demands heating in the cheapest
- * quarters on the HVAC Controller's prices. The user's flows turn the demand into the heater's own actions.
+ * quarters on the Home Controller's prices. The user's flows turn the demand into the heater's own actions.
  */
 module.exports = class waterDevice extends mainDevice {
   /**
@@ -855,7 +855,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description The HVAC Controller's long absence: { on, until } (until: its last day, YYYY-MM-DD, or '' when open).
+   * @description The Home Controller's long absence: { on, until } (until: its last day, YYYY-MM-DD, or '' when open).
    */
   longAbsence() {
     const controller = this.homey.app.findController();

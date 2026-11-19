@@ -93,7 +93,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -121,7 +121,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -361,7 +361,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -384,7 +384,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -472,13 +472,13 @@
           "en": "Prices missing for tomorrow"
         },
         "hint": {
-          "en": "Runs once a day at the check time set in the HVAC Controller settings, when tomorrow's prices are still missing or partial."
+          "en": "Runs once a day at the check time set in the Home Controller settings, when tomorrow's prices are still missing or partial."
         },
         "args": [
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -618,7 +618,7 @@
           "en": "Heating held by the price ceiling"
         },
         "hint": {
-          "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (HVAC Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
+          "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (Home Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
         },
         "args": [
           {
@@ -900,7 +900,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -943,7 +943,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -1122,7 +1122,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "is_expensive"
@@ -1138,7 +1138,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "is_long_absence"
@@ -1172,7 +1172,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "end_long_absence"
@@ -1207,7 +1207,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "date",
@@ -1233,7 +1233,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -1790,11 +1790,11 @@
       ],
       "connectivity": [],
       "images": {
-        "small": "/drivers/hvac/assets/images/small.png",
-        "large": "/drivers/hvac/assets/images/large.png"
+        "small": "/drivers/controller/assets/images/small.png",
+        "large": "/drivers/controller/assets/images/large.png"
       },
       "name": {
-        "en": "HVAC Controller"
+        "en": "Home Controller"
       },
       "class": "other",
       "capabilities": [
@@ -1860,7 +1860,7 @@
           "id": "outdoor"
         }
       ],
-      "id": "hvac",
+      "id": "controller",
       "settings": [
         {
           "type": "group",
@@ -3362,7 +3362,7 @@
               },
               "value": "peak",
               "hint": {
-                "en": "Over Expensive above (HVAC Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
+                "en": "Over Expensive above (Home Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
               },
               "values": [
                 {
@@ -3395,7 +3395,7 @@
               },
               "value": false,
               "hint": {
-                "en": "Uses the outdoor temperature set on the HVAC Controller."
+                "en": "Uses the outdoor temperature set on the Home Controller."
               }
             },
             {

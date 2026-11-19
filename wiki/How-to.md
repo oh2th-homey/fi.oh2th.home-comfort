@@ -80,7 +80,7 @@ doors are closed. Use **Eco changed** if you want a notification.
 
 ## Heat a floor only in hard frost
 
-1. Pick your outdoor sensor in the HVAC Controller (when adding it, or with Repair).
+1. Pick your outdoor sensor in the Home Controller (when adding it, or with Repair).
 2. In the zone, pick the floor's relay as **Relay** with **Relay controls: Heating on/off**. The
    floor's own thermostat keeps the temperature.
 3. In the zone settings turn on **Heat only when cold outside**, for example heat below −10 °C
@@ -125,5 +125,5 @@ Each zone shows a **Reason**, for example:
 - `Season off; <device>: fan`
 - `<device>: manual change, restoring later`
 
-The HVAC Controller shows the price reason, for example `Normal` or `Peak (over 0.0668)`. The
+The Home Controller shows the price reason, for example `Normal` or `Peak (over 0.0668)`. The
 **Target changed** trigger has the reason as a token.

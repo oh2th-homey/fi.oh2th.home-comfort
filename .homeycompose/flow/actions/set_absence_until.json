@@ -12,7 +12,7 @@
     {
       "type": "device",
       "name": "device",
-      "filter": "driver_id=hvac"
+      "filter": "driver_id=controller"
     },
     {
       "type": "date",

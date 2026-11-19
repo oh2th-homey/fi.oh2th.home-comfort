@@ -7,7 +7,7 @@ const { TANK_POSITIONS } = require('../lib/water');
 /**
  * Shared driver base of the Hot Tub and the Water Heater (issue #1): one pairing page that picks the water temperature,
  * the surroundings, an optional power meter and an optional heater switch from other devices. The same page repairs a device.
- * The HVAC Controller must exist and follow prices: the planner heats on its prices.
+ * The Home Controller must exist and follow prices: the planner heats on its prices.
  */
 module.exports = class waterDriver extends mainDriver {
   /**
@@ -62,7 +62,7 @@ module.exports = class waterDriver extends mainDriver {
   }
 
   /**
-   * @description The HVAC Controller exists and follows a price device; else pairing stops with a message.
+   * @description The Home Controller exists and follows a price device; else pairing stops with a message.
    */
   checkController() {
     const controller = this.homey.app.getController();

@@ -1,7 +1,7 @@
 **[Adaptive Home Comfort](Home)**
 
 - [Setup](Setup)
-- [HVAC Controller](HVAC-Controller)
+- [Home Controller](Home-Controller)
 - [Heating Zone](Heating-Zone)
 - [Zone devices](Zone-devices)
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater)

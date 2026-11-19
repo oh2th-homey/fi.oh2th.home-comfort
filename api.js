@@ -27,7 +27,7 @@ module.exports = {
    * driver, name, data, store (sources, learned state), settings and capability values, and the history files.
    */
   async getExport({ homey }) {
-    const drivers = ['hvac', 'zone', 'spa', 'water-heater', 'sauna'];
+    const drivers = ['controller', 'zone', 'spa', 'water-heater', 'sauna'];
     const devices = drivers.flatMap((driver) => homey.drivers.getDriver(driver).getDevices().map((device) => ({
       driver,
       name: device.getName(),
