@@ -22,6 +22,8 @@ const { spawn } = require('child_process');
 const { OLD_APP, newDriver, newData } = require('../lib/migrate');
 
 const NEW_APP = require('../app.json').id;
+// Pause between flow updates.
+const WRITE_PAUSE_MS = 2000;
 
 /**
  * @description Old Homey device id → new, by driver and data id: { map: { oldId: newId }, missing: [{ id, name }] }
@@ -193,6 +195,8 @@ async function main(args) {
   for (const { flow, advanced, value } of plan) {
     await api('PUT', `/api/manager/flow/${advanced ? 'advancedflow' : 'flow'}/${flow.id}`, value);
     console.log(`written "${flow.name}"`);
+    // Homey answers "Too many requests" to fast bursts.
+    await new Promise((resolve) => setTimeout(resolve, WRITE_PAUSE_MS));
   }
 }
 
