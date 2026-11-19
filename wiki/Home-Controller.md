@@ -13,14 +13,25 @@ The controller holds what all zones share. You can add only one.
 - **Price level**: Normal, High (over **High above**) or Expensive (over **Expensive above**).
 - **Prices until**: the end of the last known price.
 - **Outdoor temperature**, from the sensor you picked. Zones with an outdoor limit use it. To pick
-  another sensor, or other prices to follow (see [Prices](Prices)), use **Repair** in the
-  controller's device settings.
-- **Heating power**, only when a zone has power meters: the sum of the zones' heating power.
-  In Homey Energy, count either the controller, the zones or the meters, not more than one (see
-  [Setup](Setup)).
-- **Energy today** of all zones with power meters, from midnight. Costs are counted by your
-  energy app, for example Power by the Hour's consumption devices, with your own tariff.
+  another sensor, other prices to follow (see [Prices](Prices)) or other heating meters, use
+  **Repair** in the controller's device settings.
+- **Heating power**, when a zone has power meters or you picked other heating meters: the sum of
+  the zones' heating power and the other meters. With other meters, **Zones** and **Other meters**
+  show the two parts. In Homey Energy, count either the controller, the zones or the meters, not
+  more than one (see [Setup](Setup)).
+- **Energy today** of the zones with power meters and the other meters, from midnight. Costs are
+  counted by your energy app, for example Power by the Hour's consumption devices, with your own
+  tariff. To follow the cost of all heating and cooling in one place, point such a device at the
+  controller's heating power.
 - **Reason**: why the price is expensive or not, for example `Normal`.
+
+### Other heating meters
+
+Heating and cooling that isn't in any zone, such as a ventilation unit with heat recovery, a
+storage room heater or a defroster, can still count in the controller's heating power and energy.
+Pick their power meters under **Other heating meters** when you add the controller or in its
+**Repair**. A power meter that a zone uses already can't be picked, so nothing is counted twice.
+The app only reads these meters; it never switches them.
 
 <img src="images/controller-device.png" alt="Home Controller during a price peak" width="300">
 
