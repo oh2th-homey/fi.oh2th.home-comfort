@@ -171,6 +171,10 @@ The reason shows it, for example `Away until 22 Nov`. The Hot Tub's own
 controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
 want it colder while away); a Water Heater holds only **Keep**. See [Leave for days](How-to#leave-for-days).
 
+A heater on its own schedule (a night block written into the heater, see **Heating planned**) keeps
+repeating its last schedule while you're away, because no new block is planned. Turn that schedule off
+in your flow on **Long absence changed**, and back on when the absence ends.
+
 ## How it decides
 
 1. **Safety first**: at Maximum it stops. Over the home's price ceiling (HVAC Controller:
