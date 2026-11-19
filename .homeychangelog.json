@@ -58,5 +58,8 @@
   },
   "2.1.0": {
     "en": "CHANGE: The import from Smart HVAC Control is removed, now that the move to Adaptive Home Comfort is done."
+  },
+  "2.2.0": {
+    "en": "NEW: The Home Controller can also count heating meters outside the zones, such as a ventilation unit, and shows the split between zones and other meters."
   }
 }
