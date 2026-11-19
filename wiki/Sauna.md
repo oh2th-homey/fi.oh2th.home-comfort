@@ -1,7 +1,7 @@
 # Sauna
 
-A read-only device that follows a sauna session: when it heats, when it is ready, when someone
-starts bathing, and (with a power meter) what the session costs. It switches nothing, so it works
+A read-only device that follows a sauna session: when it heats, when it is ready, and when someone
+starts bathing. It switches nothing, so it works
 with any stove: an electric stove with no connectivity, or a wood-burning stove.
 
 ## Add it
@@ -19,8 +19,6 @@ Add device → Smart HVAC Control → **Sauna**, then choose:
 
 - **State**: **Off**, **Heating**, **Ready** or **In use**.
 - **Expected ready** while heating, from how fast the temperature rises now (or the learned rate).
-- **Cost estimate** (with a power meter): the session's energy so far plus the rest of the
-  heat-up, at the current price.
 - **Left on**: on when a session lasts longer than **Left on after** (settings).
 - The temperature, humidity and power.
 

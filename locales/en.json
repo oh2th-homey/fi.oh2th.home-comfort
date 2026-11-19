@@ -277,7 +277,6 @@
     }
   },
   "sauna": {
-    "cost": "Cost estimate",
     "reason": {
       "no_temperature": "No sauna temperature",
       "heating": "Heating, ready about __ready__",

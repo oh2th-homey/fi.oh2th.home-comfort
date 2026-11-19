@@ -7,7 +7,6 @@ const sauna = require('../../lib/sauna');
 const STATE = 'enum_sauna_state';
 const HUMIDITY = 'measure_humidity';
 const POWER = 'measure_power';
-const COST = 'measure_monetary';
 // A sauna temperature not updated for this long counts as unknown.
 const TEMPERATURE_MAX_AGE_MS = 30 * 60000;
 
@@ -33,19 +32,13 @@ module.exports = class saunaDevice extends mainDevice {
   }
 
   /**
-   * @description The manifest's capabilities, plus humidity, power and the cost estimate when their sources are chosen.
+   * @description The manifest's capabilities, plus humidity and power when their sources are chosen.
    */
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.getStoreValue('humidity')) capabilities.push(HUMIDITY);
-    if (this.getStoreValue('power')) capabilities.push(POWER, COST);
-    const result = await updateCapabilities(this, capabilities, this.getCapabilities());
-    if (this.hasCapability(COST)) {
-      const controller = this.homey.app.findController();
-      const symbol = String((controller && controller.getSetting('currency')) || '€').trim() || '€';
-      await this.setCapabilityOptions(COST, { title: { en: this.homey.__('sauna.cost') }, units: { en: symbol }, decimals: 2 }).catch(this.error);
-    }
-    return result;
+    if (this.getStoreValue('power')) capabilities.push(POWER);
+    return updateCapabilities(this, capabilities, this.getCapabilities());
   }
 
   async setCapabilityValues(check = false) {
@@ -195,11 +188,6 @@ module.exports = class saunaDevice extends mainDevice {
     });
     this.lastTick = { at: new Date(at).toISOString(), temperature, powerMax, powerMin, phaseBefore: before ? before.phase : null, phaseAfter: state ? state.phase : null, events };
     this.session = state;
-    // Energy of the session (with a meter), for the cost estimate.
-    if (state && state.phase !== 'off' && before && before.phase !== 'off') {
-      const watts = this.power();
-      if (typeof watts === 'number' && watts > 0) state.kWh = (before.kWh || 0) + (watts / 1000) * ((at - (before.at || at)) / 3600000);
-    }
     if (state) state.at = at;
     await this.setStoreValue('session', state).catch(this.error);
     if (learned) await this.learn(learned);
@@ -268,26 +256,11 @@ module.exports = class saunaDevice extends mainDevice {
     return { minutes, text: localTime(this, new Date(at + minutes * 60000)).time };
   }
 
-  /**
-   * @description The session's cost when ready: its energy so far, plus the rest of the heating at the stove's power,
-   * at the current price. Null without a meter or a price.
-   */
-  costEstimate(at, minutes) {
-    if (!this.hasCapability(COST) || !this.session || this.session.phase === 'off') return null;
-    const controller = this.homey.app.findController();
-    const [quarter] = controller ? controller.priceQuarters(at) : [];
-    if (!quarter || typeof quarter.price !== 'number') return null;
-    const watts = this.power() || 0;
-    const kWh = (this.session.kWh || 0) + (this.session.phase === 'heating' && minutes ? (watts / 1000) * (minutes / 60) : 0);
-    return Math.round(kWh * quarter.price * 100) / 100;
-  }
-
   async show(at) {
     const phase = this.session ? this.session.phase : 'off';
     const expected = this.expectedReady(at);
     await this.setValue(STATE, phase);
     await this.setValue('text_expected_ready', phase === 'heating' ? expected.text : this.homey.__('water.start.none'));
-    if (this.hasCapability(COST)) await this.setValue(COST, this.costEstimate(at, expected.minutes));
     await this.setValue('text_reason', this.reasonText(phase, expected));
   }
 
