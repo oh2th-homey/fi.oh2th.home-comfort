@@ -6,6 +6,7 @@ const prices = require('../../lib/prices');
 const daily = require('../../lib/daily');
 const water = require('../../lib/water');
 const meters = require('../../lib/meters');
+const forecast = require('../../lib/forecast');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
 const SEASONS = ['heating', 'cooling', 'off'];
@@ -33,6 +34,12 @@ const BREAKDOWN_OPTIONS = {
 };
 // Meters report every few seconds with a watt or two of noise: the other meters' power shows changes of at least this (W).
 const POWER_STEP = 5;
+// Outdoor forecast from Open-Meteo (issue #5, setting forecast_open_meteo): the lowest in the next 24 hours is shown.
+const FORECAST_LOW = 'measure_temperature.forecast_low';
+const FORECAST_LOW_OPTIONS = { title: { en: 'Forecast low (24 h)' }, units: { en: '°C' }, decimals: 1 };
+// Fetched once an hour; after an error tried again after this long.
+const FORECAST_REFRESH_MS = 60 * 60 * 1000;
+const FORECAST_RETRY_MS = 15 * 60 * 1000;
 // Prices from the Power by the Hour Prices API (the app's only dependency on another app, issue #23).
 const PBTH = 'com.gruijter.powerhour';
 // Pushes come every slot; without one for this long the prices are fetched again.
@@ -68,6 +75,8 @@ module.exports = class controllerDevice extends mainDevice {
     if (newSettings.absence_until !== '' && !isDate(newSettings.absence_until)) throw new Error(this.homey.__('error.invalid_date'));
     if (newSettings.price_high > 0 && newSettings.price_ceiling > 0 && newSettings.price_high >= newSettings.price_ceiling) throw new Error(this.homey.__('error.price_levels'));
 
+    // Settings are saved after this returns: show or hide the forecast and fetch it then.
+    if (changedKeys.includes('forecast_open_meteo')) this.setTimer('forecast', () => this.onForecastSetting().catch(this.error), 500);
     if (changedKeys.includes('absence_until')) {
       if (newSettings.absence_until !== '') await this.changeLongAbsence(true);
       else await this.changeLongAbsence(false);
@@ -95,9 +104,11 @@ module.exports = class controllerDevice extends mainDevice {
     // Zones not loaded yet (app start): keep what is shown.
     if (others || (zones === null ? this.hasCapability(POWER) : zones.length)) capabilities.push(POWER, ...DAY_CAPS);
     if (others) capabilities.push(ZONES_POWER, OTHER_POWER);
+    if (this.getSetting('forecast_open_meteo') === true) capabilities.push(FORECAST_LOW);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
     if (result.added.includes(ENERGY_TODAY)) await this.setCapabilityOptions(ENERGY_TODAY, { title: { en: 'Energy today' }, units: { en: 'kWh' }, decimals: 2 }).catch(this.error);
+    if (result.added.includes(FORECAST_LOW)) await this.setCapabilityOptions(FORECAST_LOW, FORECAST_LOW_OPTIONS).catch(this.error);
     for (const cap of [ZONES_POWER, OTHER_POWER]) {
       if (result.added.includes(cap)) await this.setCapabilityOptions(cap, BREAKDOWN_OPTIONS[cap]).catch(this.error);
     }
@@ -261,9 +272,75 @@ module.exports = class controllerDevice extends mainDevice {
     if (!this.outdoorListener && local.minutes % 5 === 0) await this.subscribeOutdoor();
     if (!this.metersSubscribed && local.minutes % 5 === 0) await this.subscribeMeters();
     if (local.minutes % 5 === 0) await this.refreshPrices(now.getTime());
+    if (local.minutes % 5 === 0) await this.refreshForecast(now.getTime());
     await this.checkAbsence(local);
     if (local.minutes % 15 === 0) await this.evaluatePrices();
     if (local.minutesOfDay === strToMins(this.getSettings().tomorrow_check_time)) await this.checkTomorrow(now.getTime());
+  }
+
+  /**
+   * Outdoor forecast from Open-Meteo (issue #5).
+   */
+  forecastOn() {
+    return this.getSetting('forecast_open_meteo') === true;
+  }
+
+  /**
+   * @description After the setting changed: fetch now, or drop the forecast; show or hide Forecast low.
+   */
+  async onForecastSetting() {
+    this.log(`${this.getName()} - onForecastSetting - ${this.forecastOn()}`);
+    this.forecastTriedAt = null;
+    if (!this.forecastOn()) await this.unsetStoreValue('forecast').catch(this.error);
+    await this.checkCapabilities();
+    if (this.forecastOn()) await this.refreshForecast(Date.now(), true);
+  }
+
+  /**
+   * @description Fetch the forecast when it is due: once an hour, after an error again after FORECAST_RETRY_MS.
+   */
+  async refreshForecast(now, force = false) {
+    if (!this.forecastOn()) return;
+    const stored = this.getStoreValue('forecast');
+    const due = force || !stored || now - stored.fetchedAt >= FORECAST_REFRESH_MS;
+    if (!due || (!force && this.forecastTriedAt && now - this.forecastTriedAt < FORECAST_RETRY_MS)) {
+      await this.showForecast(now);
+      return;
+    }
+    this.forecastTriedAt = now;
+    try {
+      const latitude = this.homey.geolocation.getLatitude();
+      const longitude = this.homey.geolocation.getLongitude();
+      if (typeof latitude !== 'number' || typeof longitude !== 'number' || (latitude === 0 && longitude === 0)) throw new Error('the Homey has no location');
+      const response = await fetch(forecast.openMeteoUrl(latitude, longitude), { signal: AbortSignal.timeout(20000) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const points = forecast.parseOpenMeteo(await response.json());
+      await this.setStoreValue('forecast', { fetchedAt: now, points });
+      this.forecastTriedAt = null;
+      this.log(`${this.getName()} - refreshForecast - ${points.length} hours`);
+    } catch (error) {
+      this.error(`${this.getName()} - refreshForecast - ${error.message || error}`);
+    }
+    await this.showForecast(now);
+  }
+
+  /**
+   * @description Forecast low (24 h): the lowest forecast temperature from now to 24 hours ahead, empty without a usable forecast.
+   */
+  async showForecast(now) {
+    const stored = this.getStoreValue('forecast');
+    const { min } = forecast.usable(stored, now) ? forecast.range(stored.points, now, now + 24 * forecast.HOUR_MS) : { min: null };
+    await this.setValue(FORECAST_LOW, min === null ? null : Math.round(min * 10) / 10);
+  }
+
+  /**
+   * @description The outdoor temperature at a time ahead: the forecast when there is a usable one, else the outdoor
+   * temperature now (also before the forecast's first hour). Null when neither is known.
+   */
+  outdoorAt(ms, now = Date.now()) {
+    const stored = this.getStoreValue('forecast');
+    const ahead = forecast.usable(stored, now) ? forecast.temperatureAt(stored.points, ms) : null;
+    return ahead === null || ms <= now ? this.outdoorTemperature() : ahead;
   }
 
   /**
