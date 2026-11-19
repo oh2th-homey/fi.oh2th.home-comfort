@@ -52,5 +52,8 @@
   },
   "1.8.0": {
     "en": "NEW: Export of devices, learned state and history, for moving to Adaptive Home Comfort."
+  },
+  "2.0.0": {
+    "en": "NEW: Smart HVAC Control is now Adaptive Home Comfort: install it next to the old app and import your devices, settings, learned state and history."
   }
 }
