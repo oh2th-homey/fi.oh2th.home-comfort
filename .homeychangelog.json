@@ -43,5 +43,8 @@
   },
   "1.5.9": {
     "en": "FIX: Hot Tub announces only its main heating, and a heater that stops at its own set point no longer shows a heater problem."
+  },
+  "1.6.0": {
+    "en": "CHANGE: The Import prices card and the Prices imported trigger are removed; prices come from Power by the Hour."
   }
 }
