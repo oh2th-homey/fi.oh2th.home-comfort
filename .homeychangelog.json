@@ -37,5 +37,8 @@
   },
   "1.5.7": {
     "en": "FIX: Hot Tub pre-heats only on the day of the bath, once its main heating is allowed, and Heating started no longer runs for pre-heating."
+  },
+  "1.5.8": {
+    "en": "FIX: Hot Tub no longer pre-heats a day ahead of the bath."
   }
 }
