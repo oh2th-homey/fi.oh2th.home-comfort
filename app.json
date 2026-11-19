@@ -142,6 +142,31 @@
           {
             "type": "device",
             "name": "device",
+            "filter": "driver_id=sauna"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "enum_sauna_state",
+            "type": "string",
+            "title": {
+              "en": "State"
+            },
+            "example": {
+              "en": "ready"
+            }
+          }
+        ],
+        "id": "enum_sauna_state_changed"
+      },
+      {
+        "title": {
+          "en": "State changed"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
             "filter": "driver_id=spa|water-heater"
           }
         ],
@@ -970,6 +995,55 @@
           }
         ],
         "id": "enum_price_level_is"
+      },
+      {
+        "title": {
+          "en": "State is"
+        },
+        "titleFormatted": {
+          "en": "State !{{is|is not}} [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sauna"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "title": {
+              "en": "State"
+            },
+            "values": [
+              {
+                "id": "off",
+                "title": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "heating",
+                "title": {
+                  "en": "Heating"
+                }
+              },
+              {
+                "id": "ready",
+                "title": {
+                  "en": "Ready"
+                }
+              },
+              {
+                "id": "in_use",
+                "title": {
+                  "en": "In use"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "enum_sauna_state_is"
       },
       {
         "title": {

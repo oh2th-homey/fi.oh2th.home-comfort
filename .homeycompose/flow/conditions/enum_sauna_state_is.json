@@ -1,0 +1,48 @@
+{
+  "title": {
+    "en": "State is"
+  },
+  "titleFormatted": {
+    "en": "State !{{is|is not}} [[state]]"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=sauna"
+    },
+    {
+      "type": "dropdown",
+      "name": "state",
+      "title": {
+        "en": "State"
+      },
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating"
+          }
+        },
+        {
+          "id": "ready",
+          "title": {
+            "en": "Ready"
+          }
+        },
+        {
+          "id": "in_use",
+          "title": {
+            "en": "In use"
+          }
+        }
+      ]
+    }
+  ]
+}
