@@ -3736,7 +3736,7 @@
         "en": "Heating ready"
       },
       "hint": {
-        "en": "On while the water is held at the target temperature. Turn off to end it now; turn on to be ready now."
+        "en": "On while the water is held at the target temperature. Turn on to use it now: heats now whatever the price. Turn off to end it."
       },
       "getable": true,
       "setable": true,
