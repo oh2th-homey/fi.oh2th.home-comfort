@@ -920,6 +920,7 @@ module.exports = class waterDevice extends mainDevice {
         powerW: this.ratedPower(),
         priceLimit: this.readyPriceLimit(controller),
         usePriceSkips: this.usePriceSkips(),
+        timeZone: this.homey.clock.getTimezone(),
         heatingNow: this.demanded(),
         holdBefore: settings.hold_before,
         readyAhead: settings.ready_ahead,

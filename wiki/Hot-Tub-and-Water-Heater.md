@@ -180,7 +180,10 @@ want it colder while away); a Water Heater holds only **Keep**. See [Leave for d
    you need it.
 3. **Before a ready time** it picks the cheapest quarters, counting the heat lost while waiting. Until
    it has learned the heating curve (about a day or two of heating and waiting), it heats only
-   just in time instead of ahead.
+   just in time instead of ahead. A Hot Tub pre-heats (heats before its latest start) only on the
+   day of the ready time, and only once the main heating for it is allowed: its prices are known
+   and not over **Expensive above**. Heat made a day ahead would mostly cool away. Pre-heating is
+   silent: **Heating started for a ready time** runs when the main heating starts.
 4. **Latest safe start**: when waiting longer would miss the ready time, it heats now, whatever
    the price. This covers a wrong model and late prices. It counts the water cooling until the
    start and aims to be ready **Ready ahead** minutes early. While little is learned it assumes a slower
@@ -254,8 +257,10 @@ so on a day with a filter cycle before the ready time, heating starts later or n
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Triggers **Heating planned** (once per ready time, when the start of heating for it is known, at most a
   day ahead; the plan may still change with prices) and **Heating started for a ready time** (once per
-  ready time, also when it starts as pre-heating in cheap hours or after **Heating ready** was turned on
-  by hand; not when it heats again after the water was ready), with the **Ready time**, **Expected
+  ready time, when the main heating for it starts, also after **Heating ready** was turned on by hand;
+  not for pre-heating in cheap hours, nor when it heats again after the water was ready). Use
+  **Heating started for a ready time**, not **Heating demand started**, for messages and indicator
+  lights, so pre-heating stays silent. Tokens: the **Ready time**, **Expected
   start**, **Expected ready**, **Target temperature** and **Reason**. Good for a daily confirmation.
 - Trigger **Ready reached**, once per ready time when the water first reaches the target temperature,
   with the **Ready time**, **Ready until**, **Water temperature** and **Target temperature**. Good for

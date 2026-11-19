@@ -310,8 +310,10 @@ test('heatingNews: planned once up to a day ahead, started once when heating for
   assert.strictEqual(water.heatingNews(now, { ...waiting, nextStart: now + 25 * H }, {}), null);
   assert.strictEqual(water.heatingNews(now, { ...waiting, nextStart: null }, {}), null);
   assert.strictEqual(water.heatingNews(now, { ...waiting, skip: true }, {}), null);
-  const heating = { use, demand: true, nextStart: now, skip: false, reason: { code: 'heating' } };
+  // The main heating (from the latest start) is told; pre-heating in cheap hours before it is silent.
+  const heating = { use, demand: true, safe: true, nextStart: now, skip: false, reason: { code: 'heating' } };
   assert.strictEqual(water.heatingNews(now, heating, { planned: use.start }), 'started');
+  assert.strictEqual(water.heatingNews(now, { ...heating, safe: false }, { planned: use.start }), null);
   assert.strictEqual(water.heatingNews(now, heating, { started: use.start }), null);
   assert.strictEqual(water.heatingNews(now, { ...heating, reason: { code: 'safe_start' } }, {}), 'started');
   // Not for keep, by hand, holding a reached ready temperature, or a ready time already going on.
@@ -323,6 +325,49 @@ test('heatingNews: planned once up to a day ahead, started once when heating for
   assert.strictEqual(water.heatingNews(19 * H, { ...waiting, nextStart: 20 * H }, {}), null);
   // After it started, no planned message for the same ready time.
   assert.strictEqual(water.heatingNews(now, waiting, { started: use.start }), null);
+});
+
+test('decide: a tub pre-heats only on the use day, once its main heating is allowed', () => {
+  // Thursday 03:00 (Helsinki), cheap night, bath Friday 18:00; the water needs about 1.5 h of heating.
+  const day = (date, h) => midnight(TZ, date) + h * H;
+  const now = day('2026-11-19', 3);
+  const use = { start: day('2026-11-20', 18), end: day('2026-11-20', 19.5) };
+  const prices = (known) =>
+    Array.from({ length: 48 * 4 }, (_, i) => {
+      const start = now + i * Q;
+      const h = ((start - midnight(TZ, '2026-11-19')) / H) % 24;
+      return { start, price: start >= midnight(TZ, '2026-11-20') && !known ? null : h < 6 ? 0.01 : 0.1 };
+    });
+  const opts = {
+    now,
+    temperature: 35,
+    outdoor: 5,
+    model: LEARNED,
+    useList: [use],
+    keep: null,
+    ready: 37,
+    max: 40,
+    powerW: 3000,
+    priceLimit: 0.15,
+    usePriceSkips: false,
+    timeZone: TZ,
+    readyAhead: 0,
+    holdBefore: 60
+  };
+  // Friday's prices not known yet: nothing heats for Friday tonight.
+  const unknown = water.decide({ ...opts, quarters: prices(false) });
+  assert.strictEqual(unknown.demand, false, JSON.stringify(unknown.reason));
+  // Known and cheap at night, but Thursday is not the bath day: still nothing.
+  const known = water.decide({ ...opts, quarters: prices(true) });
+  assert.strictEqual(known.demand, false, JSON.stringify(known.reason));
+  assert.ok(known.nextStart >= day('2026-11-20', 6), new Date(known.nextStart).toISOString());
+  // Friday 03:00: the bath day and its main heating allowed: pre-heats in the cheap night, silently.
+  const friday = day('2026-11-20', 3);
+  const fridayPrices = prices(true).map((q) => ({ ...q, start: q.start + 24 * H })).filter((q) => q.start >= friday);
+  const pre = water.decide({ ...opts, now: friday, quarters: fridayPrices });
+  assert.strictEqual(pre.demand, true, JSON.stringify(pre.reason));
+  assert.strictEqual(water.state(pre), 'preheating');
+  assert.strictEqual(water.heatingNews(friday, pre, {}), null);
 });
 
 test('readyNews: once per ready time, when the state first becomes ready', () => {
