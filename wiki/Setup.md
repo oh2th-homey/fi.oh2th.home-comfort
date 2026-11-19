@@ -1,7 +1,7 @@
 # Setup
 
 1. Add the **Home Controller** first. You can add only one, and zones need it. It holds what all
-   zones share: occupancy, season, long absence, prices and the outdoor temperature. When you add
+   zones share: occupancy, season, Away, prices and the outdoor temperature. When you add
    it, you can pick an outdoor temperature sensor and the prices to follow from Power by the Hour
    (see [Prices](Prices)). If you try to add a second one, the app points you to the existing
    controller; go on with the zones.

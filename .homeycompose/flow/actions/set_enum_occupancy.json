@@ -6,7 +6,7 @@
     "en": "Set occupancy to [[occupancy]]"
   },
   "hint": {
-    "en": "Present: someone is home. Coming Home: someone is on the way home. Away: nobody is home. Use any presence source you like, such as presence, geofence or a switch."
+    "en": "Home: someone is home. Coming home: someone is on the way home. Out: nobody is home right now. Use any presence source you like, such as presence or a geofence. For days away, use Away."
   },
   "args": [
     {
@@ -24,19 +24,19 @@
         {
           "id": "present",
           "title": {
-            "en": "Present"
+            "en": "Home"
           }
         },
         {
           "id": "coming_home",
           "title": {
-            "en": "Coming Home"
+            "en": "Coming home"
           }
         },
         {
           "id": "away",
           "title": {
-            "en": "Away"
+            "en": "Out"
           }
         }
       ]

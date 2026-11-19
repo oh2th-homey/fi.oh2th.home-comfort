@@ -1,6 +1,6 @@
 {
   "title": {
-    "en": "Long absence changed"
+    "en": "Away changed"
   },
   "args": [
     {
@@ -14,7 +14,7 @@
       "name": "is_long_absence",
       "type": "boolean",
       "title": {
-        "en": "Long absence"
+        "en": "Away"
       },
       "example": true
     }

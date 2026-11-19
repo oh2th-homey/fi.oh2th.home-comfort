@@ -374,7 +374,7 @@
       },
       {
         "title": {
-          "en": "Long absence changed"
+          "en": "Away changed"
         },
         "args": [
           {
@@ -388,7 +388,7 @@
             "name": "is_long_absence",
             "type": "boolean",
             "title": {
-              "en": "Long absence"
+              "en": "Away"
             },
             "example": true
           }
@@ -908,19 +908,19 @@
               {
                 "id": "present",
                 "title": {
-                  "en": "Present"
+                  "en": "Home"
                 }
               },
               {
                 "id": "coming_home",
                 "title": {
-                  "en": "Coming Home"
+                  "en": "Coming home"
                 }
               },
               {
                 "id": "away",
                 "title": {
-                  "en": "Away"
+                  "en": "Out"
                 }
               }
             ]
@@ -1125,10 +1125,10 @@
       },
       {
         "title": {
-          "en": "Long absence is on"
+          "en": "Away is on"
         },
         "titleFormatted": {
-          "en": "Long absence !{{is|is not}} on"
+          "en": "Away !{{is|is not}} on"
         },
         "args": [
           {
@@ -1159,10 +1159,10 @@
       },
       {
         "title": {
-          "en": "End long absence"
+          "en": "Back home"
         },
         "hint": {
-          "en": "Zones return to following occupancy and prices."
+          "en": "Ends Away: zones follow occupancy and prices again."
         },
         "args": [
           {
@@ -1191,13 +1191,13 @@
       },
       {
         "title": {
-          "en": "Set long absence until"
+          "en": "Set away until"
         },
         "titleFormatted": {
-          "en": "Set long absence until [[date]]"
+          "en": "Set away until [[date]]"
         },
         "hint": {
-          "en": "Everyone is away for days. Starts now: zones go to eco and stop cooling until the end of the given day."
+          "en": "Everyone is away for days. Starts Away now: zones go to eco and stop cooling until the end of the given day."
         },
         "args": [
           {
@@ -1209,7 +1209,7 @@
             "type": "date",
             "name": "date",
             "title": {
-              "en": "Last day of absence"
+              "en": "Last day away"
             }
           }
         ],
@@ -1223,7 +1223,7 @@
           "en": "Set occupancy to [[occupancy]]"
         },
         "hint": {
-          "en": "Present: someone is home. Coming Home: someone is on the way home. Away: nobody is home. Use any presence source you like, such as presence, geofence or a switch."
+          "en": "Home: someone is home. Coming home: someone is on the way home. Out: nobody is home right now. Use any presence source you like, such as presence or a geofence. For days away, use Away."
         },
         "args": [
           {
@@ -1241,19 +1241,19 @@
               {
                 "id": "present",
                 "title": {
-                  "en": "Present"
+                  "en": "Home"
                 }
               },
               {
                 "id": "coming_home",
                 "title": {
-                  "en": "Coming Home"
+                  "en": "Coming home"
                 }
               },
               {
                 "id": "away",
                 "title": {
-                  "en": "Away"
+                  "en": "Out"
                 }
               }
             ]
@@ -1998,18 +1998,18 @@
         {
           "type": "group",
           "label": {
-            "en": "Long absence"
+            "en": "Away"
           },
           "children": [
             {
               "id": "absence_until",
               "type": "text",
               "label": {
-                "en": "Long absence until"
+                "en": "Away until"
               },
               "value": "",
               "hint": {
-                "en": "Last day of a long absence as YYYY-MM-DD. Setting a day starts long absence; it ends after that day. Empty: no end date."
+                "en": "Last day away as YYYY-MM-DD. Setting a day turns Away on; it ends after that day. Empty: no end date."
               }
             }
           ]
@@ -3473,25 +3473,25 @@
         "en": "Occupancy"
       },
       "hint": {
-        "en": "Present: someone is home. Coming Home: someone is on the way home. Away: nobody is home. Set it from your own presence source with the Set occupancy card. Present and Coming Home aim at comfort, Away at eco."
+        "en": "Home: someone is home. Coming home: someone is on the way home. Out: nobody is home right now. Set it from your own presence source with the Set occupancy card. Home and Coming home aim at comfort, Out at eco."
       },
       "values": [
         {
           "id": "present",
           "title": {
-            "en": "Present"
+            "en": "Home"
           }
         },
         {
           "id": "coming_home",
           "title": {
-            "en": "Coming Home"
+            "en": "Coming home"
           }
         },
         {
           "id": "away",
           "title": {
-            "en": "Away"
+            "en": "Out"
           }
         }
       ],
@@ -3719,20 +3719,20 @@
     "is_long_absence": {
       "type": "boolean",
       "title": {
-        "en": "Long absence"
+        "en": "Away"
       },
       "hint": {
-        "en": "Everyone is away for days: zones at eco and no cooling."
+        "en": "Everyone is away for days: zones at eco and no cooling. Off: home."
       },
       "getable": true,
       "setable": true,
       "uiComponent": "button",
       "insights": true,
       "insightsTitleTrue": {
-        "en": "Long absence started"
+        "en": "Left home"
       },
       "insightsTitleFalse": {
-        "en": "Long absence ended"
+        "en": "Back home"
       },
       "icon": "./assets/capabilities/is_long_absence.svg"
     },

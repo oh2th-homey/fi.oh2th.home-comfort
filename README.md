@@ -16,7 +16,7 @@ flow cards, examples and troubleshooting.
 
 In short:
 
-1. Add the **Home Controller** (one per Homey). It holds occupancy, season, long absence, prices
+1. Add the **Home Controller** (one per Homey). It holds occupancy, season, Away, prices
    and the outdoor temperature.
 2. Add a **Heating Zone** for each room or area, and pick its devices.
 3. Make flows that tell the controller who is home. Energy prices come from Power by the Hour,
