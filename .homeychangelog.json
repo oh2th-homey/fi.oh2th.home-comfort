@@ -49,5 +49,8 @@
   },
   "1.7.0": {
     "en": "CHANGE: The Sauna no longer shows a cost estimate; real costs come from your energy app."
+  },
+  "1.8.0": {
+    "en": "NEW: Export of devices, learned state and history, for moving to Adaptive Home Comfort."
   }
 }
