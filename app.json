@@ -1,6 +1,6 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
-  "id": "fi.oh2th.hvac-control",
+  "id": "fi.oh2th.home-comfort",
   "version": "1.8.0",
   "compatibility": ">=12.11.0",
   "sdk": 3,
@@ -9,7 +9,7 @@
     "local"
   ],
   "name": {
-    "en": "Smart HVAC Control"
+    "en": "Adaptive Home Comfort"
   },
   "description": {
     "en": "Comfort when you're home, savings at price peaks"
@@ -20,7 +20,8 @@
   ],
   "permissions": [
     "homey:manager:api",
-    "homey:app:com.gruijter.powerhour"
+    "homey:app:com.gruijter.powerhour",
+    "homey:app:fi.oh2th.hvac-control"
   ],
   "api": {
     "getHistory": {
@@ -76,12 +77,12 @@
       }
     }
   },
-  "source": "https://github.com/oh2th-homey/fi.oh2th.hvac-control",
+  "source": "https://github.com/oh2th-homey/fi.oh2th.home-comfort",
   "bugs": {
-    "url": "https://github.com/oh2th-homey/fi.oh2th.hvac-control/issues"
+    "url": "https://github.com/oh2th-homey/fi.oh2th.home-comfort/issues"
   },
   "homeyCommunityTopicId": 161500,
-  "support": "https://github.com/oh2th-homey/fi.oh2th.hvac-control/discussions/categories/general",
+  "support": "https://github.com/oh2th-homey/fi.oh2th.home-comfort/discussions/categories/general",
   "homepage": "https://oh2th.fi/tapio/homey/",
   "flow": {
     "triggers": [
@@ -93,7 +94,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -121,7 +122,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -361,7 +362,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -384,7 +385,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -472,13 +473,13 @@
           "en": "Prices missing for tomorrow"
         },
         "hint": {
-          "en": "Runs once a day at the check time set in the HVAC Controller settings, when tomorrow's prices are still missing or partial."
+          "en": "Runs once a day at the check time set in the Home Controller settings, when tomorrow's prices are still missing or partial."
         },
         "args": [
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "tokens": [
@@ -618,7 +619,7 @@
           "en": "Heating held by the price ceiling"
         },
         "hint": {
-          "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (HVAC Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
+          "en": "Runs once when the hot water runs low (below Keep) while the price is over the home's ceiling (Home Controller: Expensive above), so nothing heats until the price drops. Water temperature: the top of a tank."
         },
         "args": [
           {
@@ -900,7 +901,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -943,7 +944,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -1122,7 +1123,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "is_expensive"
@@ -1138,7 +1139,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "is_long_absence"
@@ -1172,7 +1173,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           }
         ],
         "id": "end_long_absence"
@@ -1207,7 +1208,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "date",
@@ -1233,7 +1234,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=hvac"
+            "filter": "driver_id=controller"
           },
           {
             "type": "dropdown",
@@ -1790,11 +1791,11 @@
       ],
       "connectivity": [],
       "images": {
-        "small": "/drivers/hvac/assets/images/small.png",
-        "large": "/drivers/hvac/assets/images/large.png"
+        "small": "/drivers/controller/assets/images/small.png",
+        "large": "/drivers/controller/assets/images/large.png"
       },
       "name": {
-        "en": "HVAC Controller"
+        "en": "Home Controller"
       },
       "class": "other",
       "capabilities": [
@@ -1852,6 +1853,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "outdoor"
+          }
+        },
+        {
           "id": "outdoor"
         }
       ],
@@ -1860,7 +1867,7 @@
           "id": "outdoor"
         }
       ],
-      "id": "hvac",
+      "id": "controller",
       "settings": [
         {
           "type": "group",
@@ -2054,6 +2061,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "sauna"
+          }
+        },
+        {
           "id": "sauna"
         }
       ],
@@ -2220,6 +2233,12 @@
         }
       },
       "pair": [
+        {
+          "id": "import",
+          "navigation": {
+            "next": "water"
+          }
+        },
         {
           "id": "water"
         }
@@ -2720,6 +2739,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "water"
+          }
+        },
+        {
           "id": "water"
         }
       ],
@@ -3160,6 +3185,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "select"
+          }
+        },
+        {
           "id": "select",
           "navigation": {
             "next": "configure"
@@ -3362,7 +3393,7 @@
               },
               "value": "peak",
               "hint": {
-                "en": "Over Expensive above (HVAC Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
+                "en": "Over Expensive above (Home Controller). As at price peaks: the setting above applies. Allow comfort: the zone stays at comfort (e.g. an A/C), unless the price model finds a peak too."
               },
               "values": [
                 {
@@ -3395,7 +3426,7 @@
               },
               "value": false,
               "hint": {
-                "en": "Uses the outdoor temperature set on the HVAC Controller."
+                "en": "Uses the outdoor temperature set on the Home Controller."
               }
             },
             {

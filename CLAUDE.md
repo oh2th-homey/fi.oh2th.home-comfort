@@ -1,4 +1,4 @@
-# Smart HVAC Control (fi.oh2th.hvac-control)
+# Adaptive Home Comfort (fi.oh2th.home-comfort)
 
 Generic Homey Pro (SDK3) app that replaces complex heating flows. It decides each zone's
 temperature from **occupancy, energy prices and outdoor temperature/forecast**. There is
@@ -166,14 +166,14 @@ immediately); use `.then(() => this.log(…))`.
   sources come in only as tokens on this app's own action cards (e.g. a forecast). Other apps
   may appear in wiki examples only.
 - **The only exception: prices from the Power by the Hour Prices API** (issue #23, user's decision
-  2026-11-13). The HVAC Controller reads `GET /prices` and the `prices-updated` realtime event of
+  2026-11-13). The Home Controller reads `GET /prices` and the `prices-updated` realtime event of
   `com.gruijter.powerhour` (permission `homey:app:com.gruijter.powerhour`). Prices stay optional:
   without Power by the Hour the app works on occupancy alone. The Import prices card is deprecated
   when the API arrives and removed in a later major version. Make no other exceptions without
   asking.
 - Inputs are **facts, not modes** (occupancy, long absence, prices, forecast). Never make the user
   translate facts into modes in flows; that is what made Homey Heating Scheduler too complex.
-- Few concepts: Heating Zone devices, one required HVAC Controller device (shared state), per zone
+- Few concepts: Heating Zone devices, one required Home Controller device (shared state), per zone
   comfort and eco setpoints for heat (and cool), members. Eco is a setpoint, not a difference.
   Resist adding plans, schedules or mode lists.
 - Safety over savings: the band between comfort and eco is a hard limit, never write NaN/out-of-range/wrongly-typed values to devices (some Zigbee

@@ -1,5 +1,5 @@
 {
-  "id": "fi.oh2th.hvac-control",
+  "id": "fi.oh2th.home-comfort",
   "version": "1.8.0",
   "compatibility": ">=12.11.0",
   "sdk": 3,
@@ -8,7 +8,7 @@
     "local"
   ],
   "name": {
-    "en": "Smart HVAC Control"
+    "en": "Adaptive Home Comfort"
   },
   "description": {
     "en": "Comfort when you're home, savings at price peaks"
@@ -19,7 +19,8 @@
   ],
   "permissions": [
     "homey:manager:api",
-    "homey:app:com.gruijter.powerhour"
+    "homey:app:com.gruijter.powerhour",
+    "homey:app:fi.oh2th.hvac-control"
   ],
   "api": {
     "getHistory": {
@@ -75,11 +76,11 @@
       }
     }
   },
-  "source": "https://github.com/oh2th-homey/fi.oh2th.hvac-control",
+  "source": "https://github.com/oh2th-homey/fi.oh2th.home-comfort",
   "bugs": {
-    "url": "https://github.com/oh2th-homey/fi.oh2th.hvac-control/issues"
+    "url": "https://github.com/oh2th-homey/fi.oh2th.home-comfort/issues"
   },
   "homeyCommunityTopicId": 161500,
-  "support": "https://github.com/oh2th-homey/fi.oh2th.hvac-control/discussions/categories/general",
+  "support": "https://github.com/oh2th-homey/fi.oh2th.home-comfort/discussions/categories/general",
   "homepage": "https://oh2th.fi/tapio/homey/"
 }

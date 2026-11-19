@@ -3,7 +3,7 @@
 Homey gives the standard cards for the standard parts of the devices: the season (thermostat
 mode), the price now and Boost (on, off, toggle). The app adds these:
 
-## HVAC Controller
+## Home Controller
 
 - Actions: **Set occupancy**, **Set long absence until**, **End long absence**.
 - Conditions: **Occupancy is**, **Long absence is on**, **Price is expensive**, **Price level is**.

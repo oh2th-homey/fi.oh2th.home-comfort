@@ -6,12 +6,13 @@ const prices = require('../../lib/prices');
 // Prices come from the Power by the Hour Prices API (issue #23), the app's only dependency on another app.
 const PBTH = 'com.gruijter.powerhour';
 
-module.exports = class hvacDriver extends mainDriver {
+module.exports = class controllerDriver extends mainDriver {
   /**
-   * @description Pairing: exactly one HVAC Controller, with an optional outdoor temperature sensor and the prices to follow.
+   * @description Pairing: exactly one Home Controller, with an optional outdoor temperature sensor and the prices to follow.
    * When it exists already, the page points to it and to adding zones instead.
    */
   async onPair(session) {
+    this.setImportHandlers(session);
     session.setHandler('get_outdoor', async () => {
       const [existing] = this.getDevices();
       if (existing) return { exists: this.homey.__('pair.outdoor.exists', { name: existing.getName() }) };
@@ -21,13 +22,30 @@ module.exports = class hvacDriver extends mainDriver {
       return { sensors: await this.outdoorSensors(), outdoor: null, prices: { ...priceDevices, selected }, repair: false };
     });
     session.setHandler('create_controller', async ({ outdoor, priceSource }) => {
-      if (this.getDevices().length > 0) throw new Error(this.homey.__('pair.hvac_exists'));
+      if (this.getDevices().length > 0) throw new Error(this.homey.__('pair.controller_exists'));
       const source = await this.checkPriceSource(priceSource);
-      const device = { name: this.homey.__('pair.hvac_name'), data: { id: 'hvac-controller' }, store: { outdoor: await this.checkOutdoor(outdoor), priceSource: source } };
+      const device = { name: this.homey.__('pair.controller_name'), data: { id: 'controller' }, store: { outdoor: await this.checkOutdoor(outdoor), priceSource: source } };
       // The currency follows the price device.
       if (source && source.currency) device.settings = { currency: source.currency };
       return device;
     });
+  }
+
+  /**
+   * @description Import: only one Home Controller.
+   */
+  async checkImport() {
+    if (this.getDevices().length > 0) throw new Error(this.homey.__('pair.controller_exists'));
+  }
+
+  /**
+   * @description Importing the Home Controller also brings the old app's history files.
+   */
+  async onImport(device, exported) {
+    // The old default name becomes the new one; a name the user chose stays.
+    if (device.name === 'HVAC Controller') device.name = this.homey.__('pair.controller_name');
+    const written = await this.homey.app.history.importFiles(exported.history);
+    this.log(`onImport - ${written} history files`);
   }
 
   /**

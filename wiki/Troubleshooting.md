@@ -22,7 +22,7 @@
 - **Hot Tub or Water Heater heats much earlier than needed**: it is still learning and heats just
   in time with a slow starting estimate. Its settings show the learned values; after a day or two
   of heating and waiting it heats ahead in cheap hours instead.
-- **Hot Tub or Water Heater: "No prices"**: the HVAC Controller has no prices. It heats just in
+- **Hot Tub or Water Heater: "No prices"**: the Home Controller has no prices. It heats just in
   time for each ready time until prices come back (a Water Heater also holds Keep).
 
 To see what a zone is doing and why, check its **Reason**

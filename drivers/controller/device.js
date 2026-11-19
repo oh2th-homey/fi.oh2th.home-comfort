@@ -28,7 +28,7 @@ const PBTH = 'com.gruijter.powerhour';
 // Pushes come every slot; without one for this long the prices are fetched again.
 const PRICES_REFRESH_MS = 60 * 60 * 1000;
 
-module.exports = class hvacDevice extends mainDevice {
+module.exports = class controllerDevice extends mainDevice {
   async onInitDevice() {
     await this.subscribeOutdoor();
     await this.subscribePrices();

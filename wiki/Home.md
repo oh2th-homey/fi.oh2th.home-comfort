@@ -1,6 +1,6 @@
-# Smart HVAC Control
+# Adaptive Home Comfort
 
-Smart HVAC Control for Homey Pro sets the temperature of each heating zone. It decides from
+Adaptive Home Comfort for Homey Pro sets the temperature of each heating zone. It decides from
 three things: whether someone is home, the energy price and the outdoor temperature. There is
 no weekly schedule. Your flows only tell the app what is going on.
 
@@ -18,8 +18,8 @@ You need a Homey Pro, a computer with [Node.js](https://nodejs.org) and the
 ```sh
 npm install --global homey
 homey login
-git clone https://github.com/oh2th-homey/fi.oh2th.hvac-control.git
-cd fi.oh2th.hvac-control
+git clone https://github.com/oh2th-homey/fi.oh2th.home-comfort.git
+cd fi.oh2th.home-comfort
 npm install
 homey select
 homey app install
@@ -31,7 +31,7 @@ homey app install
 ## Contents
 
 - [Setup](Setup): what to add first.
-- [HVAC Controller](HVAC-Controller): the shared state for all zones.
+- [Home Controller](Home-Controller): the shared state for all zones.
 - [Heating Zone](Heating-Zone): one room or area.
 - [Zone devices](Zone-devices): thermostats, relays, air conditioners, sensors, windows.
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater): heat stored water in the cheapest hours.

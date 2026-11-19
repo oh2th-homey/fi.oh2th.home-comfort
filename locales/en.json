@@ -3,8 +3,8 @@
     "initializing": "Initializing…"
   },
   "pair": {
-    "hvac_name": "HVAC Controller",
-    "hvac_exists": "The HVAC Controller has already been added. One is enough for the whole home.",
+    "controller_name": "Home Controller",
+    "controller_exists": "The Home Controller has already been added. One is enough for the whole home.",
     "members": {
       "title_select": "Zone devices",
       "subtitle_select": "Pick the devices this zone uses, room by room. A device can be both controlled and a sensor.",
@@ -45,12 +45,12 @@
       "power_picked": "Power meters"
     },
     "outdoor": {
-      "title": "HVAC Controller",
+      "title": "Home Controller",
       "subtitle": "Both optional: an outdoor sensor for zones with an outdoor limit, and the prices to follow.",
       "sensor": "Outdoor temperature sensor",
       "none": "None",
-      "exists": "You already have the HVAC Controller \"__name__\". One is enough for the whole home, so keep using it.",
-      "exists_next": "Next, add a Heating Zone for each room: Add device → Smart HVAC Control → Heating Zone.",
+      "exists": "You already have the Home Controller \"__name__\". One is enough for the whole home, so keep using it.",
+      "exists_next": "Next, add a Heating Zone for each room: Add device → Adaptive Home Comfort → Heating Zone.",
       "close": "Close"
     },
     "prices": {
@@ -65,14 +65,14 @@
       "missing": "That price device is no longer in Power by the Hour. Choose another one."
     },
     "water": {
-      "subtitle": "Heats in the cheapest hours on the HVAC Controller's prices. Choose the heater's switch below, or switch it from your flows on the Heating demand cards.",
+      "subtitle": "Heats in the cheapest hours on the Home Controller's prices. Choose the heater's switch below, or switch it from your flows on the Heating demand cards.",
       "name": "Name",
       "name_spa": "Hot Tub",
       "name_water-heater": "Water Heater",
       "water": "Water temperature",
       "surroundings_spa": "Outdoor temperature",
       "surroundings_water-heater": "Room temperature",
-      "surroundings_controller": "HVAC Controller's outdoor sensor",
+      "surroundings_controller": "Home Controller's outdoor sensor",
       "surroundings_fixed": "Fixed temperature (device settings)",
       "power": "Power meter (optional)",
       "switch": "Heater switch (optional)",
@@ -88,7 +88,7 @@
       "save": "Save",
       "no_water": "Choose the water temperature.",
       "no_tank": "Choose at least one tank temperature.",
-      "no_prices": "Choose the prices to follow on the HVAC Controller first (Repair).",
+      "no_prices": "Choose the prices to follow on the Home Controller first (Repair).",
       "filters": "Filter cycles",
       "filters_0": "None",
       "filters_1": "1 filter cycle",
@@ -102,11 +102,18 @@
       "power": "Stove power meter (optional)",
       "no_power": "None (e.g. a wood-burning stove)",
       "no_temperature": "Choose the sauna temperature."
+    },
+    "import": {
+      "title": "Import from Smart HVAC Control",
+      "subtitle": "Devices of the old app, with their settings, learned state and history. Pick the ones to bring over.",
+      "import": "Import",
+      "new": "Add a new one instead",
+      "none_picked": "Pick at least one device, or add a new one instead."
     }
   },
   "error": {
     "price_levels": "High above must be lower than Expensive above.",
-    "no_controller": "Add the HVAC Controller first",
+    "no_controller": "Add the Home Controller first",
     "invalid_value": "Invalid value: __value__",
     "invalid_date": "Enter the date as YYYY-MM-DD",
     "invalid_time": "Enter the time as HH:mm, for example 15:00",
@@ -189,7 +196,7 @@
   },
   "water": {
     "reason": {
-      "no_controller": "No HVAC Controller",
+      "no_controller": "No Home Controller",
       "no_temperature": "No water temperature",
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",

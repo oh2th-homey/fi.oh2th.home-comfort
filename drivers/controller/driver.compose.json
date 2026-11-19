@@ -1,6 +1,6 @@
 {
   "name": {
-    "en": "HVAC Controller"
+    "en": "Home Controller"
   },
   "class": "other",
   "capabilities": [
@@ -60,6 +60,13 @@
     "device"
   ],
   "pair": [
+    {
+      "id": "import",
+      "$template": "import",
+      "navigation": {
+        "next": "outdoor"
+      }
+    },
     {
       "id": "outdoor"
     }

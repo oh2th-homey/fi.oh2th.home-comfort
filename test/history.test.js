@@ -82,7 +82,7 @@ test('a cut-off last row and a wrong version are ignored', () => {
 });
 
 test('History appends day files, keeps zone slots and prunes old days', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hvac-history-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-history-'));
   try {
     const history = new History({}, dir);
     assert.strictEqual(await history.slot('zone-a', 'Kitchen'), 0);
@@ -125,7 +125,7 @@ test('daily summary rows round trip, 23 bytes each', () => {
 });
 
 test('History appends daily rows to days.bin', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hvac-days-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-days-'));
   try {
     const history = new History({}, dir);
     assert.strictEqual((await history.readDays()).data, null);
@@ -137,5 +137,27 @@ test('History appends daily rows to days.bin', async () => {
     assert.deepStrictEqual(decodeDays(data).map((day) => day.date), ['2026-10-30', '2026-10-31']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('History imports exported files and reads the slot map again', async () => {
+  const from = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-from-'));
+  const to = fs.mkdtempSync(path.join(os.tmpdir(), 'home-comfort-to-'));
+  try {
+    const old = new History({}, from);
+    await old.slot('zone-a', 'Zone A');
+    await old.appendDays([{ date: '2026-10-30', slot: 0, wh: 100, pricedWh: 100, cost: 0.02, temperature: 20, priceAverage: 0.2, eco: 0, quarters: 96 }]);
+    const files = await old.exportFiles();
+
+    const history = new History({}, to);
+    await history.slot('zone-new', 'New zone');
+    const written = await history.importFiles({ ...files, 'other.txt': 'eA==', '../x.bin': 'eA==' });
+    assert.strictEqual(written, 2);
+    assert.deepStrictEqual(fs.readdirSync(to).sort(), ['days.bin', 'zones.json']);
+    assert.strictEqual(await history.slot('zone-a', 'Zone A'), 0);
+    assert.deepStrictEqual((await history.readDays()).data, (await old.readDays()).data);
+  } finally {
+    fs.rmSync(from, { recursive: true, force: true });
+    fs.rmSync(to, { recursive: true, force: true });
   }
 });

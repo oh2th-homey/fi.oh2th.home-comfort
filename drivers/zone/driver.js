@@ -16,10 +16,11 @@ function chooseTemperature(device, picked) {
 
 module.exports = class zoneDriver extends mainDriver {
   /**
-   * @description Pairing: the HVAC Controller must exist; page "select" picks the devices per room, page "configure" sets them up.
+   * @description Pairing: the Home Controller must exist; page "select" picks the devices per room, page "configure" sets them up.
    */
   async onPair(session) {
     const state = { name: null, members: [], candidates: null, repair: false };
+    this.setImportHandlers(session);
     this.setSelectionHandlers(session, state);
     session.setHandler('create_zone', async ({ name, members }) => {
       this.homey.app.getController();
@@ -29,6 +30,13 @@ module.exports = class zoneDriver extends mainDriver {
         store: { members: await this.prepareMembers(members) }
       };
     });
+  }
+
+  /**
+   * @description Import: the Home Controller must exist, as at pairing.
+   */
+  async checkImport() {
+    this.homey.app.getController();
   }
 
   /**
@@ -45,7 +53,7 @@ module.exports = class zoneDriver extends mainDriver {
    */
   setSelectionHandlers(session, state) {
     session.setHandler('get_selection', async () => {
-      // Pairing needs the HVAC Controller first.
+      // Pairing needs the Home Controller first.
       if (!state.repair) this.homey.app.getController();
       if (!state.candidates) state.candidates = await this.homey.app.members.candidates();
       return state;

@@ -3,13 +3,13 @@
     "en": "Prices missing for tomorrow"
   },
   "hint": {
-    "en": "Runs once a day at the check time set in the HVAC Controller settings, when tomorrow's prices are still missing or partial."
+    "en": "Runs once a day at the check time set in the Home Controller settings, when tomorrow's prices are still missing or partial."
   },
   "args": [
     {
       "type": "device",
       "name": "device",
-      "filter": "driver_id=hvac"
+      "filter": "driver_id=controller"
     }
   ],
   "tokens": [

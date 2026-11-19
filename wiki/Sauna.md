@@ -6,7 +6,7 @@ with any stove: an electric stove with no connectivity, or a wood-burning stove.
 
 ## Add it
 
-Add device → Smart HVAC Control → **Sauna**, then choose:
+Add device → Adaptive Home Comfort → **Sauna**, then choose:
 
 - **Sauna temperature**: a temperature sensor in the sauna (required).
 - **Sauna humidity** (optional): the same or another sensor's humidity. While the sauna heats, its
