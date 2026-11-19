@@ -5,6 +5,7 @@ const mainDevice = require('../main-device');
 const prices = require('../../lib/prices');
 const daily = require('../../lib/daily');
 const water = require('../../lib/water');
+const meters = require('../../lib/meters');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
 const SEASONS = ['heating', 'cooling', 'off'];
@@ -23,6 +24,15 @@ const POWER_OPTIONS = { title: { en: 'Heating power' }, units: { en: 'W' }, deci
 // stay in the history.
 const ENERGY_TODAY = 'meter_power.today';
 const DAY_CAPS = [ENERGY_TODAY];
+// Other heating meters outside the zones (issue #40): added to POWER, with the breakdown shown while there are any.
+const ZONES_POWER = 'measure_power.zones';
+const OTHER_POWER = 'measure_power.other';
+const BREAKDOWN_OPTIONS = {
+  [ZONES_POWER]: { title: { en: 'Zones' }, units: { en: 'W' }, decimals: 0 },
+  [OTHER_POWER]: { title: { en: 'Other meters' }, units: { en: 'W' }, decimals: 0 }
+};
+// Meters report every few seconds with a watt or two of noise: the other meters' power shows changes of at least this (W).
+const POWER_STEP = 5;
 // Prices from the Power by the Hour Prices API (the app's only dependency on another app, issue #23).
 const PBTH = 'com.gruijter.powerhour';
 // Pushes come every slot; without one for this long the prices are fetched again.
@@ -32,18 +42,21 @@ module.exports = class controllerDevice extends mainDevice {
   async onInitDevice() {
     await this.subscribeOutdoor();
     await this.subscribePrices();
+    await this.subscribeMeters();
   }
 
   async onDeleted() {
     await super.onDeleted();
     this.unsubscribeOutdoor();
     this.unsubscribePrices();
+    this.unsubscribeMeters();
   }
 
   async onUninit() {
     await super.onUninit();
     this.unsubscribeOutdoor();
     this.unsubscribePrices();
+    this.unsubscribeMeters();
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
@@ -71,17 +84,23 @@ module.exports = class controllerDevice extends mainDevice {
   }
 
   /**
-   * @description Heating power, energy and cost are shown only when a zone has a power meter.
+   * @description Heating power and energy are shown only when a zone has a power meter or there are other heating meters;
+   * the breakdown in zones and other meters only with other meters.
    * @param {Object} [deleted] - Zone being deleted, left out
    */
   async checkCapabilities(deleted = null) {
     const zones = this.meteredZones(deleted);
+    const others = this.otherMeters().length > 0;
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     // Zones not loaded yet (app start): keep what is shown.
-    if (zones === null ? this.hasCapability(POWER) : zones.length) capabilities.push(POWER, ...DAY_CAPS);
+    if (others || (zones === null ? this.hasCapability(POWER) : zones.length)) capabilities.push(POWER, ...DAY_CAPS);
+    if (others) capabilities.push(ZONES_POWER, OTHER_POWER);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(POWER)) await this.setCapabilityOptions(POWER, POWER_OPTIONS).catch(this.error);
     if (result.added.includes(ENERGY_TODAY)) await this.setCapabilityOptions(ENERGY_TODAY, { title: { en: 'Energy today' }, units: { en: 'kWh' }, decimals: 2 }).catch(this.error);
+    for (const cap of [ZONES_POWER, OTHER_POWER]) {
+      if (result.added.includes(cap)) await this.setCapabilityOptions(cap, BREAKDOWN_OPTIONS[cap]).catch(this.error);
+    }
     return result;
   }
 
@@ -100,15 +119,97 @@ module.exports = class controllerDevice extends mainDevice {
   }
 
   /**
-   * @description Heating power: sum of the zones' heating power. Zones call this when theirs changes, when their meters
-   * change and when deleted.
+   * @description Heating power: sum of the zones' heating power and the other heating meters. Zones call this when theirs
+   * changes, when their meters change and when deleted; the other meters when theirs changes.
    * @param {Object} [deleted] - Zone being deleted, left out
    */
   async updateHeatingPower(deleted = null) {
     const zones = this.meteredZones(deleted) || [];
-    if (zones.length > 0 !== this.hasCapability(POWER)) await this.checkCapabilities(deleted);
+    const others = this.otherMeters().length > 0;
+    if ((zones.length > 0 || others) !== this.hasCapability(POWER) || others !== this.hasCapability(OTHER_POWER)) await this.checkCapabilities(deleted);
     const watts = zones.map((zone) => zone.getCapabilityValue(ZONE_POWER)).filter((value) => typeof value === 'number');
-    await this.setValue(POWER, watts.length ? Math.round(watts.reduce((sum, value) => sum + value, 0)) : null);
+    const zonesPower = watts.length ? Math.round(watts.reduce((sum, value) => sum + value, 0)) : null;
+    const otherPower = others && typeof this.otherPower === 'number' ? this.otherPower : null;
+    const parts = [zonesPower, otherPower].filter((value) => value !== null);
+    await this.setValue(POWER, parts.length ? parts.reduce((sum, value) => sum + value, 0) : null);
+    await this.setValue(ZONES_POWER, zonesPower);
+    await this.setValue(OTHER_POWER, otherPower);
+  }
+
+  /**
+   * Other heating meters (issue #40): power meters outside the zones, chosen at pairing or repair.
+   */
+  otherMeters() {
+    return this.getStoreValue('otherMeters') || [];
+  }
+
+  async subscribeMeters() {
+    const list = this.otherMeters();
+    if (!list.length || this.metersSubscribed) return;
+    // One listener for all meters; lib/members.js keeps listeners in a Set, so a retry doesn't add it twice.
+    if (!this.metersListener) this.metersListener = () => this.onOtherPower().catch(this.error);
+    try {
+      for (const meter of list) await this.homey.app.members.subscribe(meter.id, 'measure_power', this.metersListener);
+      this.metersSubscribed = true;
+      await this.onOtherPower();
+    } catch (error) {
+      // Retried from onInterval.
+      this.error(`${this.getName()} - subscribeMeters - ${error}`);
+    }
+  }
+
+  unsubscribeMeters(list = this.otherMeters()) {
+    if (this.metersListener) for (const meter of list) this.homey.app.members.unsubscribe(meter.id, 'measure_power', this.metersListener);
+    this.metersSubscribed = false;
+  }
+
+  /**
+   * @description The other meters' power: energy from every reading as it is; the shown value has a dead band.
+   */
+  async onOtherPower() {
+    const exact = meters.sumPower(this.otherMeters().map((meter) => this.homey.app.members.read(meter.id, 'measure_power')));
+    this.otherEnergy = meters.integrate(this.otherEnergy, Date.now(), exact);
+    const power = exact === null ? null : Math.round(exact);
+    const shown = this.otherPower;
+    const changed = typeof shown !== 'number' || power === null ? shown !== power : Math.abs(power - shown) >= POWER_STEP;
+    if (!changed) return;
+    this.otherPower = power;
+    await this.updateHeatingPower();
+  }
+
+  /**
+   * @description The other meters' energy (Wh) in the quarter that just ended, for the history; restarts the count. Null
+   * without other meters.
+   */
+  otherSample(ms) {
+    if (!this.otherMeters().length) return null;
+    this.otherEnergy = meters.integrate(this.otherEnergy, ms, this.otherEnergy ? this.otherEnergy.power : null);
+    const { wh } = this.otherEnergy;
+    this.otherEnergy.wh = 0;
+    return wh;
+  }
+
+  /**
+   * @description Add the quarter to the other meters' own day (their daily row in the history); at the first quarter of a
+   * new day returns the finished day.
+   */
+  async addOtherToDay(date, energy, price) {
+    const { day, finished } = daily.addQuarter(this.getStoreValue('otherDay'), date, { energy, price });
+    await this.setStoreValue('otherDay', day).catch(this.error);
+    return finished;
+  }
+
+  /**
+   * @description Repair: new other heating meters [{ id, name }], or [] for none.
+   */
+  async onRepairMeters(list) {
+    this.log(`${this.getName()} - onRepairMeters - ${list.map((meter) => meter.name).join(', ') || 'none'}`);
+    this.unsubscribeMeters();
+    await this.setStoreValue('otherMeters', list);
+    this.otherPower = null;
+    this.otherEnergy = null;
+    await this.subscribeMeters();
+    await this.updateHeatingPower();
   }
 
   async setCapabilityListeners() {
@@ -158,6 +259,7 @@ module.exports = class controllerDevice extends mainDevice {
   async onInterval(now) {
     const local = localTime(this, now);
     if (!this.outdoorListener && local.minutes % 5 === 0) await this.subscribeOutdoor();
+    if (!this.metersSubscribed && local.minutes % 5 === 0) await this.subscribeMeters();
     if (local.minutes % 5 === 0) await this.refreshPrices(now.getTime());
     await this.checkAbsence(local);
     if (local.minutes % 15 === 0) await this.evaluatePrices();
