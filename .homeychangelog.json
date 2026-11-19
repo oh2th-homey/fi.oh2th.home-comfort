@@ -67,5 +67,8 @@
   },
   "2.4.0": {
     "en": "NEW: Sauna State changed trigger and State is condition, for example to turn a panel light off when the sauna goes Off."
+  },
+  "2.4.1": {
+    "en": "FIX: Heating ready turned on by hand heats now whatever the price and holds the water until it is turned off."
   }
 }
