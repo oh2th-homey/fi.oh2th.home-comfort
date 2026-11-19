@@ -1,5 +1,5 @@
 {
-  "name": "fi.oh2th.hvac-control",
+  "name": "fi.oh2th.home-comfort",
   "version": "1.8.0",
   "main": "app.js",
   "scripts": {

@@ -26,7 +26,7 @@ without looking at prices (a Water Heater also holds Keep).
 
 ## Add it
 
-Add device → Smart HVAC Control → **Hot Tub** or **Water Heater**, then choose:
+Add device → Adaptive Home Comfort → **Hot Tub** or **Water Heater**, then choose:
 
 - **Water temperature**: a temperature of another device. A separate sensor in the water is
   best: it reports all the time, also when the pump doesn't run, and in 0.1 °C steps or finer.

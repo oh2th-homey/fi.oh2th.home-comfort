@@ -5,7 +5,7 @@
  *
  *   HOMEY_URL=http://<homey-ip> HOMEY_KEY=<api key> node tools/history.js [YYYY-MM-DD] [--json]
  *   HOMEY_URL=... HOMEY_KEY=... node tools/history.js days [--json]      (daily summary rows)
- *   curl ... /api/app/fi.oh2th.hvac-control/history?date=YYYY-MM-DD | node tools/history.js -
+ *   curl ... /api/app/<app id>/history?date=YYYY-MM-DD | node tools/history.js -
  *
  * The API key needs the scopes View Apps and Control Apps. HOMEY_URL is the Homey's local address
  * (Homey Pro: port 80; Self-Hosted Server: port 4859) or its cloud address. Times are printed in local time.
@@ -13,7 +13,7 @@
 
 const { decodeDay, decodeDays, CONTROLLER_SLOT } = require('../lib/history');
 
-const APP_ID = 'fi.oh2th.hvac-control';
+const APP_ID = process.env.HOMEY_APP || 'fi.oh2th.home-comfort'; // HOMEY_APP=fi.oh2th.hvac-control reads the old app
 
 function today() {
   const now = new Date();

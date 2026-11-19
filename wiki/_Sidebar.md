@@ -1,4 +1,4 @@
-**[Smart HVAC Control](Home)**
+**[Adaptive Home Comfort](Home)**
 
 - [Setup](Setup)
 - [HVAC Controller](HVAC-Controller)

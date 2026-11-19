@@ -1,4 +1,4 @@
-# Smart HVAC Control (fi.oh2th.hvac-control)
+# Adaptive Home Comfort (fi.oh2th.home-comfort)
 
 Generic Homey Pro (SDK3) app that replaces complex heating flows. It decides each zone's
 temperature from **occupancy, energy prices and outdoor temperature/forecast**. There is
