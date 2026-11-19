@@ -5,12 +5,12 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## Home Controller
 
-- Actions: **Set occupancy**, **Set long absence until**, **End long absence**.
-- Conditions: **Occupancy is**, **Long absence is on**, **Price is expensive**, **Price level is**.
-- Triggers: **Occupancy changed**, **Long absence changed**, **Expensive now changed**, **Price
+- Actions: **Set occupancy**, **Set away until**, **Back home**.
+- Conditions: **Occupancy is**, **Away is on**, **Price is expensive**, **Price level is**.
+- Triggers: **Occupancy changed**, **Away changed**, **Expensive now changed**, **Price
   level changed** (`normal`, `high` or `expensive`: a warning for notifications), **Prices
   missing for tomorrow** (once a day at the check time). The **Occupancy
-  changed** token is `present`, `coming_home` or `away`.
+  changed** token is `present` (Home), `coming_home` (Coming home) or `away` (Out).
 
 ## Heating Zone
 

@@ -2,11 +2,12 @@
 
 The controller holds what all zones share. You can add only one.
 
-- **Occupancy**: Present (someone is home), Coming Home (someone is on the way) or Away
-  (nobody is home). Set it with the **Set occupancy** card, for example from presence or a
+- **Occupancy**: Home (someone is home), Coming home (someone is on the way) or Out
+  (nobody is home right now). Set it with the **Set occupancy** card, for example from presence or a
   geofence.
 - **Season**: Heating, Cooling or Off.
-- **Long absence**: on for trips of several days. All zones go to eco and nothing cools. To stop
+- **Away**: on when everyone has left for days, off when you are home. All zones go to eco and
+  nothing cools. To stop
   all heating and cooling, set the season to Off.
 - **Price now**, in the currency set in the settings (default €).
 - **Expensive now**: on during a price peak, or over **Expensive above**.
@@ -41,5 +42,5 @@ The app only reads these meters; it never switches them.
   **Minimum price difference** and the **Percentage above average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
 - **Check tomorrow's prices at** (default 16:00): the time of the daily check that fires
   **Prices missing for tomorrow**.
-- **Long absence until**: the last day of a long absence. See
+- **Away until**: the last day away. See
   [Leave for days](How-to#leave-for-days).

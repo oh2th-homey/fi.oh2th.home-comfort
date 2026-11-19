@@ -111,7 +111,7 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
 - **Keep** (Water Heater): a reheat level. When the tank falls below it, it is heated to its target
   temperature, whatever the price: until the tank's own thermostat stops the heater.
   With tank sensors, Keep is checked on the top temperature (the hot water at the tap). Heating
-  to the target temperature also keeps the water hot enough while nobody uses it (see [Long absence](#long-absence)).
+  to the target temperature also keeps the water hot enough while nobody uses it (see [Away](#away)).
   The Hot Tub has no Keep: between ready times its own controller holds the water with its filter
   cycles and frost protection.
 - **Maximum**: heating demand always stops here.
@@ -163,23 +163,23 @@ The main heating of a hot water tank is one heat-up in the night before the morn
 Leave **Plan from** empty to heat on the price plan alone: in the cheapest hours before each ready
 time, without a fixed night block.
 
-## Long absence
+## Away
 
-During the Home Controller's **Long absence** the weekly ready times are skipped, and nothing is
+While the Home Controller's **Away** is on, the weekly ready times are skipped, and nothing is
 heated for them. One-off ready times (**Ready at a time**, **Heating ready** turned on) still count.
 The reason shows it, for example `Away until 22 Nov`. The Hot Tub's own
-controller holds its rest temperature (lower it in your flow on **Long absence changed** if you
+controller holds its rest temperature (lower it in your flow on **Away changed** if you
 want it colder while away); a Water Heater holds only **Keep**. See [Leave for days](How-to#leave-for-days).
 
 A heater on its own schedule (a night block written into the heater, see **Heating planned**) keeps
 repeating its last schedule while you're away, because no new block is planned. Turn that schedule off
-in your flow on **Long absence changed**, and back on when the absence ends. While away, write the night
-block into the heater only when no long absence is on, and let the **Heater switch** heat.
+in your flow on **Away changed**, and back on when the absence ends. While away, write the night
+block into the heater only when Away is not on, and let the **Heater switch** heat.
 
 **Hygiene heat-up while away**: water standing lukewarm in an unused tank is where legionella grow; they
 die off above 60 °C. Holding Keep alone can leave the bottom of the tank lukewarm for days, so heat the
 tank to its target temperature (its thermostat set to at least 60 °C) about once a week with a flow, for
-example: **The time is 15:00** (tomorrow's prices are known) → **Today is Sunday** → **Long absence is
+example: **The time is 15:00** (tomorrow's prices are known) → **Today is Sunday** → **Away is
 on** → **Ready at 06:00**. The one-off ready time plans the night's cheapest block as usual.
 
 ## How it decides

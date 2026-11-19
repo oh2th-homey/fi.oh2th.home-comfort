@@ -1,12 +1,12 @@
 {
   "title": {
-    "en": "Set long absence until"
+    "en": "Set away until"
   },
   "titleFormatted": {
-    "en": "Set long absence until [[date]]"
+    "en": "Set away until [[date]]"
   },
   "hint": {
-    "en": "Everyone is away for days. Starts now: zones go to eco and stop cooling until the end of the given day."
+    "en": "Everyone is away for days. Starts Away now: zones go to eco and stop cooling until the end of the given day."
   },
   "args": [
     {
@@ -18,7 +18,7 @@
       "type": "date",
       "name": "date",
       "title": {
-        "en": "Last day of absence"
+        "en": "Last day away"
       }
     }
   ]

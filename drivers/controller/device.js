@@ -320,7 +320,7 @@ module.exports = class controllerDevice extends mainDevice {
   }
 
   /**
-   * @description Start or end long absence; setValue fires "Long absence changed", the zones re-evaluate.
+   * @description Start or end long absence (shown as Away); setValue fires "Away changed", the zones re-evaluate.
    * @returns {Promise<boolean>} true when changed
    */
   async changeLongAbsence(value) {

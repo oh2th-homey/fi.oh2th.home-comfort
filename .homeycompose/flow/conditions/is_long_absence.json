@@ -1,9 +1,9 @@
 {
   "title": {
-    "en": "Long absence is on"
+    "en": "Away is on"
   },
   "titleFormatted": {
-    "en": "Long absence !{{is|is not}} on"
+    "en": "Away !{{is|is not}} on"
   },
   "args": [
     {

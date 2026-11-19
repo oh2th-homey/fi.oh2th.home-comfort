@@ -21,19 +21,19 @@
         {
           "id": "present",
           "title": {
-            "en": "Present"
+            "en": "Home"
           }
         },
         {
           "id": "coming_home",
           "title": {
-            "en": "Coming Home"
+            "en": "Coming home"
           }
         },
         {
           "id": "away",
           "title": {
-            "en": "Away"
+            "en": "Out"
           }
         }
       ]

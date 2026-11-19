@@ -865,7 +865,7 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   /**
-   * @description The reason while a long absence leaves no ready time, e.g. "Long absence until 22 Nov: no ready times".
+   * @description The reason while a long absence leaves no ready time, e.g. "Away until 22 Nov".
    */
   absenceText(until) {
     if (!until) return this.homey.__('water.reason.long_absence');

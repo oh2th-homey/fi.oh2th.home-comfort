@@ -2,14 +2,15 @@
 
 ## Follow who is home
 
-- When someone came home, **Set occupancy** to Present.
-- When the last person left, **Set occupancy** to Away.
+- When someone came home, **Set occupancy** to Home.
+- When the last person left, **Set occupancy** to Out.
 - Optional: when someone is on the way, for example near home by geofence, **Set occupancy** to
-  Coming Home.
+  Coming home.
 
 <img src="images/flow-occupancy.png" alt="Setting occupancy from presence" width="560">
 
-All zones react at once. Present and Coming Home give comfort, Away gives eco.
+All zones react at once. Home and Coming home give comfort, Out gives eco. For days away, use
+[Away](#leave-for-days) instead.
 
 ## Guests in the guest room
 
@@ -63,7 +64,7 @@ If relay off means heating in your wiring, tick **Inverted** for that relay.
 
 1. Pick it as **Air conditioner**, and as **Sensor** if it measures the room.
 2. On the configure page, choose **Eco**: the eco setpoint, or fan. With fan, the unit switches
-   to fan when the zone goes to eco and back when eco ends. During a long absence it heats at the
+   to fan when the zone goes to eco and back when eco ends. While Away is on it heats at the
    eco setpoint instead, because it may be the main heat source, and uses fan only while the room
    is at least 1 °C above eco.
 3. The zone now shows **Comfort cool** and **Eco cool**. In the cooling season the unit cools to
@@ -94,12 +95,12 @@ price. Press Boost again to stop. Manual and Off also stop a boost.
 
 ## Leave for days
 
-Use **Set long absence until** with the last day of the trip, or press **Long absence** on the
-controller. All zones go to eco and nothing cools. Air conditioners set to eco fan keep heating
-at the eco setpoint. Long absence ends after the given day. To end it earlier, press **Long
-absence** again or use **End long absence**.
+Use **Set away until** with the last day of the trip, or press **Away** on the controller (or a
+switch or panel button bound to it). All zones go to eco and nothing cools. Air conditioners set
+to eco fan keep heating at the eco setpoint. Away ends after the given day. To end it earlier,
+press **Away** again or use **Back home**, for example when the first person comes home.
 
-The Hot Tub and the Water Heater skip their weekly ready times during a long absence; ready times
+The Hot Tub and the Water Heater skip their weekly ready times while Away is on; ready times
 set with **Ready at a time** or **Heating ready** still count. Their reason says until when. The
 Hot Tub's own controller holds the water; a Water Heater holds only **Keep**.
 
@@ -118,7 +119,7 @@ notification.
 
 Each zone shows a **Reason**, for example:
 
-- `Present: comfort` or `Away: eco`
+- `Home: comfort`, `Out: eco` or `Away: eco`
 - `Price peak: eco`
 - `Boost 22 °C until 07:25`
 - `Window open: eco`
