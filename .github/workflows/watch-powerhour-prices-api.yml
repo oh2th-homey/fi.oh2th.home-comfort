@@ -56,6 +56,6 @@ jobs:
           Related: #23
           EOF
           )
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "Power by the Hour Prices API changed ($short)" --label "$LABEL" --body "$body"
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Power by the Hour Prices API changed ($short)" --label "$LABEL" --label "PbtH updated" --body "$body"
             echo "$branch: reported $short"
           done
