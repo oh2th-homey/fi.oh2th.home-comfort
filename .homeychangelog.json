@@ -55,5 +55,8 @@
   },
   "2.0.0": {
     "en": "NEW: Smart HVAC Control is now Adaptive Home Comfort: install it next to the old app and import your devices, settings, learned state and history."
+  },
+  "2.1.0": {
+    "en": "CHANGE: The import from Smart HVAC Control is removed, now that the move to Adaptive Home Comfort is done."
   }
 }
