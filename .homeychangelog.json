@@ -70,5 +70,8 @@
   },
   "2.4.1": {
     "en": "FIX: Heating ready turned on by hand heats now whatever the price and holds the water until it is turned off."
+  },
+  "2.5.0": {
+    "en": "CHANGE: The Home Controller's reason is one short phrase, for example Expensive: over 0.15 €/kWh."
   }
 }
