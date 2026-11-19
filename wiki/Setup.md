@@ -24,3 +24,18 @@
 
 If the Home Controller is removed or unavailable, the zones use its last known state for one
 hour. After that they heat to comfort and ignore prices.
+
+## Moving from Smart HVAC Control
+
+Adaptive Home Comfort was called Smart HVAC Control, with another app id, so Homey sees it as a new
+app. While both are installed (Smart HVAC Control 1.8.0 or later), adding a device starts with
+**Import from Smart HVAC Control**: pick the devices to bring over. Each keeps its name, settings,
+chosen devices, learned state and values (comfort and eco setpoints, modes). The HVAC Controller
+becomes the **Home Controller**, and its import also brings the history.
+
+1. Install Adaptive Home Comfort next to Smart HVAC Control.
+2. Add the Home Controller and import it, then the Heating Zones, Hot Tub, Water Heater and Sauna
+   the same way.
+3. Move your flows to the new app's cards and devices.
+4. Disable or uninstall Smart HVAC Control soon: until then both apps drive the same devices.
+   Insights history of the old devices is not moved.

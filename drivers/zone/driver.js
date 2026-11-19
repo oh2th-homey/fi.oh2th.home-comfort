@@ -20,6 +20,7 @@ module.exports = class zoneDriver extends mainDriver {
    */
   async onPair(session) {
     const state = { name: null, members: [], candidates: null, repair: false };
+    this.setImportHandlers(session);
     this.setSelectionHandlers(session, state);
     session.setHandler('create_zone', async ({ name, members }) => {
       this.homey.app.getController();
@@ -29,6 +30,13 @@ module.exports = class zoneDriver extends mainDriver {
         store: { members: await this.prepareMembers(members) }
       };
     });
+  }
+
+  /**
+   * @description Import: the Home Controller must exist, as at pairing.
+   */
+  async checkImport() {
+    this.homey.app.getController();
   }
 
   /**

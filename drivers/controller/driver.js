@@ -12,6 +12,7 @@ module.exports = class controllerDriver extends mainDriver {
    * When it exists already, the page points to it and to adding zones instead.
    */
   async onPair(session) {
+    this.setImportHandlers(session);
     session.setHandler('get_outdoor', async () => {
       const [existing] = this.getDevices();
       if (existing) return { exists: this.homey.__('pair.outdoor.exists', { name: existing.getName() }) };
@@ -28,6 +29,21 @@ module.exports = class controllerDriver extends mainDriver {
       if (source && source.currency) device.settings = { currency: source.currency };
       return device;
     });
+  }
+
+  /**
+   * @description Import: only one Home Controller.
+   */
+  async checkImport() {
+    if (this.getDevices().length > 0) throw new Error(this.homey.__('pair.controller_exists'));
+  }
+
+  /**
+   * @description Importing the Home Controller also brings the old app's history files.
+   */
+  async onImport(device, exported) {
+    const written = await this.homey.app.history.importFiles(exported.history);
+    this.log(`onImport - ${written} history files`);
   }
 
   /**

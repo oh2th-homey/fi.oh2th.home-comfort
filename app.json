@@ -1853,6 +1853,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "outdoor"
+          }
+        },
+        {
           "id": "outdoor"
         }
       ],
@@ -2055,6 +2061,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "sauna"
+          }
+        },
+        {
           "id": "sauna"
         }
       ],
@@ -2221,6 +2233,12 @@
         }
       },
       "pair": [
+        {
+          "id": "import",
+          "navigation": {
+            "next": "water"
+          }
+        },
         {
           "id": "water"
         }
@@ -2721,6 +2739,12 @@
       },
       "pair": [
         {
+          "id": "import",
+          "navigation": {
+            "next": "water"
+          }
+        },
+        {
           "id": "water"
         }
       ],
@@ -3160,6 +3184,12 @@
         }
       },
       "pair": [
+        {
+          "id": "import",
+          "navigation": {
+            "next": "select"
+          }
+        },
         {
           "id": "select",
           "navigation": {

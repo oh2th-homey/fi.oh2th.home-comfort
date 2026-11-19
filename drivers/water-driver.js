@@ -40,6 +40,7 @@ module.exports = class waterDriver extends mainDriver {
   }
 
   async onPair(session) {
+    this.setImportHandlers(session);
     session.setHandler('get_sources', async () => this.sourcesView(null));
     session.setHandler('create_water', async ({ name, sources, filterCycles }) => {
       this.checkController();
@@ -59,6 +60,13 @@ module.exports = class waterDriver extends mainDriver {
       const options = this.hasFilterCycles() ? { filterCycles: this.filterCyclesValue(filterCycles) } : {};
       return device.onRepairSources(await this.checkSources(sources), options);
     });
+  }
+
+  /**
+   * @description Import: as at pairing, the Home Controller exists and follows prices.
+   */
+  async checkImport() {
+    this.checkController();
   }
 
   /**

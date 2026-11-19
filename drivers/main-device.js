@@ -13,8 +13,11 @@ module.exports = class mainDevice extends Device {
     this.initializing = true;
     await this.setUnavailable(this.homey.__('device.initializing')).catch(this.error);
 
+    // An imported device (#36) gets its old capability values before it reads its state.
+    await this.restoreImportedValues(false);
     await this.onInitDevice();
     await this.checkCapabilities();
+    await this.restoreImportedValues(true);
     await this.setCapabilityListeners();
     await this.setCapabilityValues(true);
     await this.setAvailable().catch(this.error);
@@ -32,6 +35,25 @@ module.exports = class mainDevice extends Device {
    */
   async checkCapabilities() {
     return checkCapabilities(this);
+  }
+
+  /**
+   * @description Set the capability values of a device imported from the old app (store importedValues, lib/migrate.js),
+   * on the capabilities it has; the optional ones exist only after checkCapabilities, so this runs before and after
+   * it, and the second run removes the values from the store. Removed after the move (#39).
+   * @param {boolean} last - Remove importedValues from the store afterwards
+   */
+  async restoreImportedValues(last) {
+    const values = this.getStoreValue('importedValues');
+    if (!values) return;
+    for (const [cap, value] of Object.entries(values)) {
+      if (!this.hasCapability(cap) || this.getCapabilityValue(cap) === value) continue;
+      await this.setCapabilityValue(cap, value).catch((error) => this.error(`${this.getName()} - restoreImportedValues - ${cap}: ${error.message || error}`));
+    }
+    if (last) {
+      this.log(`${this.getName()} - restoreImportedValues - ${Object.keys(values).length} values`);
+      await this.unsetStoreValue('importedValues').catch(this.error);
+    }
   }
 
   /**

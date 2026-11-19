@@ -12,6 +12,8 @@ local_assets/
 /env.json
 /node_modules/
 /.homeybuild/
+# Built from .homeycompose/drivers/pair/import
+drivers/*/pair/import.html
 
 # OS / editor
 .DS_Store

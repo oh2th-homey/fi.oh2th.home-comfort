@@ -25,6 +25,13 @@
   "$extends": ["device"],
   "pair": [
     {
+      "id": "import",
+      "$template": "import",
+      "navigation": {
+        "next": "sauna"
+      }
+    },
+    {
       "id": "sauna"
     }
   ],

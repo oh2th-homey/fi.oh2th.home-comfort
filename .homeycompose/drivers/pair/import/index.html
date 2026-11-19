@@ -1,0 +1,89 @@
+<!-- Import from the old app (issue #36, removed after the move #39): the first pairing view of every driver, built
+     from .homeycompose/drivers/pair/import into drivers/<id>/pair/import.html. With nothing to import it goes on to the
+     driver's own pairing at once. -->
+<style>
+  .hz-error { color: var(--homey-color-red-500, #d33); margin: 0.8em 0; }
+  .hz-import-list { margin: 1em 0; }
+  .hz-import-buttons button { margin-top: 0.6em; }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" data-i18n="pair.import.title"></h1>
+  <p class="homey-subtitle" data-i18n="pair.import.subtitle"></p>
+</header>
+
+<form class="homey-form" onsubmit="return false">
+  <fieldset class="homey-form-checkbox-set hz-import-list" id="imp-list"></fieldset>
+  <p class="hz-error" id="imp-error"></p>
+  <div class="hz-import-buttons">
+    <button class="homey-button-primary-full" id="imp-import" data-i18n="pair.import.import"></button>
+    <button class="homey-button-secondary-full" id="imp-new" data-i18n="pair.import.new"></button>
+  </div>
+</form>
+
+<script type="application/javascript">
+  (function () {
+    // Own scope: Homey loads pairing views into one document, so top-level const/let would clash between pages.
+    const listEl = document.getElementById('imp-list');
+    const errorEl = document.getElementById('imp-error');
+    const importEl = document.getElementById('imp-import');
+
+    function checkbox(device) {
+      const label = document.createElement('label');
+      label.className = 'homey-form-checkbox';
+      const input = document.createElement('input');
+      input.className = 'homey-form-checkbox-input';
+      input.type = 'checkbox';
+      input.checked = true;
+      input.dataset.id = device.id;
+      const mark = document.createElement('span');
+      mark.className = 'homey-form-checkbox-checkmark';
+      const text = document.createElement('span');
+      text.className = 'homey-form-checkbox-text';
+      text.textContent = device.name;
+      label.append(input, mark, text);
+      return label;
+    }
+
+    document.getElementById('imp-new').addEventListener('click', () => Homey.nextView());
+
+    // One device at a time: each is created before the next is read, so a failure leaves the earlier ones added.
+    importEl.addEventListener('click', async () => {
+      errorEl.textContent = '';
+      const ids = [...listEl.querySelectorAll('input:checked')].map((input) => input.dataset.id);
+      if (!ids.length) {
+        errorEl.textContent = Homey.__('pair.import.none_picked');
+        return;
+      }
+      importEl.disabled = true;
+      Homey.showLoadingOverlay();
+      try {
+        for (const id of ids) {
+          const device = await Homey.emit('import_device', { id });
+          await Homey.createDevice(device);
+        }
+        Homey.done();
+      } catch (error) {
+        Homey.hideLoadingOverlay();
+        importEl.disabled = false;
+        errorEl.textContent = error.message || String(error);
+      }
+    });
+
+    Homey.showLoadingOverlay();
+    (async () => {
+      let devices = [];
+      try {
+        ({ devices } = await Homey.emit('get_import'));
+      } catch (error) {
+        devices = [];
+      }
+      if (!devices.length) {
+        Homey.nextView();
+        return;
+      }
+      for (const device of devices) listEl.appendChild(checkbox(device));
+      Homey.hideLoadingOverlay();
+    })();
+  })();
+</script>

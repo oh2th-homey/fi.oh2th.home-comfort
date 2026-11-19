@@ -61,6 +61,13 @@
   ],
   "pair": [
     {
+      "id": "import",
+      "$template": "import",
+      "navigation": {
+        "next": "outdoor"
+      }
+    },
+    {
       "id": "outdoor"
     }
   ],
