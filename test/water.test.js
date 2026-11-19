@@ -332,12 +332,13 @@ test('decide: a tub pre-heats only on the use day, once its main heating is allo
   const day = (date, h) => midnight(TZ, date) + h * H;
   const now = day('2026-11-19', 3);
   const use = { start: day('2026-11-20', 18), end: day('2026-11-20', 19.5) };
-  const prices = (known) =>
-    Array.from({ length: 48 * 4 }, (_, i) => {
-      const start = now + i * Q;
-      const h = ((start - midnight(TZ, '2026-11-19')) / H) % 24;
-      return { start, price: start >= midnight(TZ, '2026-11-20') && !known ? null : h < 6 ? 0.01 : 0.1 };
-    });
+  // Cheap 00–06, 0.10 otherwise; Friday's prices unknown (null) unless known.
+  const prices = (known) => Array.from({ length: 48 * 4 }, (_, i) => {
+    const start = now + i * Q;
+    if (start >= midnight(TZ, '2026-11-20') && !known) return { start, price: null };
+    const h = ((start - midnight(TZ, '2026-11-19')) / H) % 24;
+    return { start, price: h < 6 ? 0.01 : 0.1 };
+  });
   const opts = {
     now,
     temperature: 35,
@@ -371,6 +372,7 @@ test('decide: a tub pre-heats only on the use day, once its main heating is allo
   assert.strictEqual(pre.demand, true, JSON.stringify(pre.reason));
   assert.strictEqual(water.state(pre), 'preheating');
   assert.strictEqual(water.heatingNews(friday, pre, {}), null);
+  assert.ok(pre.mainStart === null || pre.mainStart > friday, String(pre.mainStart));
 });
 
 test('readyNews: once per ready time, when the state first becomes ready', () => {
@@ -726,6 +728,51 @@ test('problemCheck: with a power meter, demand without heating power for 10 minu
   let n = water.problemCheck(null, 0, 36, true);
   n = water.problemCheck(n.since, 30 * M, 36, true);
   assert.strictEqual(n.problem, false);
+});
+
+test('problemCheck: a heater that heated and stopped by itself is not a problem until the water falls 1 °C', () => {
+  const M = 60000;
+  // Heats from 36 to 37 for an hour, then the tub's own controller stops (its set point), demand still on.
+  let r = water.problemCheck(null, 0, 36, true, { flow: 'heating' });
+  for (let m = 1; m <= 60; m++) r = water.problemCheck(r.since, m * M, 36 + m / 60, true, { flow: 'heating' });
+  assert.strictEqual(r.problem, false);
+  // Hours without power, the water cooling slowly within 1 °C: no problem (neither no-power nor no-rise).
+  for (let m = 61; m <= 4 * 60; m++) {
+    r = water.problemCheck(r.since, m * M, 37 - (m - 60) / 300, true, { flow: 'circulating' });
+    assert.strictEqual(r.problem, false, `minute ${m}`);
+  }
+  // Fallen over 1 °C below where it stopped and still no power: a problem after 10 minutes.
+  r = water.problemCheck(r.since, 241 * M, 35.9, true, { flow: 'circulating' });
+  assert.strictEqual(r.problem, false);
+  r = water.problemCheck(r.since, 251 * M, 35.9, true, { flow: 'circulating' });
+  assert.strictEqual(r.problem, true);
+  // Never heated during the demand: no power for 10 minutes is still a problem.
+  let n = water.problemCheck(null, 0, 36, true, { flow: 'circulating' });
+  n = water.problemCheck(n.since, 10 * M, 36, true, { flow: 'circulating' });
+  assert.strictEqual(n.problem, true);
+});
+
+test('heatingNews: a tub tells its main heating, after any pre-heating before it', () => {
+  const now = 2 * H;
+  const use = { start: 18 * H, end: 19.5 * H };
+  // Pre-heating planned at 03:00, main heating at 15:00: nothing told yet.
+  const ahead = { use, demand: false, nextStart: 3 * H, mainStart: 15 * H, skip: false, reason: { code: 'waiting' } };
+  assert.strictEqual(water.heatingNews(now, ahead, {}), null);
+  // Pre-heating done: the main heating is told.
+  assert.strictEqual(water.heatingNews(6 * H, { ...ahead, nextStart: 15 * H }, {}), 'planned');
+  // No main heating needed (pre-heated enough): nothing to tell.
+  assert.strictEqual(water.heatingNews(6 * H, { ...ahead, nextStart: null, mainStart: null }, {}), null);
+});
+
+test('mainHeating: the run of planned heating that reaches the latest start', () => {
+  const quarters = Array.from({ length: 12 }, (_, i) => ({ start: i * Q, price: 0.1 }));
+  const heat = [true, true, false, false, false, false, true, true, true, false, false, false];
+  // Latest start inside the run 6–8: it starts at 6.
+  assert.deepStrictEqual(water.mainHeating({ heat }, quarters, 7 * Q), { mainStart: 6 * Q, mainEnd: 9 * Q });
+  // Latest start before it: the first run from there.
+  assert.deepStrictEqual(water.mainHeating({ heat }, quarters, 3 * Q), { mainStart: 6 * Q, mainEnd: 9 * Q });
+  // Nothing after the latest start: no main heating.
+  assert.deepStrictEqual(water.mainHeating({ heat }, quarters, 10 * Q), { mainStart: null, mainEnd: null });
 });
 
 test('inUse: during a use and 30 minutes after it, not before', () => {

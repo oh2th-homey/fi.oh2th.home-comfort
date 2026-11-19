@@ -1097,10 +1097,13 @@ module.exports = class waterDevice extends mainDevice {
       reason: this.getCapabilityValue('text_reason') || ''
     };
     if (news === 'planned') {
-      // The planned heating from its start: until it stops, and its mean price.
+      // The planned heating from its start: until it stops, and its mean price. A tub tells its main heating (not
+      // pre-heating in cheap hours before it).
       const controller = this.homey.app.findController();
-      const start = result.nextStart;
-      const end = typeof result.until === 'number' ? result.until : null;
+      const start = typeof result.mainStart === 'number' ? result.mainStart : result.nextStart;
+      let end = typeof result.until === 'number' ? result.until : null;
+      if (typeof result.mainEnd === 'number') end = result.mainEnd;
+      tokens.expected_start = this.formatTime(start);
       const price = end && controller ? water.meanPrice(controller.priceQuarters(now), start, end) : null;
       Object.assign(tokens, {
         end: end ? localTime(this, new Date(end)).time : '',

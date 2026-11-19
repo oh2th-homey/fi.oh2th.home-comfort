@@ -102,7 +102,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   water getting warmer, or (with a power meter) heating was demanded for 10 minutes without the
   meter showing heating power. A flow on **Heater problem turned on** can resend the heater's own
   mode. While bathing only the 1.5-hour check counts: a tub may hold its heater off while the jets
-  run.
+  run. A heater that heated and then stopped by itself has reached its own set point (a tub's
+  controller reads the water a little differently): that is not a problem until the water has
+  fallen 1 °C below where it stopped.
 
 ## Settings
 
@@ -256,7 +258,8 @@ so on a day with a filter cycle before the ready time, heating starts later or n
   temperature** and the **Reason** as tokens.
 - Trigger **Filter cycles planned** (Hot Tub), see [Filter cycles](#filter-cycles-hot-tub).
 - Triggers **Heating planned** (once per ready time, when the start of heating for it is known, at most a
-  day ahead; the plan may still change with prices) and **Heating started for a ready time** (once per
+  day ahead; the plan may still change with prices; a Hot Tub tells the start of its main heating, after any
+  pre-heating in cheap hours before it) and **Heating started for a ready time** (once per
   ready time, when the main heating for it starts, also after **Heating ready** was turned on by hand;
   not for pre-heating in cheap hours, nor when it heats again after the water was ready). Use
   **Heating started for a ready time**, not **Heating demand started**, for messages and indicator

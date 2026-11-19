@@ -3,7 +3,7 @@
     "en": "Heating planned"
   },
   "hint": {
-    "en": "Runs once per ready time, when the start of heating for it is known, at most a day ahead. A Water Heater with Plan from: when the prices for the night are known, with its night block (write Start and Minutes into a schedule in the heater, so it heats also when Homey is down). Otherwise the plan may still change with prices."
+    "en": "Runs once per ready time, when the start of heating for it is known, at most a day ahead. A Hot Tub tells its main heating, after any pre-heating in cheap hours. A Water Heater with Plan from: when the prices for the night are known, with its night block (write Start and Minutes into a schedule in the heater, so it heats also when Homey is down). Otherwise the plan may still change with prices."
   },
   "args": [
     {
