@@ -76,5 +76,8 @@
   },
   "2.6.0": {
     "en": "NEW: Optional outdoor forecast from Open-Meteo on the Home Controller, with the lowest temperature in the next 24 hours."
+  },
+  "2.6.1": {
+    "en": "NEW: The Home Controller shows where the outdoor forecast comes from and when it was fetched."
   }
 }
