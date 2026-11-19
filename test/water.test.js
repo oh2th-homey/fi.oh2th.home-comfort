@@ -1182,6 +1182,27 @@ test('decide: over the price ceiling nothing heats, not even Keep (held), except
   assert.strictEqual(night.demand, true);
 });
 
+test('decide: a ready time started by hand heats and holds over the price ceiling (issue #43)', () => {
+  const day = midnight(TZ, '2026-11-13');
+  const now = day + 20 * H;
+  const tub = { ...base, keep: null, outdoor: 5, ceiling: 0.25, quarters: dayPrices(now) };
+  const started = { start: now - 5 * 60000, end: now + 12 * H };
+  // Scheduled or Ready at a time: the ceiling stops it.
+  assert.strictEqual(water.decide({ ...tub, now, temperature: 36, useList: [started] }).reason.code, 'over_ceiling');
+  // Turned on by hand: heats to ready, then holds it (in use) whatever the price.
+  const heat = water.decide({ ...tub, now, temperature: 36, useList: [{ ...started, force: true }] });
+  assert.strictEqual(heat.demand, true);
+  assert.strictEqual(heat.reason.code, 'in_use_heat');
+  const hold = water.decide({ ...tub, now, temperature: 38.2, useList: [{ ...started, force: true }] });
+  assert.strictEqual(hold.demand, false);
+  assert.strictEqual(hold.reason.code, 'in_use');
+  // A forced one ahead of now still waits for the price.
+  assert.strictEqual(water.decide({ ...tub, now, temperature: 36, useList: [{ start: now + H, end: now + 2 * H, force: true }] }).reason.code, 'over_ceiling');
+  // uses() keeps the flag.
+  const [use] = water.uses({ now, timeZone: TZ, oneOffs: [{ start: now, minutes: 60, force: true }] });
+  assert.strictEqual(use.force, true);
+});
+
 test('decide: a ready time whose own time costs over the price limit is skipped, however cheap heating ahead is', () => {
   const day = midnight(TZ, '2026-11-13');
   const useList = [{ start: day + 18 * H, end: day + 19 * H + 30 * 60000 }];

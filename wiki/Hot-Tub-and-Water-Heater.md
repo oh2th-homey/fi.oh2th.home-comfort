@@ -81,8 +81,9 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   follows the mode (heating towards it in Automatic and Heat), not whether the heater heats now:
   that is the **Heating demand** button and the **State**.
 - **Heating ready** (button): on while the water is held at the target temperature.
-  Turn it off to end it now; turn it on to be ready now (held until you turn it off, at most
-  as long as set in the settings).
+  Turn it on to use it now: it heats to the target temperature right away, whatever the price
+  (also over **Expensive above**), and holds it until you turn it off, at most as long as set in
+  the settings. Turn it off to end it now. A good button for a panel next to the tub.
 - **State**: **Pre-heating** (heating ahead of a ready time in cheap hours), **Heating** (heating
   demand is on otherwise), **Ready** (at the target temperature for a ready time,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
@@ -186,7 +187,7 @@ on** → **Ready at 06:00**. The one-off ready time plans the night's cheapest b
 
 1. **Safety first**: at Maximum it stops. Over the home's price ceiling (Home Controller:
    **Expensive above**) it doesn't heat at all, not even for Keep, except in a Water Heater's night
-   block; **Heating held by the price ceiling** runs when the water falls below Keep meanwhile.
+   block and while **Heating ready** turned on by hand is running; **Heating held by the price ceiling** runs when the water falls below Keep meanwhile.
    Otherwise a Water Heater below Keep heats.
 2. **From the ready time** it holds the target temperature for **Keep ready for**. Ready reached
    within **Hold before ready time** of it is held too, so the water doesn't cool again before

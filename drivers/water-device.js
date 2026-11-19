@@ -198,7 +198,8 @@ module.exports = class waterDevice extends mainDevice {
       const now = Date.now();
       const active = this.activeUse(now);
       if (value && !active) {
-        const oneOffs = [...(this.getStoreValue('oneOffs') || []), { start: now, minutes: (this.getSetting('manual_ready_hours') || 12) * 60 }];
+        // By hand: use it now, whatever the price (issue #43).
+        const oneOffs = [...(this.getStoreValue('oneOffs') || []), { start: now, minutes: (this.getSetting('manual_ready_hours') || 12) * 60, force: true }];
         await this.setStoreValue('oneOffs', oneOffs);
       } else if (!value && active) {
         await this.setStoreValue('skipped', [...(this.getStoreValue('skipped') || []), active.start]);
