@@ -444,57 +444,6 @@ module.exports = class hvacDevice extends mainDevice {
   }
 
   /**
-   * @description Import one day of prices from a flow token.
-   * @param {string} day - 'today' or 'tomorrow'
-   * @param {string} input - JSON array of prices from local midnight
-   */
-  async onAction_IMPORT_PRICES(day, input) {
-    // Deprecated: while prices come from Power by the Hour, imports are ignored (the flow still succeeds).
-    if (this.getStoreValue('priceSource')) {
-      this.log(`${this.getName()} - onAction_IMPORT_PRICES - ignored, prices come from Power by the Hour`);
-      return false;
-    }
-    const timeZone = this.homey.clock.getTimezone();
-    const now = Date.now();
-    const today = localDate(timeZone, now);
-    const date = day === 'tomorrow' ? addDays(today, 1) : today;
-
-    const parsed = prices.parsePrices(input);
-    if (parsed.error) return this.rejectImport(day, parsed.error, {});
-    if (parsed.values.length === 0 && day === 'tomorrow') {
-      this.log(`${this.getName()} - onAction_IMPORT_PRICES - tomorrow empty, not published yet`);
-      return false;
-    }
-
-    // 15- or 60-minute prices, from the number of values; a partial tomorrow keeps today's resolution.
-    const days = this.getStoreValue('prices') || {};
-    const known = day === 'tomorrow' && days[today] ? days[today].resolution : null;
-    const resolution = prices.detectResolution(parsed.values.length, timeZone, date, known);
-    const { slots } = prices.dayInfo(timeZone, date, resolution);
-    const check = prices.checkDay(parsed.values, slots, day);
-    if (!check.ok) return this.rejectImport(day, check.error, check.args);
-
-    const entry = prices.mergeDay(days[date], parsed.values, resolution, now);
-    if (entry) {
-      days[date] = entry;
-      await this.setStoreValue('prices', prices.pruneDays(days, today));
-      this.log(`${this.getName()} - onAction_IMPORT_PRICES - ${day} ${date}: ${parsed.values.length}/${slots}${check.partial ? ' partial' : ''}`);
-    } else {
-      this.log(`${this.getName()} - onAction_IMPORT_PRICES - ${day} ${date}: kept the longer stored day`);
-    }
-    await this.triggerFlow('prices_imported', { day, count: parsed.values.length });
-    await this.evaluatePrices();
-    return true;
-  }
-
-  async rejectImport(day, error, args) {
-    const reason = this.homey.__('import.rejected', { day: this.homey.__(`import.${day}`), detail: this.homey.__(`import.${error}`, args) });
-    this.log(`${this.getName()} - onAction_IMPORT_PRICES - ${reason}`);
-    await this.setValue('text_reason', reason);
-    throw new Error(reason);
-  }
-
-  /**
    * @description Evaluate the current price slot and update price capabilities and reason.
    */
   async evaluatePrices(settings = this.getSettings(), firstRun = false) {

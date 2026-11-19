@@ -95,48 +95,6 @@ test('rate is highest uses tomorrow across midnight', () => {
   assert.strictEqual(prices.evaluate({ days, timeZone: TZ, now }).expensive, false);
 });
 
-test('parsePrices accepts the token forms', () => {
-  assert.deepStrictEqual(prices.parsePrices('[0.1,0.2]'), { values: [0.1, 0.2] });
-  assert.deepStrictEqual(prices.parsePrices("['0.1','0.2']"), { values: [0.1, 0.2] });
-  assert.deepStrictEqual(prices.parsePrices([0.1, '0.2']), { values: [0.1, 0.2] });
-  assert.deepStrictEqual(prices.parsePrices({ 1: 0.2, 0: 0.1 }), { values: [0.1, 0.2] });
-  assert.deepStrictEqual(prices.parsePrices('{"0":0.1,"1":0.2}'), { values: [0.1, 0.2] });
-  assert.deepStrictEqual(prices.parsePrices(''), { values: [] });
-  assert.deepStrictEqual(prices.parsePrices(null), { values: [] });
-  assert.deepStrictEqual(prices.parsePrices('[]'), { values: [] });
-  assert.deepStrictEqual(prices.parsePrices('nope'), { error: 'not_json' });
-  assert.deepStrictEqual(prices.parsePrices('{"a":1}'), { error: 'not_array' });
-  assert.deepStrictEqual(prices.parsePrices({ 0: 1, 2: 3 }), { error: 'not_array' });
-  assert.deepStrictEqual(prices.parsePrices('[0.1,null]'), { error: 'not_numeric' });
-  assert.deepStrictEqual(prices.parsePrices('[0.1,"x"]'), { error: 'not_numeric' });
-});
-
-test('checkDay: full, partial, too many', () => {
-  assert.deepStrictEqual(prices.checkDay(Array(96).fill(1), 96, 'today'), { ok: true, partial: false });
-  assert.strictEqual(prices.checkDay(Array(40).fill(1), 96, 'today').error, 'today_incomplete');
-  assert.deepStrictEqual(prices.checkDay(Array(40).fill(1), 96, 'tomorrow'), { ok: true, partial: true });
-  assert.strictEqual(prices.checkDay(Array(101).fill(1), 100, 'tomorrow').error, 'too_many');
-});
-
-test('resolution detected from the number of values', () => {
-  assert.strictEqual(prices.detectResolution(96, TZ, '2026-11-10'), 15);
-  assert.strictEqual(prices.detectResolution(24, TZ, '2026-11-10'), 60);
-  assert.strictEqual(prices.detectResolution(25, TZ, '2026-10-25'), 60);
-  assert.strictEqual(prices.detectResolution(100, TZ, '2026-10-25'), 15);
-  // A partial tomorrow keeps today's resolution: 4 quarters, or 4 hours.
-  assert.strictEqual(prices.detectResolution(4, TZ, '2026-11-11', 15), 15);
-  assert.strictEqual(prices.detectResolution(4, TZ, '2026-11-11', 60), 60);
-  assert.strictEqual(prices.detectResolution(96, TZ, '2026-11-11', 60), 15);
-});
-
-test('mergeDay: longer wins, empty keeps', () => {
-  const stored = { resolution: 15, values: Array(96).fill(1) };
-  assert.strictEqual(prices.mergeDay(stored, [], 15, 0), null);
-  assert.strictEqual(prices.mergeDay(stored, Array(40).fill(2), 15, 0), null);
-  assert.strictEqual(prices.mergeDay(stored, Array(96).fill(2), 15, 5).importedAt, 5);
-  assert.strictEqual(prices.mergeDay({ resolution: 60, values: Array(24).fill(1) }, Array(10).fill(2), 15, 0).values.length, 10);
-});
-
 test('pruneDays keeps yesterday and later', () => {
   const days = { '2026-11-08': {}, '2026-11-09': {}, '2026-11-10': {}, '2026-11-11': {} };
   assert.deepStrictEqual(Object.keys(prices.pruneDays(days, '2026-11-10')), ['2026-11-09', '2026-11-10', '2026-11-11']);

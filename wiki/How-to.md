@@ -23,7 +23,7 @@ goes back to Always eco.
 
 ## Save on price peaks
 
-1. Import the prices (see [Prices](Prices)).
+1. Choose the price device from Power by the Hour (see [Prices](Prices)).
 2. Choose the price model in the controller settings:
    - **Rate is highest** (default, needs 15-minute prices): only short peaks of one or two
      quarters count, also across the hour. A price must also be at least the **minimum price

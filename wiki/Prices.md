@@ -26,11 +26,4 @@ If Power by the Hour is not installed, is older than version 9 or is not running
 keeps the prices it already has and its **Reason** says why no new ones arrive. The controller
 fires **Prices missing for tomorrow** at its check time when tomorrow's prices are not complete.
 
-## Import prices card (deprecated)
-
-Older setups brought the prices in with a flow and the **Import prices** card. That card and the
-**Prices imported** trigger are deprecated: existing flows keep working until you choose a price
-device under **Prices**, and from then on imports are ignored. Both cards will be removed in a
-later major version, so choose a price device and then delete the import flow.
-
 To choose what counts as a price peak, see [Save on price peaks](How-to#save-on-price-peaks).

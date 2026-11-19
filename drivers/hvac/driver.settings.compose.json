@@ -13,7 +13,7 @@
         },
         "value": "€",
         "hint": {
-          "en": "Currency of the imported prices, for example € or kr."
+          "en": "Currency shown with the prices, for example € or kr."
         }
       },
       {

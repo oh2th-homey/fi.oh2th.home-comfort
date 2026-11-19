@@ -464,40 +464,6 @@
         "id": "member_write_failed"
       },
       {
-        "deprecated": true,
-        "title": {
-          "en": "Prices imported"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=hvac"
-          }
-        ],
-        "tokens": [
-          {
-            "name": "day",
-            "type": "string",
-            "title": {
-              "en": "Day"
-            },
-            "example": {
-              "en": "tomorrow"
-            }
-          },
-          {
-            "name": "count",
-            "type": "number",
-            "title": {
-              "en": "Number of prices"
-            },
-            "example": 96
-          }
-        ],
-        "id": "prices_imported"
-      },
-      {
         "title": {
           "en": "Prices missing for tomorrow"
         },
@@ -1208,57 +1174,6 @@
         "id": "end_long_absence"
       },
       {
-        "deprecated": true,
-        "title": {
-          "en": "Import prices"
-        },
-        "titleFormatted": {
-          "en": "Import [[day]] prices [[prices]]"
-        },
-        "hint": {
-          "en": "Use the price token of your energy price app: a JSON array of one day's quarter-hour (or hourly) prices per kWh, starting at local midnight. Tomorrow's prices may be partial or empty."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=hvac"
-          },
-          {
-            "type": "dropdown",
-            "name": "day",
-            "title": {
-              "en": "Day"
-            },
-            "values": [
-              {
-                "id": "today",
-                "title": {
-                  "en": "today's"
-                }
-              },
-              {
-                "id": "tomorrow",
-                "title": {
-                  "en": "tomorrow's"
-                }
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "name": "prices",
-            "title": {
-              "en": "Prices"
-            },
-            "placeholder": {
-              "en": "[0.0959,0.0804,…]"
-            }
-          }
-        ],
-        "id": "import_prices"
-      },
-      {
         "title": {
           "en": "Use own occupancy setting"
         },
@@ -1957,7 +1872,7 @@
               },
               "value": "€",
               "hint": {
-                "en": "Currency of the imported prices, for example € or kr."
+                "en": "Currency shown with the prices, for example € or kr."
               }
             },
             {

@@ -138,16 +138,6 @@
     "over_high": "High: over __high__",
     "source_error": "Power by the Hour: __detail__"
   },
-  "import": {
-    "today": "today",
-    "tomorrow": "tomorrow",
-    "rejected": "Prices for __day__ rejected: __detail__",
-    "not_json": "not JSON",
-    "not_array": "not a list",
-    "not_numeric": "not numbers",
-    "too_many": "__count__ values, day has __slots__",
-    "today_incomplete": "__count__ of __slots__ values"
-  },
   "zone": {
     "controller_last": "Controller missing: last state",
     "controller_fallback": "Controller missing: comfort",

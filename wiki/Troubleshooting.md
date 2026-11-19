@@ -10,8 +10,6 @@
   example it is not installed, older than version 9, or the chosen price device is gone. The
   prices it already has are kept. Update Power by the Hour, or choose another price device with
   Repair.
-- **Prices rejected** (deprecated Import prices card only): the controller's reason says why, for
-  example today's prices with too few values. The previous prices are kept.
 - **A thermostat does not keep its setpoint, or falls back to 4 °C**: the zone writes it again,
   then tries once with a whole degree. If that fails too, the zone shows a problem, fires
   **Member write failed** and tries again later. If the device only takes whole degrees, set its
