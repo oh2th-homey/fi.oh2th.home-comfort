@@ -292,5 +292,14 @@
       "in_use": "In use since __since__",
       "off": "Off"
     }
+  },
+  "forecast": {
+    "source": {
+      "met_nordic": "MET Nordic (1 km) for 2½ days, then ECMWF; fetched __time__",
+      "best_match": "Open-Meteo best match; fetched __time__",
+      "off": "–",
+      "failed": "Not fetched since __time__: __error__",
+      "never": "Not fetched yet: __error__"
+    }
   }
 }
