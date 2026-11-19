@@ -361,6 +361,9 @@ test('decide: a tub pre-heats only on the use day, once its main heating is allo
   const known = water.decide({ ...opts, quarters: prices(true) });
   assert.strictEqual(known.demand, false, JSON.stringify(known.reason));
   assert.ok(known.nextStart >= day('2026-11-20', 6), new Date(known.nextStart).toISOString());
+  // Nothing in the plan heats tonight, also with Friday's prices unknown (they count as the mean of the known ones).
+  const plan = unknown.plan.heat.slice(0, 12 * 4);
+  assert.ok(plan.every((h) => !h), plan.join(','));
   // Friday 03:00: the bath day and its main heating allowed: pre-heats in the cheap night, silently.
   const friday = day('2026-11-20', 3);
   const fridayPrices = prices(true).map((q) => ({ ...q, start: q.start + 24 * H })).filter((q) => q.start >= friday);
