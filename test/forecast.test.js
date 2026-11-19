@@ -12,6 +12,7 @@ test('openMeteoUrl rounds the location to two decimals', () => {
   assert.ok(url.startsWith('https://api.open-meteo.com/v1/forecast?'));
   assert.ok(url.includes('latitude=60.12&longitude=24.99'));
   assert.ok(url.includes('hourly=temperature_2m') && url.includes('timeformat=unixtime') && url.includes('forecast_days=3'));
+  assert.ok(url.includes('models=best_match,metno_nordic'));
 });
 
 test('parseOpenMeteo: points in ms, sorted, without missing readings', () => {
@@ -55,4 +56,16 @@ test('usable: only a fresh forecast with points', () => {
   assert.strictEqual(forecast.usable({ fetchedAt: T0, points }, T0 + 7 * H), false);
   assert.strictEqual(forecast.usable({ fetchedAt: T0, points: [] }, T0), false);
   assert.strictEqual(forecast.usable(null, T0), false);
+});
+
+test('parseOpenMeteo and sourceOf with two models: MET Nordic inside its area, best match elsewhere', () => {
+  const time = [0, 1, 2, 3, 4, 5, 6].map((h) => T0 / 1000 + h * 3600);
+  const nordic = { hourly: { time, temperature_2m_best_match: [5, 5, 4, 4, 3, 3, 2], temperature_2m_metno_nordic: [5, 5, 4, 4, 3, 3, null] } };
+  assert.strictEqual(forecast.sourceOf(nordic), 'met_nordic');
+  assert.deepStrictEqual(forecast.parseOpenMeteo(nordic)[6], [T0 + 6 * H, 2]);
+  // Outside MET Nordic's area Open-Meteo answers with one plain column.
+  const elsewhere = { hourly: { time, temperature_2m: [9, 9, 8, 8, 7, 7, 6] } };
+  assert.strictEqual(forecast.sourceOf(elsewhere), 'best_match');
+  assert.strictEqual(forecast.parseOpenMeteo(elsewhere).length, 7);
+  assert.strictEqual(forecast.sourceOf({ hourly: { time, temperature_2m_best_match: [9, 9, 8, 8, 7, 7, 6], temperature_2m_metno_nordic: [] } }), 'best_match');
 });

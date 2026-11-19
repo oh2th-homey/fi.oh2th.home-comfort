@@ -291,7 +291,10 @@ module.exports = class controllerDevice extends mainDevice {
   async onForecastSetting() {
     this.log(`${this.getName()} - onForecastSetting - ${this.forecastOn()}`);
     this.forecastTriedAt = null;
-    if (!this.forecastOn()) await this.unsetStoreValue('forecast').catch(this.error);
+    if (!this.forecastOn()) {
+      await this.unsetStoreValue('forecast').catch(this.error);
+      await this.showForecastSource(null);
+    }
     await this.checkCapabilities();
     if (this.forecastOn()) await this.refreshForecast(Date.now(), true);
   }
@@ -314,14 +317,33 @@ module.exports = class controllerDevice extends mainDevice {
       if (typeof latitude !== 'number' || typeof longitude !== 'number' || (latitude === 0 && longitude === 0)) throw new Error('the Homey has no location');
       const response = await fetch(forecast.openMeteoUrl(latitude, longitude), { signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const points = forecast.parseOpenMeteo(await response.json());
-      await this.setStoreValue('forecast', { fetchedAt: now, points });
+      const body = await response.json();
+      const points = forecast.parseOpenMeteo(body);
+      const source = forecast.sourceOf(body);
+      await this.setStoreValue('forecast', { fetchedAt: now, points, source });
       this.forecastTriedAt = null;
-      this.log(`${this.getName()} - refreshForecast - ${points.length} hours`);
+      this.log(`${this.getName()} - refreshForecast - ${points.length} hours, ${source}`);
+      await this.showForecastSource(null);
     } catch (error) {
       this.error(`${this.getName()} - refreshForecast - ${error.message || error}`);
+      await this.showForecastSource(error.message || String(error));
     }
     await this.showForecast(now);
+  }
+
+  /**
+   * @description The read-only setting Forecast source: where the forecast comes from and when it was fetched, or why not.
+   * @param {string|null} error - The last fetch's error
+   */
+  async showForecastSource(error) {
+    const stored = this.forecastOn() ? this.getStoreValue('forecast') : null;
+    let text = this.homey.__('forecast.source.off');
+    if (this.forecastOn() && error) {
+      text = stored ? this.homey.__('forecast.source.failed', { time: this.formatLocal(stored.fetchedAt), error }) : this.homey.__('forecast.source.never', { error });
+    } else if (stored) {
+      text = this.homey.__(`forecast.source.${stored.source === 'met_nordic' ? 'met_nordic' : 'best_match'}`, { time: this.formatLocal(stored.fetchedAt) });
+    }
+    if (this.getSetting('forecast_source') !== text) await this.setSettings({ forecast_source: text }).catch(this.error);
   }
 
   /**

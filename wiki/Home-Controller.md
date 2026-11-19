@@ -56,6 +56,9 @@ With **Outdoor forecast from Open-Meteo** on, the controller fetches the hourly 
 temperature for the next three days from [Open-Meteo](https://open-meteo.com/) once an hour: no
 account or API key. It sends only the Homey's location, rounded to about 1 km. The controller then
 shows **Forecast low (24 h)**, the lowest temperature in the next 24 hours.
+**Forecast source** under the setting shows where it came from and when: in the Nordic countries
+**MET Nordic** (1 km, updated hourly) for about 2½ days, then ECMWF; elsewhere Open-Meteo's best
+match of models.
 
 The forecast is for planning ahead; the current outdoor temperature still comes from your own
 sensor. Without the forecast, or when it can't be fetched for 6 hours, the current outdoor
