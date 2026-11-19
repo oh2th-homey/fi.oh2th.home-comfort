@@ -46,5 +46,8 @@
   },
   "1.6.0": {
     "en": "CHANGE: The Import prices card and the Prices imported trigger are removed; prices come from Power by the Hour."
+  },
+  "1.7.0": {
+    "en": "CHANGE: The Sauna no longer shows a cost estimate; real costs come from your energy app."
   }
 }
