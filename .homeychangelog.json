@@ -61,5 +61,8 @@
   },
   "2.2.0": {
     "en": "NEW: The Home Controller can also count heating meters outside the zones, such as a ventilation unit, and shows the split between zones and other meters."
+  },
+  "2.3.0": {
+    "en": "CHANGE: Long absence is now called Away, and the occupancy states are Home, Coming home and Out."
   }
 }
