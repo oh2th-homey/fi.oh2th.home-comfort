@@ -173,7 +173,14 @@ want it colder while away); a Water Heater holds only **Keep**. See [Leave for d
 
 A heater on its own schedule (a night block written into the heater, see **Heating planned**) keeps
 repeating its last schedule while you're away, because no new block is planned. Turn that schedule off
-in your flow on **Long absence changed**, and back on when the absence ends.
+in your flow on **Long absence changed**, and back on when the absence ends. While away, write the night
+block into the heater only when no long absence is on, and let the **Heater switch** heat.
+
+**Hygiene heat-up while away**: water standing lukewarm in an unused tank is where legionella grow; they
+die off above 60 °C. Holding Keep alone can leave the bottom of the tank lukewarm for days, so heat the
+tank to its target temperature (its thermostat set to at least 60 °C) about once a week with a flow, for
+example: **The time is 15:00** (tomorrow's prices are known) → **Today is Sunday** → **Long absence is
+on** → **Ready at 06:00**. The one-off ready time plans the night's cheapest block as usual.
 
 ## How it decides
 
