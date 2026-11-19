@@ -49,7 +49,9 @@ module.exports = class mainDriver extends Driver {
   async readOldExport() {
     const api = this.homey.api.getApiApp(migrate.OLD_APP);
     if (!(await api.getInstalled())) throw new Error('old app not installed');
-    return migrate.checkExport(await api.get('/export'));
+    const exported = await api.get('/export');
+    migrate.checkExport(exported);
+    return exported;
   }
 
   /**
