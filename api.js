@@ -23,6 +23,24 @@ module.exports = {
   },
 
   /**
+   * @description GET /export: everything needed to move to the renamed app (#36), read only. Every device with its
+   * driver, name, data, store (sources, learned state), settings and capability values, and the history files.
+   */
+  async getExport({ homey }) {
+    const drivers = ['hvac', 'zone', 'spa', 'water-heater', 'sauna'];
+    const devices = drivers.flatMap((driver) => homey.drivers.getDriver(driver).getDevices().map((device) => ({
+      driver,
+      name: device.getName(),
+      data: device.getData(),
+      store: device.getStore(),
+      settings: device.getSettings(),
+      capabilities: Object.fromEntries(device.getCapabilities().map((cap) => [cap, device.getCapabilityValue(cap)]))
+    })));
+    const history = await homey.app.history.exportFiles();
+    return { app: homey.manifest.id, version: homey.manifest.version, exportedAt: new Date().toISOString(), devices, history };
+  },
+
+  /**
    * @description GET /water: what each Hot Tub, Water Heater and Sauna has learned (model, hours seen, open segment or
    * session), to follow the learning.
    */

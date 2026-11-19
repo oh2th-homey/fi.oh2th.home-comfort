@@ -33,6 +33,10 @@
     "getWater": {
       "method": "GET",
       "path": "/water"
+    },
+    "getExport": {
+      "method": "GET",
+      "path": "/export"
     }
   },
   "images": {
