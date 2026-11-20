@@ -6,6 +6,7 @@
 - [Zone devices](Zone-devices)
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater)
 - [Sauna](Sauna)
+- [Water Monitor](Water-Monitor)
 - [Prices](Prices)
 - [Graphs](Graphs)
 - [Flow cards](Flow-cards)

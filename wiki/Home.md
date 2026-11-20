@@ -35,6 +35,8 @@ homey app install
 - [Heating Zone](Heating-Zone): one room or area.
 - [Zone devices](Zone-devices): thermostats, relays, air conditioners, sensors, windows.
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater): heat stored water in the cheapest hours.
+- [Sauna](Sauna): follow a sauna session.
+- [Water Monitor](Water-Monitor): the home's water use and cost.
 - [Prices](Prices): energy prices from Power by the Hour.
 - [Graphs](Graphs): today and tomorrow as images on the devices.
 - [Flow cards](Flow-cards): the cards the app adds.

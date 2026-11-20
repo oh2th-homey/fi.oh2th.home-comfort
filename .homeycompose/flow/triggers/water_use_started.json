@@ -1,0 +1,25 @@
+{
+  "title": {
+    "en": "Water use started"
+  },
+  "hint": {
+    "en": "Water started running: the flow rose above zero."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=water-monitor"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "flow",
+      "type": "number",
+      "title": {
+        "en": "Flow (l/min)"
+      },
+      "example": 7.5
+    }
+  ]
+}

@@ -939,6 +939,82 @@
           }
         ],
         "id": "water_ready_skipped"
+      },
+      {
+        "title": {
+          "en": "Water use ended"
+        },
+        "hint": {
+          "en": "A minute after the flow stopped. Shorter pauses belong to the same use."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-monitor"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "litres",
+            "type": "number",
+            "title": {
+              "en": "Litres"
+            },
+            "example": 38
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": 5
+          },
+          {
+            "name": "flow",
+            "type": "number",
+            "title": {
+              "en": "Average flow (l/min)"
+            },
+            "example": 7.6
+          },
+          {
+            "name": "cost",
+            "type": "number",
+            "title": {
+              "en": "Cost"
+            },
+            "example": 0.15
+          }
+        ],
+        "id": "water_use_ended"
+      },
+      {
+        "title": {
+          "en": "Water use started"
+        },
+        "hint": {
+          "en": "Water started running: the flow rose above zero."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-monitor"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "flow",
+            "type": "number",
+            "title": {
+              "en": "Flow (l/min)"
+            },
+            "example": 7.5
+          }
+        ],
+        "id": "water_use_started"
       }
     ],
     "conditions": [
@@ -2078,6 +2154,23 @@
               "value": "16:00",
               "hint": {
                 "en": "Local time (HH:mm) of the daily check. The trigger Prices missing for tomorrow runs when tomorrow's prices are still missing or partial."
+              }
+            },
+            {
+              "id": "water_price",
+              "type": "number",
+              "label": {
+                "en": "Water price"
+              },
+              "value": 0,
+              "min": 0,
+              "max": 100,
+              "step": 0.01,
+              "units": {
+                "en": "per m³"
+              },
+              "hint": {
+                "en": "Supply and wastewater together, in the currency above, for the Water Monitor's costs. 0 for none."
               }
             }
           ]
@@ -3294,6 +3387,55 @@
       ],
       "connectivity": [],
       "images": {
+        "small": "/drivers/water-monitor/assets/images/small.png",
+        "large": "/drivers/water-monitor/assets/images/large.png"
+      },
+      "name": {
+        "en": "Water Monitor"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "meter_water.today",
+        "meter_water.month"
+      ],
+      "capabilitiesOptions": {
+        "meter_water.today": {
+          "title": {
+            "en": "Water today"
+          },
+          "units": {
+            "en": "l"
+          },
+          "decimals": 0
+        },
+        "meter_water.month": {
+          "title": {
+            "en": "Water this month"
+          },
+          "units": {
+            "en": "m³"
+          },
+          "decimals": 2
+        }
+      },
+      "pair": [
+        {
+          "id": "monitor"
+        }
+      ],
+      "repair": [
+        {
+          "id": "monitor"
+        }
+      ],
+      "id": "water-monitor"
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
         "small": "/drivers/zone/assets/images/small.png",
         "large": "/drivers/zone/assets/images/large.png"
       },
@@ -3976,6 +4118,19 @@
       },
       "hint": {
         "en": "When heating starts next: a time, Now while heating, or – when nothing is planned."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "./assets/capabilities/clock.svg"
+    },
+    "text_last_use": {
+      "type": "string",
+      "title": {
+        "en": "Last use"
+      },
+      "hint": {
+        "en": "The water use going on now, or the last one: when, how many litres and the average flow."
       },
       "getable": true,
       "setable": false,

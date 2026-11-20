@@ -49,6 +49,8 @@ The app only reads these meters; it never switches them.
   **Minimum price difference** and the **Percentage above average** for the Above average model. See [Save on price peaks](How-to#save-on-price-peaks).
 - **Check tomorrow's prices at** (default 16:00): the time of the daily check that fires
   **Prices missing for tomorrow**.
+- **Water price** (per m³, 0 for none): supply and wastewater together, for the
+  [Water Monitor](Water-Monitor)'s costs.
 - **Away until**: the last day away. See
   [Leave for days](How-to#leave-for-days).
 - **Automatic season**: the limits of the [automatic season](#automatic-season).

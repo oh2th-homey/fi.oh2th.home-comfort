@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" fill="#000000" stroke="none">
+  <path fill-rule="evenodd" d="M180 420A300 300 0 1 0 780 420A300 300 0 1 0 180 420ZM220 420A260 260 0 1 1 740 420A260 260 0 1 1 220 420Z"/>
+  <path d="M480 250C552 352 590 424 590 490A110 110 0 0 1 370 490C370 424 408 352 480 250Z"/>
+  <rect x="420" y="715" width="120" height="70"/>
+  <rect x="80" y="770" width="800" height="90" rx="20"/>
+</svg>

@@ -1,0 +1,100 @@
+<!-- The Water Monitor's only pairing page: the house water meter, a device with meter_water and/or measure_water. The
+     same file serves pair and repair (kept identical by a test). -->
+<style>
+  .wm-error {
+    color: var(--homey-color-red-500, #d33);
+    margin: 0.8em 0;
+  }
+</style>
+
+<header class="homey-header">
+  <h1 class="homey-title" data-i18n="pair.monitor.name"></h1>
+  <p class="homey-subtitle" data-i18n="pair.monitor.subtitle"></p>
+</header>
+
+<form class="homey-form" id="wm-form" onsubmit="return false;" style="display: none">
+  <div class="homey-form-group" id="wm-name-group">
+    <label class="homey-form-label" for="wm-name" data-i18n="pair.water.name"></label>
+    <input class="homey-form-input" id="wm-name" type="text" />
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="wm-meter" data-i18n="pair.monitor.meter"></label>
+    <select class="homey-form-select" id="wm-meter"></select>
+  </div>
+  <p class="homey-form-hint" id="wm-hint"></p>
+  <p class="wm-error" id="wm-error"></p>
+  <button class="homey-button-primary-full" id="wm-save" data-i18n="pair.water.save"></button>
+</form>
+
+<p class="wm-error" id="wm-blocked" style="display: none"></p>
+
+<script type="application/javascript">
+  (function () {
+    // Own scope: Homey loads pairing views into one document, so top-level const/let would clash between pages.
+    let view = null;
+    const el = (id) => document.getElementById(id);
+    const errorEl = el('wm-error');
+
+    function option(value, text) {
+      const node = document.createElement('option');
+      node.value = value;
+      node.textContent = text;
+      return node;
+    }
+
+    function label(device) {
+      return device.zone ? `${device.zone} · ${device.name}` : device.name;
+    }
+
+    // What the picked meter gives: litres from the meter reading, uses from the flow.
+    function showHint() {
+      const meter = view.meters.find((m) => m.id === el('wm-meter').value);
+      if (!meter) el('wm-hint').textContent = '';
+      else if (meter.meter && meter.flow) el('wm-hint').textContent = Homey.__('pair.monitor.both');
+      else if (meter.meter) el('wm-hint').textContent = Homey.__('pair.monitor.meter_only');
+      else el('wm-hint').textContent = Homey.__('pair.monitor.flow_only');
+    }
+
+    el('wm-meter').addEventListener('change', showHint);
+
+    el('wm-save').addEventListener('click', async () => {
+      errorEl.textContent = '';
+      if (!el('wm-meter').value) {
+        errorEl.textContent = Homey.__('pair.monitor.no_meter');
+        return;
+      }
+      const meter = { id: el('wm-meter').value };
+      try {
+        if (view.repair) {
+          await Homey.emit('save_monitor_sources', { meter });
+          Homey.done();
+          return;
+        }
+        const device = await Homey.emit('create_monitor', { name: el('wm-name').value.trim(), meter });
+        await Homey.createDevice(device);
+        Homey.done();
+      } catch (error) {
+        errorEl.textContent = error.message || String(error);
+      }
+    });
+
+    Homey.showLoadingOverlay();
+    (async () => {
+      try {
+        view = await Homey.emit('get_monitor_sources');
+        el('wm-name-group').style.display = view.repair ? 'none' : '';
+        el('wm-name').value = Homey.__('pair.monitor.name');
+        el('wm-meter').appendChild(option('', Homey.__('pair.water.choose')));
+        for (const meter of view.meters) el('wm-meter').appendChild(option(meter.id, label(meter)));
+        el('wm-meter').value = view.current && view.meters.some((m) => m.id === view.current.id) ? view.current.id : '';
+        showHint();
+        el('wm-form').style.display = '';
+      } catch (error) {
+        el('wm-blocked').textContent = error.message || String(error);
+        el('wm-blocked').style.display = '';
+      } finally {
+        Homey.hideLoadingOverlay();
+      }
+    })();
+  })();
+</script>

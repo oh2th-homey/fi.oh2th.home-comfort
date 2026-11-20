@@ -22,7 +22,7 @@ test('package.json matches the app manifest', () => {
 });
 
 test('pair and repair views are the same file', () => {
-  for (const driver of ['controller', 'zone', 'spa', 'water-heater', 'sauna']) {
+  for (const driver of ['controller', 'zone', 'spa', 'water-heater', 'sauna', 'water-monitor']) {
     const dir = path.join(__dirname, '..', 'drivers', driver);
     for (const view of fs.readdirSync(path.join(dir, 'repair'))) {
       const pair = fs.readFileSync(path.join(dir, 'pair', view), 'utf8');

@@ -48,3 +48,8 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 - Condition: **State is** (Off, Heating, Ready or In use).
 - Action: **Set stove switch** (on or off), when another device sees the stove's main switch. See
   [Sauna](Sauna).
+
+## Water Monitor
+
+- Triggers: **Water use started** (flow), **Water use ended** (litres, minutes, average flow, cost).
+  See [Water Monitor](Water-Monitor).

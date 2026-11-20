@@ -108,6 +108,23 @@
         "hint": {
           "en": "Local time (HH:mm) of the daily check. The trigger Prices missing for tomorrow runs when tomorrow's prices are still missing or partial."
         }
+      },
+      {
+        "id": "water_price",
+        "type": "number",
+        "label": {
+          "en": "Water price"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 100,
+        "step": 0.01,
+        "units": {
+          "en": "per m³"
+        },
+        "hint": {
+          "en": "Supply and wastewater together, in the currency above, for the Water Monitor's costs. 0 for none."
+        }
       }
     ]
   },

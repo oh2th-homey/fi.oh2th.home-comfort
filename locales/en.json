@@ -109,6 +109,15 @@
       "power": "Stove power meter (optional)",
       "no_power": "None (e.g. a wood-burning stove)",
       "no_temperature": "Choose the sauna temperature."
+    },
+    "monitor": {
+      "name": "Water Monitor",
+      "subtitle": "Litres and cost of the home's water today and this month, and each use, from the house water meter. Nothing is switched.",
+      "meter": "House water meter",
+      "both": "Litres from the meter reading, uses from the flow.",
+      "meter_only": "Litres from the meter reading. Without a flow there are no uses.",
+      "flow_only": "Litres and uses from the flow.",
+      "no_meter": "Choose the house water meter."
     }
   },
   "error": {
@@ -331,5 +340,11 @@
     "outdoor_now": "outdoor __outdoor__",
     "outdoor_low": "low __outdoor__",
     "ready_at": "Ready __temperature__ at __time__"
+  },
+  "monitor": {
+    "last_use": {
+      "running": "Running since __start__: __litres__ l",
+      "ended": "__start__–__end__: __litres__ l, __flow__ l/min"
+    }
   }
 }

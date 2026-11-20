@@ -1,0 +1,49 @@
+{
+  "title": {
+    "en": "Water use ended"
+  },
+  "hint": {
+    "en": "A minute after the flow stopped. Shorter pauses belong to the same use."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=water-monitor"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "litres",
+      "type": "number",
+      "title": {
+        "en": "Litres"
+      },
+      "example": 38
+    },
+    {
+      "name": "minutes",
+      "type": "number",
+      "title": {
+        "en": "Minutes"
+      },
+      "example": 5
+    },
+    {
+      "name": "flow",
+      "type": "number",
+      "title": {
+        "en": "Average flow (l/min)"
+      },
+      "example": 7.6
+    },
+    {
+      "name": "cost",
+      "type": "number",
+      "title": {
+        "en": "Cost"
+      },
+      "example": 0.15
+    }
+  ]
+}
