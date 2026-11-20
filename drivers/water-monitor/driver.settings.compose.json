@@ -1,0 +1,44 @@
+[
+  {
+    "type": "group",
+    "label": {
+      "en": "Costs"
+    },
+    "children": [
+      {
+        "id": "water_price",
+        "type": "number",
+        "label": {
+          "en": "Water price"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 100,
+        "step": 0.01,
+        "units": {
+          "en": "per m³"
+        },
+        "hint": {
+          "en": "Supply and wastewater together, in the Home Controller's currency. 0 for none."
+        }
+      },
+      {
+        "id": "base_fee",
+        "type": "number",
+        "label": {
+          "en": "Base fee"
+        },
+        "value": 0,
+        "min": 0,
+        "max": 1000,
+        "step": 0.01,
+        "units": {
+          "en": "per month"
+        },
+        "hint": {
+          "en": "The water bill's fixed monthly fee, spread evenly over the month's days. 0 for none."
+        }
+      }
+    ]
+  }
+]

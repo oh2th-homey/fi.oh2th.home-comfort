@@ -14,7 +14,8 @@ const COST_TITLES = { [COST_TODAY]: { en: 'Water cost today' }, [COST_MONTH]: { 
 
 /**
  * Water Monitor (issue #37): the house water meter's litres and cost today and this month, and its flow cut into uses
- * (lib/water-use.js). Read only. The water price is the Home Controller's Water price setting.
+ * (lib/water-use.js). Read only. The costs come from its settings Water price and Base fee, in the Home Controller's
+ * currency.
  */
 module.exports = class waterMonitorDevice extends mainDevice {
   async onInitDevice() {
@@ -48,7 +49,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
-    if (this.price() !== null) capabilities.push(COST_TODAY, COST_MONTH);
+    if (this.price() !== null || this.baseFee() !== null) capabilities.push(COST_TODAY, COST_MONTH);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
     if (result.added.includes(COST_TODAY)) await this.applyCurrency();
@@ -68,23 +69,42 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The water price per m³ from the Home Controller, null when not set.
+   * @description A positive number setting, null when 0 or not set.
    */
-  price() {
-    const controller = this.homey.app.findController();
-    return controller ? controller.waterPrice() : null;
+  positiveSetting(key) {
+    const value = Number(this.getSetting(key));
+    return Number.isFinite(value) && value > 0 ? value : null;
   }
 
   /**
-   * @description The Home Controller's water price or currency changed.
+   * @description The water price per m³ (setting Water price), null when not set.
    */
-  async onWaterPriceChanged() {
+  price() {
+    return this.positiveSetting('water_price');
+  }
+
+  /**
+   * @description The water bill's fixed fee per month (setting Base fee), null when not set.
+   */
+  baseFee() {
+    return this.positiveSetting('base_fee');
+  }
+
+  async onSettings({ oldSettings, newSettings, changedKeys }) {
+    this.log(`${this.getName()} - onSettings - changed: ${changedKeys}`);
+    // Settings are saved after this returns: show or hide the costs then.
+    if (changedKeys.includes('water_price') || changedKeys.includes('base_fee')) this.setTimer('costs', () => this.onCostSettings(), 500);
+  }
+
+  async onCostSettings() {
     await this.checkCapabilities();
     await this.applyCurrency();
     await this.show(Date.now());
   }
 
   async onReady() {
+    // The Home Controller's currency may have changed meanwhile.
+    await this.applyCurrency();
     await this.show(Date.now());
   }
 
@@ -228,10 +248,12 @@ module.exports = class waterMonitorDevice extends mainDevice {
     await this.setValue(TODAY, Math.round(totals.todayL));
     await this.setValue(MONTH, Math.round(totals.monthL) / 1000);
     if (this.hasCapability(COST_TODAY)) {
+      // The litres at the water price, plus the base fee's share of the days so far.
       const price = this.price();
-      const round = (value) => (value === null ? null : Math.round(value * 100) / 100);
-      await this.setValue(COST_TODAY, round(waterUse.cost(totals.todayL, price) ?? 0));
-      await this.setValue(COST_MONTH, round(waterUse.cost(totals.monthL, price) ?? 0));
+      const fee = waterUse.baseFee(this.baseFee(), this.totals ? this.totals.date : this.date(Date.now()));
+      const round = (value) => Math.round(value * 100) / 100;
+      await this.setValue(COST_TODAY, round((waterUse.cost(totals.todayL, price) ?? 0) + (fee ? fee.today : 0)));
+      await this.setValue(COST_MONTH, round((waterUse.cost(totals.monthL, price) ?? 0) + (fee ? fee.month : 0)));
     }
   }
 
@@ -266,6 +288,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
       totals: this.totals,
       meterLast: this.meterLast,
       price: this.price(),
+      baseFee: this.baseFee(),
       use: this.use,
       uses: this.getStoreValue('uses') || []
     };

@@ -151,3 +151,14 @@ test('cost: litres at a price per m³, null without a price', () => {
   assert.strictEqual(use.cost(250, 0), null);
   assert.strictEqual(use.cost(null, 4), null);
 });
+
+test('baseFee: spread evenly over the month, up to and including the date; null without a fee', () => {
+  const nov = use.baseFee(30, '2026-11-20');
+  assert.strictEqual(nov.today, 1);
+  assert.strictEqual(nov.month, 20);
+  const feb = use.baseFee(28, '2028-02-29');
+  assert.strictEqual(feb.today, 28 / 29);
+  assert.ok(Math.abs(feb.month - 28) < 1e-9);
+  assert.strictEqual(use.baseFee(0, '2026-11-20'), null);
+  assert.strictEqual(use.baseFee(null, '2026-11-20'), null);
+});

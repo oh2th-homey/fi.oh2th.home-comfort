@@ -80,8 +80,6 @@ module.exports = class controllerDevice extends mainDevice {
     if (changedKeys.some((key) => key.startsWith('season_'))) await this.updateAutoSeason(Date.now(), newSettings);
 
     // Settings are saved after this returns: show or hide the forecast and fetch it then.
-    // The Water Monitor's costs (issue #37) follow the water price and the currency.
-    if (changedKeys.includes('water_price') || changedKeys.includes('currency')) this.setTimer('water', () => this.onWaterPriceChanged(), 500);
     if (changedKeys.includes('forecast_open_meteo')) this.setTimer('forecast', () => this.onForecastSetting().catch(this.error), 500);
     if (changedKeys.includes('absence_until')) {
       if (newSettings.absence_until !== '') await this.changeLongAbsence(true);
@@ -821,20 +819,6 @@ module.exports = class controllerDevice extends mainDevice {
    */
   currency() {
     return String(this.getSetting('currency') || '€').trim() || '€';
-  }
-
-  /**
-   * @description The water price per m³ (setting Water price, issue #37), null when not set.
-   */
-  waterPrice() {
-    const price = Number(this.getSetting('water_price'));
-    return Number.isFinite(price) && price > 0 ? price : null;
-  }
-
-  async onWaterPriceChanged() {
-    for (const device of this.homey.drivers.getDriver('water-monitor').getDevices()) {
-      if (typeof device.onWaterPriceChanged === 'function') await device.onWaterPriceChanged().catch(this.error);
-    }
   }
 
   /**
