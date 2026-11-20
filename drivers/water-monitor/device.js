@@ -3,6 +3,7 @@
 const { localDate, localTime, updateCapabilities } = require('oh2th-homey-helpers');
 const mainDevice = require('../main-device');
 const waterUse = require('../../lib/water-use');
+const { outOfOrder } = require('../../lib/capabilities');
 
 const TODAY = 'meter_water.today';
 const MONTH = 'meter_water.month';
@@ -94,13 +95,14 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The manifest's capabilities, the flow and Last use with a flow source, the costs with a water price or
-   * base fee, and litres (and costs) per chosen category.
+   * @description The manifest's capabilities, the costs with a water price or base fee, the flow and Last use with a flow
+   * source, litres (and costs) per chosen category, and the Last use was buttons, in this order: Homey shows them in
+   * the order they were added and they can't be moved there, so ones that would come out of order are added again.
    */
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
-    if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
     if (this.hasCosts()) capabilities.push(COST_TODAY, COST_MONTH);
+    if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
     for (const category of this.shownCategories()) {
       const caps = categoryCaps(category);
       capabilities.push(caps.today, caps.month);
@@ -108,6 +110,9 @@ module.exports = class waterMonitorDevice extends mainDevice {
     }
     // "Last use was …" buttons for the chosen categories.
     if (this.meter().flow) capabilities.push(...this.categories().map(labelButton));
+    const reorder = outOfOrder(this.getCapabilities(), capabilities);
+    if (reorder.length) this.log(`${this.getName()} - checkCapabilities - adding again in order: ${reorder.join(', ')}`);
+    for (const cap of reorder) await this.removeCapability(cap).catch(this.error);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
     for (const category of this.shownCategories()) {

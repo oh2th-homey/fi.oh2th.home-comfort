@@ -71,6 +71,11 @@ meter counts beyond the uses, is **Other**, so the categories add up to the hous
 category and Other the device shows its water today and this month and, with a water price, its
 cost today and this month (litres at the water price; the base fee is only in the house's cost).
 
+The tiles come in this order: the house's water and cost, Flow and Last use, then each category's
+four tiles in the order above, and Other last. Tiles can't be moved in the Homey app, so when a
+category is ticked later (or a water price is set after the categories), the device adds the
+tiles after it again in order; those tiles start a new insights history.
+
 **Last use** starts with the category, for example *Shower 07:42 - 07:47, 38 l at 7.6 l/min*.
 
 ### Correct a category
