@@ -752,6 +752,52 @@ test('problemCheck: a heater that heated and stopped by itself is not a problem 
   assert.strictEqual(n.problem, true);
 });
 
+test('problemCheck over a restart: a heater that stopped by itself stays without a problem with the stored state (#47)', () => {
+  const M = 60000;
+  // Heated 36 -> 37.4 and stopped by itself, demand still on; the water cools slowly.
+  let r = water.problemCheck(null, 0, 36, true, { flow: 'heating' });
+  for (let m = 1; m <= 60; m++) r = water.problemCheck(r.since, m * M, 36 + (1.4 * m) / 60, true, { flow: 'heating' });
+  for (let m = 61; m <= 180; m++) r = water.problemCheck(r.since, m * M, 37.4 - (m - 60) / 200, true, { flow: 'circulating' });
+  assert.strictEqual(r.since.satisfied, true);
+  // Saved 5 minutes before the restart, restored 10 minutes after it.
+  const stored = JSON.parse(JSON.stringify({ since: r.since, saved: 175 * M }));
+  let restored = water.restoreDemand(stored, 190 * M);
+  assert.deepStrictEqual(restored, r.since);
+  for (let m = 190; m <= 220; m++) {
+    const step = water.problemCheck(restored, m * M, 36.8, true, { flow: 'circulating' });
+    assert.strictEqual(step.problem, false, `minute ${m}`);
+    restored = step.since;
+  }
+  // Without the stored state (the old behaviour): no power for 10 minutes is reported.
+  let fresh = water.problemCheck(null, 190 * M, 36.8, true, { flow: 'circulating' });
+  fresh = water.problemCheck(fresh.since, 200 * M, 36.8, true, { flow: 'circulating' });
+  assert.strictEqual(fresh.problem, true);
+});
+
+test('restoreDemand: only a recent, well-formed stored state is used', () => {
+  const M = 60000;
+  const since = { at: 0, low: 36, power: 0, heated: true, stopTemp: 37, satisfied: true };
+  assert.deepStrictEqual(water.restoreDemand({ since, saved: 0 }, 30 * M), since);
+  assert.strictEqual(water.restoreDemand({ since, saved: 0 }, 31 * M), null);
+  assert.strictEqual(water.restoreDemand({ since, saved: 10 * M }, 0), null);
+  assert.strictEqual(water.restoreDemand(null, 0), null);
+  assert.strictEqual(water.restoreDemand({ since: null, saved: 0 }, 0), null);
+  assert.strictEqual(water.restoreDemand({ since: { ...since, low: null }, saved: 0 }, 0), null);
+  assert.strictEqual(water.restoreDemand({ since: { ...since, stopTemp: 'x' }, saved: 0 }, 0).stopTemp, null);
+});
+
+test('demandChanged: saves on start, end and real changes, not on minute-by-minute moves', () => {
+  const s = { at: 0, low: 36, power: 0, heated: true, stopTemp: 37, satisfied: true };
+  assert.strictEqual(water.demandChanged(null, null), false);
+  assert.strictEqual(water.demandChanged(null, s), true);
+  assert.strictEqual(water.demandChanged(s, null), true);
+  assert.strictEqual(water.demandChanged(s, { ...s, at: 60000, low: 35.9, power: 60000 }), false);
+  assert.strictEqual(water.demandChanged(s, { ...s, stopTemp: null }), true);
+  assert.strictEqual(water.demandChanged(s, { ...s, satisfied: false }), true);
+  const unsatisfied = { ...s, satisfied: false, stopTemp: null };
+  assert.strictEqual(water.demandChanged(unsatisfied, { ...unsatisfied, at: 60000 }), true);
+});
+
 test('heatingNews: a tub tells its main heating, after any pre-heating before it', () => {
   const now = 2 * H;
   const use = { start: 18 * H, end: 19.5 * H };

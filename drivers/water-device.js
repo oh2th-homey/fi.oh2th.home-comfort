@@ -60,7 +60,9 @@ module.exports = class waterDevice extends mainDevice {
     this.sourceListeners = {};
     this.segment = this.getStoreValue('segment') || null;
     this.still = this.getStoreValue('still') || null;
-    this.demandSince = null;
+    // The problem check's demand state from before a restart (#47), when recent.
+    this.demandSince = water.restoreDemand(this.getStoreValue('demandSince'), Date.now());
+    this.demandSaved = this.demandSince;
     await this.seedModel();
     await this.subscribeSources();
   }
@@ -1202,7 +1204,18 @@ module.exports = class waterDevice extends mainDevice {
     const inUse = this.inUseNow(now);
     const { since, problem } = water.problemCheck(this.demandSince, now, this.waterTemperature(), result.demand, { flow: this.flowState(), inUse });
     this.demandSince = since;
+    await this.saveDemand(since, now);
     await this.setValue('alarm_problem', problem);
+  }
+
+  /**
+   * @description The problem check's demand state, kept over a restart: written when it changes and each quarter.
+   */
+  async saveDemand(since, now) {
+    const changed = water.demandChanged(this.demandSaved, since);
+    if (!changed && (!since || Math.round(now / 60000) % 15 !== 0)) return;
+    this.demandSaved = since;
+    await this.setStoreValue('demandSince', since ? { since, saved: now } : null).catch(this.error);
   }
 
   /**
