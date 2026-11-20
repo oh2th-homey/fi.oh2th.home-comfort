@@ -23,8 +23,8 @@ Pick another meter in the device's **Repair**. Today's and this month's litres a
 - **Water cost today** and **Water cost this month**, when a [water price or base fee](#settings)
   is set.
 - **Flow** now (l/min).
-- **Last use**: the use going on (*Running since 07:42 – 12 l*) or the last one
-  (*07:42–07:47 – 38 l, 7.6 l/min*).
+- **Last use**: the use going on (*Running since 07:42 - 12 l*) or the last one
+  (*07:42–07:47 - 38 l, 7.6 l/min*).
 
 ## Settings
 
