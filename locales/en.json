@@ -243,7 +243,8 @@
       "manual_off": "Off by hand until next start",
       "mode_off": "Mode Off: heater on its own",
       "mode_heat": "Mode Heat: holds __target__ °C",
-      "mode_heat_heat": "Mode Heat: heats to __target__ °C"
+      "mode_heat_heat": "Mode Heat: heats to __target__ °C",
+      "heating_main": "Heating for __ready__"
     },
     "error": {
       "keep_max": "Keep must be lower than Maximum.",

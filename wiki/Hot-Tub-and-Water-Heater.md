@@ -84,12 +84,13 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   Turn it on to use it now: it heats to the target temperature right away, whatever the price
   (also over **Expensive above**), and holds it until you turn it off, at most as long as set in
   the settings. Turn it off to end it now. A good button for a panel next to the tub.
-- **State**: **Pre-heating** (heating ahead of a ready time in cheap hours), **Heating** (heating
+- **State**: **Pre-heating** (heating in cheap hours ahead of a ready time's main heating, reason
+  *Cheap hours for 18:00*), **Heating** (the main heating, reason *Heating for 18:00*, or heating
   demand is on otherwise), **Ready** (at the target temperature for a ready time,
   not heating now), **Waiting** (nothing to heat yet), **Stopped** (no water temperature, or at
   Maximum) or **Off** (the mode is Off).
 - **Expected start**: when heating starts next, for example `16:05` or `Sun 16:05`; `Now` while
-  heating, `–` when nothing is planned. While learning it is the latest safe start, so it moves
+  heating, `-` when nothing is planned. While learning it is the latest safe start, so it moves
   later as the device learns and as the water cools more slowly than feared.
 - **Expected ready**: when the water is expected at the temperature it heats to, by the learned
   heating curve, for example `17:48`; `Now` when it is there.

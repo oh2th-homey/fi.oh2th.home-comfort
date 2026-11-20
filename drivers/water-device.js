@@ -994,7 +994,7 @@ module.exports = class waterDevice extends mainDevice {
       if (manual.manual !== this.getStoreValue('manual')) await this.setStoreValue('manual', manual.manual).catch(this.error);
       await this.announceSkip(decided);
       const { result } = manual;
-      let reason = this.reasonText(result.reason);
+      let reason = this.reasonText(water.shownReason(result, now));
       const absence = this.longAbsence();
       if (absence.on && !result.use && !result.demand) reason = this.absenceText(absence.until);
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
