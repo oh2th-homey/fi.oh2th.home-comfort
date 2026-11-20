@@ -26,7 +26,7 @@ The zone shows:
 - **Heating power**, only when the zone has power meters: the sum of their readings. In Homey
   Energy and Climate, count either the zone or its own devices, not both (see [Setup](Setup)).
 - With power meters also **Energy today**, from midnight.
-- [Graphs](Graphs) of today and tomorrow: temperature, target and the expensive price slots.
+- [Graphs](Graphs) of today and tomorrow: temperature, target and the price peaks.
 
 <img src="images/zone-device.png" alt="A zone in eco during a price peak" width="300">
 

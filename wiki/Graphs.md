@@ -8,9 +8,10 @@ The app draws them on your Homey, without internet. Today's image is drawn again
 minutes. Tomorrow's is drawn only when something in it changes, for example when new prices
 arrive or you change a setpoint.
 
-Times are local, midnight to midnight. Today is shaded after the white **now** line. What lies
-ahead is only what the app already knows: the known prices, what the zone will aim at with them,
-the outdoor forecast and the water heating plan. The app doesn't guess room temperatures ahead.
+Each scale shows its unit at the top. Times are local, midnight to midnight. Today is shaded
+after the white **now** line. What lies ahead is only what the app already knows: the known
+prices, what the zone will aim at with them, the outdoor forecast and the water heating plan.
+The app doesn't guess room temperatures ahead.
 Tomorrow shows **Prices not known yet** until tomorrow's prices arrive (see [Prices](Prices)).
 
 ## Heating Zone
@@ -20,12 +21,14 @@ Tomorrow shows **Prices not known yet** until tomorrow's prices arrive (see [Pri
   at, from the zone's rules and the known prices, with the occupancy, season and setpoints as
   they are now. It changes when they change.
 - **Eco–comfort** (shaded): the band between eco and comfort.
-- The strip under the graph marks the **expensive** price slots (orange).
+- The strip under the graph marks the **price peaks** (orange) and the prices over **Expensive
+  above** (red, see [Prices](Prices)).
 - The headline: today the temperature and target now, tomorrow the eco time.
 
 ## Home Controller
 
-- **Price** of each slot, **expensive** ones in orange.
+- **Price** of each slot (left scale): **price peaks** in orange, prices over **Expensive above**
+  in red.
 - **Outdoor** temperature (green, right scale): measured until now, then the
   [forecast](Home-Controller#outdoor-forecast) dashed, when it is on.
 - The headline: today the price and outdoor temperature now, tomorrow the average price and the
@@ -37,7 +40,7 @@ Tomorrow shows **Prices not known yet** until tomorrow's prices arrive (see [Pri
   expects.
 - **Ready** (white line, shaded behind): each ready time and its temperature.
 - **Heating** (strip under the graph): when it heated, and when the plan heats.
-- **Price** of each slot (grey).
+- **Price** of each slot (grey, left scale).
 - The headline: the water temperature now and the next ready time.
 
 ## Homey Pro models

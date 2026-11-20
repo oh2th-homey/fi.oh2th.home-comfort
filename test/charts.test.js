@@ -135,7 +135,7 @@ test('zone images: history today, the expected target ahead, eco time tomorrow',
   // Tomorrow: a 30-minute peak at 08:00 is eco.
   assert.strictEqual(tomorrow.spec.headline, 'Eco 0:30 h');
   assert.strictEqual(tomorrow.spec.empty, null);
-  assert.ok(tomorrow.spec.strip.slots.some((slot) => slot.color === charts.COLOR.expensive));
+  assert.ok(tomorrow.spec.strip.slots.some((slot) => slot.color === charts.COLOR.peak));
 });
 
 test('tomorrow without prices says so', () => {
