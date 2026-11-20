@@ -497,19 +497,10 @@ module.exports = class waterDevice extends mainDevice {
   }
 
   isStill(now) {
-    // With a power meter: the pump stopped at least STILL_MS ago (unknown since when: still, the safe side).
-    const flow = this.flowState();
-    if (flow) {
-      if (flow !== 'still') return false;
-      const { still } = this;
-      // In use: still once the water has stood STILL_MS since it last moved (lib/water.js stillStep).
-      if (still && still.phase === 'used') return typeof still.since === 'number' && now - still.since >= STILL_MS;
-      return !(still && still.phase === 'still' && now - still.at < STILL_MS);
-    }
-    if (this.isHeating()) return false;
-    const stillSince = this.getStoreValue('stillSince');
-    // Unknown after a restart: still, the safe side.
-    return typeof stillSince !== 'number' || now - stillSince >= STILL_MS;
+    return water.isStill(
+      { flow: this.flowState(), meter: !!this.getStoreValue('power'), still: this.still, heating: this.isHeating(), stillSince: this.getStoreValue('stillSince') },
+      now
+    );
   }
 
   /**

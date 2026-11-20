@@ -1296,3 +1296,26 @@ test('decide: a Hot Tub skips a ready time when its main heating, just before it
   const late = day + 17 * H;
   assert.strictEqual(water.decide({ ...tub, now: late, quarters: dayPrices(late), heatingNow: true }).skip, false);
 });
+
+test('isStill: by the flow and the saved still stretch; after a restart the saved stretch decides', () => {
+  const H = 3600000;
+  const now = 10 * H;
+  // With a power meter reading.
+  assert.strictEqual(water.isStill({ flow: 'circulating', meter: true, still: null }, now), false);
+  assert.strictEqual(water.isStill({ flow: 'still', meter: true, still: { phase: 'still', at: now - 2 * H } }, now), true);
+  assert.strictEqual(water.isStill({ flow: 'still', meter: true, still: { phase: 'still', at: now - 0.5 * H } }, now), false);
+  // The pump just stopped: the stretch still says moving.
+  assert.strictEqual(water.isStill({ flow: 'still', meter: true, still: { phase: 'moving', at: now - 60000 } }, now), false);
+  assert.strictEqual(water.isStill({ flow: 'still', meter: true, still: { phase: 'used', since: now - 2 * H } }, now), true);
+  // After a restart, before the meter's first reading: the saved stretch, not an old stillSince.
+  const old = now - 6 * 24 * H;
+  assert.strictEqual(water.isStill({ flow: null, meter: true, still: { phase: 'moving', at: now - 5 * 60000 }, stillSince: old }, now), false);
+  assert.strictEqual(water.isStill({ flow: null, meter: true, still: { phase: 'still', at: now - 10 * 60000 }, stillSince: old }, now), false);
+  assert.strictEqual(water.isStill({ flow: null, meter: true, still: { phase: 'still', at: now - 2 * H }, stillSince: old }, now), true);
+  // Nothing saved: still, the safe side.
+  assert.strictEqual(water.isStill({ flow: null, meter: true, still: null, stillSince: null }, now), true);
+  // Without a power meter: heating moves the water, else since it last stopped.
+  assert.strictEqual(water.isStill({ flow: null, meter: false, heating: true, stillSince: old }, now), false);
+  assert.strictEqual(water.isStill({ flow: null, meter: false, heating: false, stillSince: now - 0.5 * H }, now), false);
+  assert.strictEqual(water.isStill({ flow: null, meter: false, heating: false, stillSince: null }, now), true);
+});
