@@ -27,6 +27,7 @@ The controller holds what all zones share. You can add only one.
   counted by your energy app, for example Power by the Hour's consumption devices, with your own
   tariff. To follow the cost of all heating and cooling in one place, point such a device at the
   controller's heating power.
+- [Graphs](Graphs) of today and tomorrow: the prices and the outdoor temperature.
 - **Reason**: in Automatic first the season and why (`Heating: outdoor mean 7.2 °C`), then why the
   price is expensive or not, in one phrase, the strongest first: `Expensive:
   over 0.15 €/kWh` (over Expensive above), `Price peak: over 0.27 €/kWh`, `High: over 0.10 €/kWh`

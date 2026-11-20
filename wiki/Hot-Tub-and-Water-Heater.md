@@ -106,6 +106,8 @@ form, a virtual device updated by a flow can pass it on. To change the choices l
   run. A heater that heated and then stopped by itself has reached its own set point (a tub's
   controller reads the water a little differently): that is not a problem until the water has
   fallen 1 °C below where it stopped.
+- [Graphs](Graphs) of today and tomorrow: the water temperature, the heating plan and the
+  ready times.
 
 ## Settings
 

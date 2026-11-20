@@ -175,3 +175,25 @@ test('evaluate: price level normal, high (warning only) and expensive', () => {
   assert.strictEqual(level(0.05, 0.1).level, 'expensive');
   assert.strictEqual(level(0.05, 0.1).expensive, true);
 });
+
+test('evaluateSlots decides each slot as evaluate() does when it comes', () => {
+  const tz = 'Europe/Helsinki';
+  const now = Date.UTC(2026, 10, 20, 12, 10);
+  const days = {};
+  ['2026-11-19', '2026-11-20', '2026-11-21'].forEach((date, d) => {
+    // Tomorrow known until 20:15 only; a spike every 23 quarters.
+    const price = (q) => Math.round((0.05 + 0.04 * Math.sin(q * 0.7 + d) + (q % 23 === 0 ? 0.08 : 0)) * 10000) / 10000;
+    days[date] = { resolution: 15, values: Array.from({ length: 96 }, (_, q) => (d === 2 && q > 80 ? null : price(q))) };
+  });
+  for (const model of ['rate_is_highest', 'above_average', 'off']) {
+    const opts = { days, timeZone: tz, resolution: 15, model, pct: 20, minDelta: 0.01, ceiling: 0.12, high: 0.1 };
+    const slots = prices.evaluateSlots({ ...opts, now });
+    assert.strictEqual(slots.length, 3 * 96);
+    for (const slot of slots) {
+      const one = prices.evaluate({ ...opts, now: slot.time });
+      // An unknown price: evaluate() returns no peak or level, the slot says not expensive and normal.
+      const expected = one.price === null ? [null, false, false, 'normal'] : [one.price, one.expensive, one.peak, one.level];
+      assert.deepStrictEqual([slot.price, slot.expensive, slot.peak, slot.level], expected, `${model} ${new Date(slot.time).toISOString()}`);
+    }
+  }
+});

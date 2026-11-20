@@ -7,6 +7,9 @@
   "platforms": [
     "local"
   ],
+  "platformLocalRequiredFeatures": [
+    "camera-streaming"
+  ],
   "name": {
     "en": "Adaptive Home Comfort"
   },

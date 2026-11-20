@@ -3,6 +3,7 @@
 const { localTime, isTime, addDays, updateCapabilities } = require('oh2th-homey-helpers');
 const mainDevice = require('./main-device');
 const water = require('../lib/water');
+const views = require('../lib/views');
 
 // On/off is the heating demand; the mode decides how: auto (the device), heat (holds ready) or off.
 const DEMAND = 'onoff';
@@ -35,6 +36,9 @@ const SETTLE_MS = 15 * 60000;
 const STILL_MS = 60 * 60000;
 // A heating stop this soon after the app switched the heater switch off was the app, not the heater's thermostat.
 const SWITCHED_OFF_MS = 3 * 60000;
+// The graphs' log of the water temperature and heating per quarter (issue #12) keeps this long.
+const GRAPH_LOG_MS = 26 * 60 * 60 * 1000;
+const QUARTER_MS = 15 * 60000;
 
 /**
  * Shared device base of the Hot Tub and the Water Heater (issue #1): reads the water temperature, the surroundings and
@@ -293,11 +297,50 @@ module.exports = class waterDevice extends mainDevice {
     // Sources missed at start (their app started later) are retried.
     if (local.minutes % 5 === 0) await this.subscribeSources();
     await this.track(now.getTime());
+    await this.logGraph(now.getTime(), local.minutes % 15 === 0);
     if (local.minutes % PLAN_MINUTES === 0) {
       await this.planBlock(now.getTime());
       await this.plan(now.getTime());
       await this.planFilters(now.getTime());
     }
+  }
+
+  /**
+   * @description The graphs' log (issue #12): minutes heated in the running quarter, and at each quarter the water
+   * temperature and whether it heated, for the last GRAPH_LOG_MS.
+   * @param {boolean} quarter - A quarter just ended
+   */
+  async logGraph(ms, quarter) {
+    if (quarter && typeof this.heatedMinutes === 'number') {
+      const time = Math.round(ms / QUARTER_MS) * QUARTER_MS - QUARTER_MS;
+      const log = (this.getStoreValue('graphLog') || []).filter((entry) => entry.time > ms - GRAPH_LOG_MS);
+      const temperature = this.waterTemperature();
+      log.push({ time, temperature: typeof temperature === 'number' ? Math.round(temperature * 10) / 10 : null, heating: this.heatedMinutes > 0 });
+      await this.setStoreValue('graphLog', log).catch(this.error);
+    }
+    if (quarter || typeof this.heatedMinutes !== 'number') this.heatedMinutes = 0;
+    if (this.isHeating()) this.heatedMinutes++;
+  }
+
+  /**
+   * Graphs (issue #12).
+   */
+  hasGraphs() {
+    return true;
+  }
+
+  async graphViews(common) {
+    const settings = this.getSettings();
+    const block = isTime(settings.block_from) ? this.getStoreValue('block') : null;
+    return views.waterViews(common, {
+      log: this.getStoreValue('graphLog') || [],
+      temperature: this.waterTemperature(),
+      heatingNow: this.isHeating(),
+      plan: this.graphPlan || [],
+      block: block && block.runs ? block : null,
+      uses: this.mode() === 'auto' ? this.useList(common.now) : [],
+      ready: this.readyTemperature()
+    });
   }
 
   /**
@@ -891,6 +934,7 @@ module.exports = class waterDevice extends mainDevice {
           held = water.holdTarget({ temperature: this.planTemperature(now), ready: this.readyTemperature(), max: settings.max_temperature, heatingNow: this.demanded() });
         }
         const reason = this.reasonText(held.reason);
+        this.graphPlan = [];
         await this.showTiming(now, held, this.readyTemperature());
         await this.setValue(STATE, mode === 'off' ? 'off' : water.state(held));
         await this.setValue('text_reason', reason);
@@ -903,12 +947,13 @@ module.exports = class waterDevice extends mainDevice {
       const ready = this.readyTemperature();
       const temperature = this.decideTemperature(now, ready);
       const reheat = await this.updateReheat(temperature, ready);
+      const quarters = controller ? controller.priceQuarters(now) : [];
       const decided = water.decide({
         now,
         temperature,
         outdoor: this.surroundingsTemperature(),
         model: this.getStoreValue('model'),
-        quarters: controller ? controller.priceQuarters(now) : [],
+        quarters,
         useList: this.useList(now),
         keep: this.keepTemperature(),
         keepAt: this.isTank() ? this.tankTemperature().keepAt : null,
@@ -931,6 +976,9 @@ module.exports = class waterDevice extends mainDevice {
         // A water heater heats to full on its own thermostat: nothing to hold through the use.
         hold: !this.heatsToFull()
       });
+      // The plan's quarters for the graphs: heat or not and the expected temperature at each quarter's start.
+      const { plan } = decided;
+      this.graphPlan = plan && Array.isArray(plan.heat) ? quarters.slice(0, plan.heat.length).map((q, i) => ({ time: q.start, heat: plan.heat[i] === true, temperature: plan.temps[i] })) : [];
       if (decided.reachedFor !== this.getStoreValue('reachedFor')) await this.setStoreValue('reachedFor', decided.reachedFor).catch(this.error);
       // A manual on/off from the button over the decision.
       // A tank that fell below Keep heats to full from the next plan on.

@@ -5,8 +5,9 @@ const { startMinuteInterval, stopMinuteInterval, dispatchInterval, forEachDevice
 const flowActions = require('./lib/flows/actions');
 const flowConditions = require('./lib/flows/conditions');
 const Members = require('./lib/members');
-const { History, QUARTER_MS, CONTROLLER_SLOT } = require('./lib/history');
+const { History, QUARTER_MS, CONTROLLER_SLOT, decodeDay } = require('./lib/history');
 const daily = require('./lib/daily');
+const views = require('./lib/views');
 
 // The history slot of the Home Controller's other heating meters (issue #40); zones use their data id.
 const OTHER_METERS_SLOT_ID = 'other-meters';
@@ -41,6 +42,63 @@ module.exports = class HomeComfortApp extends Homey.App {
     // Before the devices evaluate the new quarter, so the row has the state of the quarter that ended.
     if (localTime(this, now).minutes % 15 === 0) await this.recordHistory(now).catch((error) => this.error(`onInterval - history - ${error}`));
     await dispatchInterval(this, now);
+    // Graphs (issue #12): each quarter after the devices have decided, and once soon after the start.
+    if (localTime(this, now).minutes % 15 === 0 || !this.graphsDrawn) await this.updateGraphs(now).catch((error) => this.error(`onInterval - graphs - ${error}`));
+  }
+
+  /**
+   * @description Draw the devices' camera images whose content changed (lib/views.js, lib/images.js). One image at a
+   * time, giving the event loop a turn between them: each one takes a fraction of a second.
+   */
+  async updateGraphs(now) {
+    if (this.drawingGraphs) return;
+    this.drawingGraphs = true;
+    try {
+      const devices = [];
+      await forEachDevice(this, async (device) => {
+        if (typeof device.hasGraphs === 'function' && device.hasGraphs() && device.graphSpecs) devices.push(device);
+      });
+      if (!devices.length) return;
+      const common = await this.graphCommon(now.getTime());
+      const started = Date.now();
+      let drawn = 0;
+      for (const device of devices) {
+        try {
+          for (const { id, spec } of await device.graphViews(common)) {
+            await new Promise((resolve) => setImmediate(resolve));
+            if (await device.drawGraph(id, spec)) drawn++;
+          }
+        } catch (error) {
+          this.error(`updateGraphs - ${device.getName()} - ${error}`);
+        }
+      }
+      this.graphsDrawn = true;
+      if (drawn) this.log(`updateGraphs - ${drawn} images in ${Date.now() - started} ms`);
+    } finally {
+      this.drawingGraphs = false;
+    }
+  }
+
+  /**
+   * @description What all graphs share: the local days, the price slots with the price model's decisions, today's
+   * history rows and the texts.
+   */
+  async graphCommon(now) {
+    const timeZone = this.homey.clock.getTimezone();
+    const days = views.days(timeZone, now);
+    const controller = this.findController();
+    const { data, zones } = await this.history.read(days.today.date);
+    return {
+      timeZone,
+      now,
+      imperial: this.isImperial(),
+      labels: views.labels((key) => this.homey.__(key)),
+      currency: controller ? controller.currency() : '€',
+      days,
+      slots: controller ? controller.graphPriceSlots(now) : [],
+      rows: decodeDay(data),
+      historySlots: zones
+    };
   }
 
   /**

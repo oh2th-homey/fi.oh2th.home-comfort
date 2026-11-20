@@ -1,7 +1,10 @@
 'use strict';
 
+const crypto = require('crypto');
 const { Device } = require('homey');
 const { checkCapabilities, setValue } = require('oh2th-homey-helpers');
+const images = require('../lib/images');
+const { DAYS } = require('../lib/views');
 
 module.exports = class mainDevice extends Device {
   /**
@@ -20,6 +23,7 @@ module.exports = class mainDevice extends Device {
     await this.setAvailable().catch(this.error);
     this.initializing = false;
     await this.onReady();
+    await this.restoreGraphs();
   }
 
   /**
@@ -72,6 +76,7 @@ module.exports = class mainDevice extends Device {
   async onDeleted() {
     this.log(`${this.getName()} - onDeleted`);
     this.clearTimers();
+    for (const id of DAYS) await images.remove(this.graphKey(id));
   }
 
   /**
@@ -127,5 +132,68 @@ module.exports = class mainDevice extends Device {
 
   clearTimers() {
     for (const name of Object.keys(this.timeouts || {})) this.clearTimer(name);
+  }
+
+  /**
+   * Camera images (issue #12): Today and Tomorrow, drawn by the app (updateGraphs) from graphViews().
+   */
+
+  /**
+   * @description Whether the device shows graphs (overridden).
+   */
+  hasGraphs() {
+    return false;
+  }
+
+  /**
+   * @description The chart specs of the device's images, [{ id, spec }] (lib/views.js); overridden.
+   * @param {Object} common - The app's graph context (HomeComfortApp.graphCommon)
+   */
+  async graphViews(common) {
+    return [];
+  }
+
+  graphKey(id) {
+    return `${this.getData().id}-${id}`;
+  }
+
+  /**
+   * @description After a restart: show the images drawn before, until they are drawn again.
+   */
+  async restoreGraphs() {
+    this.graphs = {};
+    this.graphSpecs = {};
+    if (!this.hasGraphs()) return;
+    for (const id of DAYS) {
+      if (images.exists(this.graphKey(id))) await this.publishGraph(id).catch((error) => this.error(`${this.getName()} - restoreGraphs - ${error}`));
+    }
+  }
+
+  /**
+   * @description Draw an image when its spec changed since the last time.
+   * @returns {Promise<boolean>} whether it was drawn
+   */
+  async drawGraph(id, spec) {
+    // A hash of the spec, not the spec itself: less to keep in memory.
+    const key = crypto.createHash('sha1').update(JSON.stringify(spec)).digest('base64');
+    if (this.graphSpecs[id] === key) return false;
+    await images.write(this.graphKey(id), spec);
+    this.graphSpecs[id] = key;
+    await this.publishGraph(id);
+    return true;
+  }
+
+  /**
+   * @description Register the image's file as a camera image on first use, then tell Homey it changed.
+   */
+  async publishGraph(id) {
+    if (this.graphs[id]) {
+      await this.graphs[id].update();
+      return;
+    }
+    const image = await this.homey.images.createImage();
+    image.setPath(images.file(this.graphKey(id)));
+    await this.setCameraImage(id, this.homey.__(`graph.${id}`), image);
+    this.graphs[id] = image;
   }
 };

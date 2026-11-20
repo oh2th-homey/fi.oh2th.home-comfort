@@ -7,6 +7,7 @@
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater)
 - [Sauna](Sauna)
 - [Prices](Prices)
+- [Graphs](Graphs)
 - [Flow cards](Flow-cards)
 - [How to](How-to)
 - [Troubleshooting](Troubleshooting)

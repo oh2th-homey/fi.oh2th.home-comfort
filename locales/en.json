@@ -308,5 +308,27 @@
       "failed": "Not fetched since __time__: __error__",
       "never": "Not fetched yet: __error__"
     }
+  },
+  "graph": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "temperature": "Temperature",
+    "target": "Target",
+    "band": "Eco–comfort",
+    "expensive": "Expensive",
+    "price": "Price __currency__/kWh",
+    "outdoor": "Outdoor",
+    "water": "Water",
+    "ready": "Ready",
+    "heating": "Heating",
+    "no_prices": "Prices not known yet",
+    "no_ready": "No ready time",
+    "zone_now": "__temperature__ · target __target__",
+    "zone_tomorrow": "Eco __eco__ h",
+    "price_now": "Now __price__",
+    "price_average": "Average __price__",
+    "outdoor_now": "outdoor __outdoor__",
+    "outdoor_low": "low __outdoor__",
+    "ready_at": "Ready __temperature__ at __time__"
   }
 }

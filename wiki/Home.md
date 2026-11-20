@@ -12,7 +12,7 @@ Not in the Homey App Store for now: install it with the Homey CLI (below). Discu
 
 ## Install
 
-You need a Homey Pro, a computer with [Node.js](https://nodejs.org) and the
+You need a Homey Pro (Early 2023) or newer, or Homey Self-Hosted Server, and a computer with [Node.js](https://nodejs.org) and the
 [Homey CLI](https://apps.developer.homey.app/the-basics/getting-started/homey-cli).
 
 ```sh
@@ -36,6 +36,7 @@ homey app install
 - [Zone devices](Zone-devices): thermostats, relays, air conditioners, sensors, windows.
 - [Hot Tub and Water Heater](Hot-Tub-and-Water-Heater): heat stored water in the cheapest hours.
 - [Prices](Prices): energy prices from Power by the Hour.
+- [Graphs](Graphs): today and tomorrow as images on the devices.
 - [Flow cards](Flow-cards): the cards the app adds.
 - [How to](How-to): presence, guests, price peaks, relays, air conditioners and more.
 - [Troubleshooting](Troubleshooting)

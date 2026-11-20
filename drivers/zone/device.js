@@ -6,6 +6,7 @@ const zone = require('../../lib/zone');
 const pipeline = require('../../lib/pipeline');
 const daily = require('../../lib/daily');
 const meters = require('../../lib/meters');
+const views = require('../../lib/views');
 
 const VERIFY_MS = 60 * 1000;
 const RETRY_BACKOFF_MIN = [15, 30, 60];
@@ -629,33 +630,7 @@ module.exports = class zoneDevice extends mainDevice {
     const windowOpen = this.windowOpen(ms);
     if (windowOpen !== this.windowWasOpen) this.log(`${this.getName()} - evaluate - door or window open past the delay: ${windowOpen}`);
     this.windowWasOpen = windowOpen;
-    const decision = zone.decide({
-      shared,
-      source,
-      zone: {
-        mode: this.getCapabilityValue('enum_zone_mode'),
-        boostUntil: this.getCapabilityValue('power_boost') === true ? this.getStoreValue('boostUntil') : null,
-        heat: this.getCapabilityValue(HEAT),
-        eco: this.getCapabilityValue(ECO),
-        cool: this.getCapabilityValue(COOL),
-        ecoCool: this.getCapabilityValue(ECO_COOL),
-        hasCooling: this.hasCooling(),
-        lowAlarm: this.getSetting('low_temp_alarm'),
-        boostDelta: this.getSetting('boost_delta'),
-        occupancyRule: this.getSetting('occupancy_rule'),
-        followUntil: this.followUntil(ms),
-        windowOpen,
-        heatAllYear: this.getSetting('heat_all_year') === true,
-        auxiliary: this.getSetting('auxiliary') === true,
-        auxiliaryComfort: this.getStoreValue('auxiliaryComfort'),
-        pricePeak: this.pricePeak(),
-        priceExpensive: this.getSetting('price_expensive') === 'comfort' ? 'comfort' : 'peak',
-        outdoorLimit: { enabled: this.getSetting('outdoor_limit') === true, onBelow: this.getSetting('outdoor_on_below'), offAbove: this.getSetting('outdoor_off_above') },
-        outdoorAllowed: this.getStoreValue('outdoorAllowed')
-      },
-      temperature: this.getCapabilityValue(TEMPERATURE),
-      now: ms
-    });
+    const decision = zone.decide({ shared, source, zone: this.zoneRules(ms, windowOpen), temperature: this.getCapabilityValue(TEMPERATURE), now: ms });
     this.decision = decision;
     if (decision.outdoorAllowed !== this.getStoreValue('outdoorAllowed')) await this.setStoreValue('outdoorAllowed', decision.outdoorAllowed).catch(this.error);
     if (decision.auxiliaryComfort !== this.getStoreValue('auxiliaryComfort')) await this.setStoreValue('auxiliaryComfort', decision.auxiliaryComfort).catch(this.error);
@@ -678,6 +653,61 @@ module.exports = class zoneDevice extends mainDevice {
     // Only real problems: member write failed, relays without temperature, low temperature, controller missing for over an hour.
     await this.setValue('alarm_problem', source === 'fallback' || decision.lowTemperature || this.issues.some((issue) => issue.alarm), firstRun);
     if (changed && !firstRun) await this.triggerFlow('measure_temperature_set_target_changed', { measure_temperature_set_target: target, text_reason: reason });
+  }
+
+  /**
+   * @description The zone's own rules and state for zone.decide().
+   * @param {number} ms - Now
+   * @param {boolean} windowOpen - A door or window open past its delay
+   */
+  zoneRules(ms, windowOpen) {
+    return {
+      mode: this.getCapabilityValue('enum_zone_mode'),
+      boostUntil: this.getCapabilityValue('power_boost') === true ? this.getStoreValue('boostUntil') : null,
+      heat: this.getCapabilityValue(HEAT),
+      eco: this.getCapabilityValue(ECO),
+      cool: this.getCapabilityValue(COOL),
+      ecoCool: this.getCapabilityValue(ECO_COOL),
+      hasCooling: this.hasCooling(),
+      lowAlarm: this.getSetting('low_temp_alarm'),
+      boostDelta: this.getSetting('boost_delta'),
+      occupancyRule: this.getSetting('occupancy_rule'),
+      followUntil: this.followUntil(ms),
+      windowOpen,
+      heatAllYear: this.getSetting('heat_all_year') === true,
+      auxiliary: this.getSetting('auxiliary') === true,
+      auxiliaryComfort: this.getStoreValue('auxiliaryComfort'),
+      pricePeak: this.pricePeak(),
+      priceExpensive: this.getSetting('price_expensive') === 'comfort' ? 'comfort' : 'peak',
+      outdoorLimit: { enabled: this.getSetting('outdoor_limit') === true, onBelow: this.getSetting('outdoor_on_below'), offAbove: this.getSetting('outdoor_off_above') },
+      outdoorAllowed: this.getStoreValue('outdoorAllowed')
+    };
+  }
+
+  /**
+   * Graphs (issue #12).
+   */
+  hasGraphs() {
+    return true;
+  }
+
+  async graphViews(common) {
+    const entry = (common.historySlots || {})[this.getData().id];
+    const rows = [];
+    for (const row of entry ? common.rows : []) {
+      const sample = row.zones.find((z) => z.slot === entry.slot);
+      if (sample) rows.push({ time: row.quarter, temperature: sample.temperature, target: sample.target, low: sample.low, high: sample.high });
+    }
+    const controller = this.homey.app.findController();
+    const live = controller && controller.getAvailable() ? controller.getSharedState() : null;
+    const { shared, source } = zone.sharedState(live, this.lastShared, common.now);
+    const temperature = this.getCapabilityValue(TEMPERATURE);
+    return views.zoneViews(common, {
+      rows,
+      temperature,
+      target: this.getCapabilityValue(TARGET),
+      input: { shared, source, zone: this.zoneRules(common.now, this.windowWasOpen === true), temperature }
+    });
   }
 
   reasonText() {

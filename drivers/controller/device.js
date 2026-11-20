@@ -8,6 +8,7 @@ const water = require('../../lib/water');
 const meters = require('../../lib/meters');
 const forecast = require('../../lib/forecast');
 const season = require('../../lib/season');
+const views = require('../../lib/views');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
 // Season is shown with the standard thermostat_mode capability.
@@ -811,6 +812,49 @@ module.exports = class controllerDevice extends mainDevice {
     // The timeline starts at yesterday's midnight.
     const start = t.today.start - prices.dayInfo(timeZone, addDays(localDate(timeZone, now), -1), resolution).slots * resolution * 60000;
     return water.quarterPrices(t.prices, start, resolution, now);
+  }
+
+  /**
+   * @description The currency symbol of the prices (setting Currency), € when not set.
+   */
+  currency() {
+    return String(this.getSetting('currency') || '€').trim() || '€';
+  }
+
+  /**
+   * Graphs (issue #12).
+   */
+  hasGraphs() {
+    return true;
+  }
+
+  /**
+   * @description The stored prices as slots, yesterday to tomorrow, each with the decision the price settings give it.
+   */
+  graphPriceSlots(now) {
+    const settings = this.getSettings();
+    return views.priceSlots(
+      {
+        days: this.getStoreValue('prices') || {},
+        timeZone: this.homey.clock.getTimezone(),
+        resolution: this.priceResolution(),
+        model: settings.price_model,
+        pct: settings.price_above_average_pct,
+        minDelta: settings.price_min_delta,
+        ceiling: settings.price_ceiling,
+        high: settings.price_high
+      },
+      now
+    );
+  }
+
+  async graphViews(common) {
+    const stored = this.getStoreValue('forecast');
+    return views.controllerViews(common, {
+      rows: common.rows.map((row) => ({ time: row.quarter, outdoor: row.outdoor })),
+      outdoor: this.outdoorTemperature(),
+      forecast: this.forecastOn() && forecast.usable(stored, common.now) ? stored.points : null
+    });
   }
 
   reasonText(reasons) {
