@@ -11,6 +11,16 @@ const LAST_USE = 'text_last_use';
 const COST_TODAY = 'measure_monetary.today';
 const COST_MONTH = 'measure_monetary.month';
 const COST_TITLES = { [COST_TODAY]: { en: 'Water cost today' }, [COST_MONTH]: { en: 'Water cost this month' } };
+// A "Last use was …" button labels the use going on, or the last one when it ended at most this long ago.
+const LABEL_WINDOW_MS = 15 * 60 * 1000;
+// Per water use category (and Other): litres and cost today and this month, e.g. meter_water.shower_today.
+const categoryCaps = (category) => ({
+  today: `meter_water.${category}_today`,
+  month: `meter_water.${category}_month`,
+  costToday: `measure_monetary.${category}_today`,
+  costMonth: `measure_monetary.${category}_month`
+});
+const labelButton = (category) => `button.${category}`;
 
 /**
  * Water Monitor (issue #37): the house water meter's litres and cost today and this month, and its flow cut into uses
@@ -61,16 +71,116 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The manifest's capabilities, the flow and Last use with a flow source, the costs with a water price.
+   * @description The water use categories chosen at pairing or repair (lib/water-use.js CATEGORIES).
+   */
+  categories() {
+    return waterUse.chosenCategories(this.getStoreValue('categories'));
+  }
+
+  /**
+   * @description The categories shown: the chosen ones and Other, or none when none is chosen (uses need a flow).
+   */
+  shownCategories() {
+    const chosen = this.meter().flow ? this.categories() : [];
+    return chosen.length ? [...chosen, waterUse.OTHER] : [];
+  }
+
+  categoryTitle(category) {
+    return this.homey.__(`monitor.category.${category}`);
+  }
+
+  hasCosts() {
+    return this.price() !== null || this.baseFee() !== null;
+  }
+
+  /**
+   * @description The manifest's capabilities, the flow and Last use with a flow source, the costs with a water price or
+   * base fee, and litres (and costs) per chosen category.
    */
   async checkCapabilities() {
     const capabilities = [...(this.driver.manifest.capabilities || [])];
     if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
-    if (this.price() !== null || this.baseFee() !== null) capabilities.push(COST_TODAY, COST_MONTH);
+    if (this.hasCosts()) capabilities.push(COST_TODAY, COST_MONTH);
+    for (const category of this.shownCategories()) {
+      const caps = categoryCaps(category);
+      capabilities.push(caps.today, caps.month);
+      if (this.hasCosts()) capabilities.push(caps.costToday, caps.costMonth);
+    }
+    // "Last use was …" buttons for the chosen categories.
+    if (this.meter().flow) capabilities.push(...this.categories().map(labelButton));
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
-    if (result.added.includes(COST_TODAY)) await this.applyCurrency();
+    for (const category of this.shownCategories()) {
+      const caps = categoryCaps(category);
+      const title = this.categoryTitle(category);
+      if (result.added.includes(caps.today)) await this.setCapabilityOptions(caps.today, { title: { en: `${title} today` }, units: { en: 'l' }, decimals: 0 }).catch(this.error);
+      if (result.added.includes(caps.month)) await this.setCapabilityOptions(caps.month, { title: { en: `${title} this month` }, units: { en: 'm³' }, decimals: 2 }).catch(this.error);
+    }
+    for (const category of this.categories()) {
+      const button = labelButton(category);
+      const title = this.homey.__('monitor.last_use_was', { category: this.categoryTitle(category) });
+      if (result.added.includes(button)) await this.setCapabilityOptions(button, { title: { en: title } }).catch(this.error);
+    }
+    if (result.added.some((cap) => cap.startsWith('measure_monetary.'))) await this.applyCurrency();
+    await this.setCapabilityListeners();
     return result;
+  }
+
+  /**
+   * @description Listeners of the "Last use was …" buttons the device has, each registered once.
+   */
+  async setCapabilityListeners() {
+    this.buttonListeners = this.buttonListeners || new Set();
+    for (const category of waterUse.CATEGORIES) {
+      const button = labelButton(category);
+      if (!this.hasCapability(button) || this.buttonListeners.has(button)) continue;
+      this.registerCapabilityListener(button, () => this.onLabel(category));
+      this.buttonListeners.add(button);
+    }
+  }
+
+  /**
+   * @description "Last use was <category>": the use going on gets the category when it ends; the last use (ended at
+   * most LABEL_WINDOW_MS ago) is moved to it, its litres with it. Pressed again, it moves again. The use's latest label
+   * is kept as a sample for learning, with the category it was first guessed as.
+   */
+  async onLabel(category) {
+    const at = Date.now();
+    this.log(`${this.getName()} - onLabel - ${category}`);
+    if (this.use && this.use.confirmed) {
+      this.pendingLabel = { start: this.use.start, category };
+      return;
+    }
+    const last = this.getStoreValue('lastUse');
+    if (!last || at - last.end > LABEL_WINDOW_MS) throw new Error(this.homey.__('monitor.no_recent_use'));
+    const from = last.category || waterUse.OTHER;
+    this.totals = waterUse.moveCategory(waterUse.rollover(this.totals, this.date(at)), this.date(last.end), from, category, last.litres);
+    this.dirty = true;
+    const labelled = { ...last, category, labelled: true };
+    await this.setStoreValue('lastUse', labelled).catch(this.error);
+    const uses = (this.getStoreValue('uses') || []).map((use) => (use.start === last.start ? labelled : use));
+    await this.setStoreValue('uses', uses).catch(this.error);
+    await this.keepLabel(labelled, last.guessed || from);
+    await this.show(at);
+  }
+
+  /**
+   * @description A labelled use and what it was guessed as: the samples learning will use.
+   */
+  async keepLabel(use, guessed) {
+    const others = (this.getStoreValue('labels') || []).filter((sample) => sample.start !== use.start);
+    await this.setStoreValue('labels', waterUse.keepUse(others, { ...use, guessed })).catch(this.error);
+  }
+
+  /**
+   * @description The title of a cost capability: the house's (Water cost today) or a category's (Shower cost today).
+   */
+  costTitle(cap) {
+    if (COST_TITLES[cap]) return COST_TITLES[cap];
+    const [, key] = cap.split('.');
+    const month = key.endsWith('_month');
+    const title = this.categoryTitle(key.replace(/_(today|month)$/, ''));
+    return { en: `${title} cost ${month ? 'this month' : 'today'}` };
   }
 
   /**
@@ -79,9 +189,9 @@ module.exports = class waterMonitorDevice extends mainDevice {
   async applyCurrency() {
     const controller = this.homey.app.findController();
     const units = { en: controller ? controller.currency() : '€' };
-    for (const cap of [COST_TODAY, COST_MONTH]) {
+    for (const cap of this.getCapabilities().filter((id) => id.startsWith('measure_monetary.'))) {
       // setCapabilityOptions replaces the options: pass title and decimals too.
-      if (this.hasCapability(cap)) await this.setCapabilityOptions(cap, { title: COST_TITLES[cap], units, decimals: 2 }).catch(this.error);
+      await this.setCapabilityOptions(cap, { title: this.costTitle(cap), units, decimals: 2 }).catch(this.error);
     }
   }
 
@@ -236,11 +346,30 @@ module.exports = class waterMonitorDevice extends mainDevice {
     const minutes = Math.round(((ended.end - ended.start) / 60000) * 10) / 10;
     const litres = Math.round(ended.litres * 10) / 10;
     const cost = waterUse.cost(ended.litres, this.price());
-    this.log(`${this.getName()} - use ended: ${litres} l in ${minutes} min, peak ${ended.peak.toFixed(1)} l/min`);
-    const last = { ...ended, cost };
+    // Its category from the chosen ones (Other is what the meter counts beyond them).
+    const chosen = this.categories();
+    const guessed = chosen.length ? waterUse.classify(ended, chosen) : null;
+    // Labelled with a button while it ran.
+    const label = this.pendingLabel && this.pendingLabel.start === ended.start ? this.pendingLabel.category : null;
+    this.pendingLabel = null;
+    const category = label || guessed;
+    this.log(`${this.getName()} - use ended: ${category || 'use'} ${litres} l in ${minutes} min, peak ${ended.peak.toFixed(1)} l/min`);
+    if (category && category !== waterUse.OTHER) {
+      this.totals = waterUse.addCategory(this.totals, this.date(ended.end), category, ended.litres);
+      this.dirty = true;
+      await this.showTotals();
+    }
+    const last = { ...ended, cost, category, guessed, ...(label ? { labelled: true } : {}) };
     await this.setStoreValue('lastUse', last).catch(this.error);
     await this.setStoreValue('uses', waterUse.keepUse(this.getStoreValue('uses'), last)).catch(this.error);
-    await this.triggerFlow('water_use_ended', { litres, minutes, flow: Math.round(ended.average * 10) / 10, cost: cost === null ? 0 : Math.round(cost * 100) / 100 });
+    if (label) await this.keepLabel(last, guessed);
+    await this.triggerFlow('water_use_ended', {
+      litres,
+      minutes,
+      flow: Math.round(ended.average * 10) / 10,
+      cost: cost === null ? 0 : Math.round(cost * 100) / 100,
+      category: category ? this.categoryTitle(category) : ''
+    });
   }
 
   /**
@@ -288,6 +417,20 @@ module.exports = class waterMonitorDevice extends mainDevice {
       await this.setValue(COST_TODAY, round((waterUse.cost(totals.todayL, price) ?? 0) + (fee ? fee.today : 0)));
       await this.setValue(COST_MONTH, round((waterUse.cost(totals.monthL, price) ?? 0) + (fee ? fee.month : 0)));
     }
+    // Per category: litres, and the litres at the water price (the base fee stays in the house's cost).
+    const shown = this.shownCategories();
+    if (!shown.length) return;
+    const sums = waterUse.categoryTotals(this.totals, this.categories());
+    for (const category of shown) {
+      const caps = categoryCaps(category);
+      const { todayL, monthL } = sums[category];
+      await this.setValue(caps.today, Math.round(todayL));
+      await this.setValue(caps.month, Math.round(monthL) / 1000);
+      if (this.hasCapability(caps.costToday)) {
+        await this.setValue(caps.costToday, Math.round((waterUse.cost(todayL, this.price()) ?? 0) * 100) / 100);
+        await this.setValue(caps.costMonth, Math.round((waterUse.cost(monthL, this.price()) ?? 0) * 100) / 100);
+      }
+    }
   }
 
   /**
@@ -304,7 +447,8 @@ module.exports = class waterMonitorDevice extends mainDevice {
     const last = this.getStoreValue('lastUse');
     if (!last) return this.homey.__('water.start.none');
     const litres = last.litres < 10 ? last.litres.toFixed(1) : String(Math.round(last.litres));
-    const text = this.homey.__('monitor.last_use.ended', { start: time(last.start), end: time(last.end), litres, flow: last.average.toFixed(1) });
+    let text = this.homey.__('monitor.last_use.ended', { start: time(last.start), end: time(last.end), litres, flow: last.average.toFixed(1) });
+    if (last.category) text = `${this.categoryTitle(last.category)} ${text}`;
     return this.date(last.start) === this.date(at) ? text : `${this.date(last.start)} ${text}`;
   }
 
@@ -317,6 +461,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
       name: this.getName(),
       driver: 'water-monitor',
       meter: this.meter(),
+      categories: this.categories(),
       sources: Object.keys(this.sourceListeners || {}),
       totals: this.totals,
       meterLast: this.meterLast,
@@ -324,23 +469,30 @@ module.exports = class waterMonitorDevice extends mainDevice {
       baseFee: this.baseFee(),
       use: this.use,
       uses: this.getStoreValue('uses') || [],
-      ghosts: this.getStoreValue('ghosts') || []
+      ghosts: this.getStoreValue('ghosts') || [],
+      labels: this.getStoreValue('labels') || []
     };
   }
 
   /**
-   * @description Repair: another water meter. Its reading is a new starting point; today's and the month's litres stay.
+   * @description Repair: the water meter and the categories. A meter's reading is a new starting point; today's and the
+   * month's litres stay, also per category (a category no longer chosen counts in Other).
    */
-  async onRepairMeter(meter) {
-    this.log(`${this.getName()} - onRepairMeter - ${meter.name}: meter ${meter.meter}, flow ${meter.flow}`);
-    this.unsubscribeSources();
-    this.clearTimer('useEnd');
-    this.use = null;
-    this.flowLast = null;
-    this.meterLast = null;
-    this.dirty = true;
+  async onRepairMeter(meter, categories) {
+    this.log(`${this.getName()} - onRepairMeter - ${meter.name}: meter ${meter.meter}, flow ${meter.flow}, categories ${categories.join(', ') || 'none'}`);
+    await this.setStoreValue('categories', categories);
+    // The same meter keeps its starting point and the use going on: only the categories changed.
+    if (meter.id !== this.meter().id || meter.flowCap !== this.meter().flowCap) {
+      this.unsubscribeSources();
+      this.clearTimer('useEnd');
+      this.use = null;
+      this.flowLast = null;
+      this.meterLast = null;
+      this.dirty = true;
+    }
     await this.setStoreValue('meter', meter);
     await this.checkCapabilities();
+    await this.applyCurrency();
     await this.subscribeSources();
     await this.save();
     await this.show(Date.now());

@@ -27,18 +27,18 @@ function run(readings, checkAt = null) {
   return { state, started, ended };
 }
 
-test('rollover: today resets on a new day, the month on a new month', () => {
-  const totals = { date: '2026-11-19', month: '2026-11', todayL: 300, monthL: 9000 };
+test('rollover: today resets on a new day, the month on a new month, also per category', () => {
+  const totals = { date: '2026-11-19', month: '2026-11', todayL: 300, monthL: 9000, cats: { shower: { todayL: 100, monthL: 3000 } } };
   assert.deepStrictEqual(use.rollover(totals, '2026-11-19'), totals);
-  assert.deepStrictEqual(use.rollover(totals, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 9000 });
-  assert.deepStrictEqual(use.rollover(totals, '2026-12-01'), { date: '2026-12-01', month: '2026-12', todayL: 0, monthL: 0 });
-  assert.deepStrictEqual(use.rollover(null, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 0 });
+  assert.deepStrictEqual(use.rollover(totals, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 9000, cats: { shower: { todayL: 0, monthL: 3000 } } });
+  assert.deepStrictEqual(use.rollover(totals, '2026-12-01'), { date: '2026-12-01', month: '2026-12', todayL: 0, monthL: 0, cats: { shower: { todayL: 0, monthL: 0 } } });
+  assert.deepStrictEqual(use.rollover(null, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 0, cats: {} });
 });
 
 test('addLitres: to today and the month, after the rollover; nothing for zero or invalid', () => {
-  const totals = { date: '2026-11-30', month: '2026-11', todayL: 300, monthL: 9000 };
-  assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', 12), { date: '2026-11-30', month: '2026-11', todayL: 312, monthL: 9012 });
-  assert.deepStrictEqual(use.addLitres(totals, '2026-12-01', 5), { date: '2026-12-01', month: '2026-12', todayL: 5, monthL: 5 });
+  const totals = { date: '2026-11-30', month: '2026-11', todayL: 300, monthL: 9000, cats: {} };
+  assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', 12), { date: '2026-11-30', month: '2026-11', todayL: 312, monthL: 9012, cats: {} });
+  assert.deepStrictEqual(use.addLitres(totals, '2026-12-01', 5), { date: '2026-12-01', month: '2026-12', todayL: 5, monthL: 5, cats: {} });
   assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', NaN), totals);
   assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', -3), totals);
 });
@@ -194,4 +194,57 @@ test('confirmUse: confirmed once the meter reading rose a litre; a flow without 
   // A flow-only meter confirms at once; no reading leaves it open.
   assert.strictEqual(use.confirmUse(use.useStep(null, 0, 5).use, null, true).confirmed, true);
   assert.strictEqual(use.confirmUse(use.useStep(null, 0, 5).use, null).confirmed, false);
+});
+
+// A finished use: minutes long, litres, with a steady flow unless peak is given.
+function finished(minutes, litres, peak = null) {
+  const average = litres / minutes;
+  return { start: 0, end: minutes * M, litres, average, peak: peak === null ? average : peak };
+}
+
+test('classify: the first chosen category whose pattern fits, else Other', () => {
+  const all = use.CATEGORIES;
+  assert.strictEqual(use.classify(finished(6, 45), all), 'shower');
+  assert.strictEqual(use.classify(finished(0.4, 2.7, 7.3), all), 'tap');
+  assert.strictEqual(use.classify(finished(1, 6), all), 'toilet');
+  // An uneven short draw is a tap, not a toilet.
+  assert.strictEqual(use.classify(finished(1, 6, 12), all), 'tap');
+  assert.strictEqual(use.classify(finished(8, 120), all), 'bath');
+  assert.strictEqual(use.classify(finished(40, 300), all), 'outdoor');
+  // Not chosen: the next fitting one, or Other.
+  assert.strictEqual(use.classify(finished(1, 6), ['tap']), 'tap');
+  assert.strictEqual(use.classify(finished(6, 45), ['tap', 'toilet']), 'other');
+  assert.strictEqual(use.classify(finished(8, 120), ['shower']), 'other');
+});
+
+test('chosenCategories: known ones only, in the pairing order', () => {
+  assert.deepStrictEqual(use.chosenCategories(['toilet', 'x', 'shower']), ['shower', 'toilet']);
+  assert.deepStrictEqual(use.chosenCategories(null), []);
+});
+
+test('addCategory and categoryTotals: Other is the house total less the chosen categories', () => {
+  let totals = use.addLitres(null, '2026-11-20', 100);
+  totals = use.addCategory(totals, '2026-11-20', 'shower', 40);
+  totals = use.addCategory(totals, '2026-11-20', 'tap', 5);
+  const sums = use.categoryTotals(totals, ['shower', 'tap', 'toilet']);
+  assert.deepStrictEqual(sums.shower, { todayL: 40, monthL: 40 });
+  assert.deepStrictEqual(sums.toilet, { todayL: 0, monthL: 0 });
+  assert.deepStrictEqual(sums.other, { todayL: 55, monthL: 55 });
+  // A category not chosen any more counts in Other; Other is never negative.
+  assert.deepStrictEqual(use.categoryTotals(totals, ['tap']).other, { todayL: 95, monthL: 95 });
+  assert.deepStrictEqual(use.categoryTotals(use.addCategory(totals, '2026-11-20', 'shower', 100), ['shower']).other, { todayL: 0, monthL: 0 });
+});
+
+test('moveCategory: a relabelled use moves from one category to another, today and this month', () => {
+  let totals = use.addLitres(null, '2026-11-20', 100);
+  totals = use.addCategory(totals, '2026-11-20', 'tap', 30);
+  const moved = use.moveCategory(totals, '2026-11-20', 'tap', 'shower', 30);
+  assert.deepStrictEqual(moved.cats.tap, { todayL: 0, monthL: 0 });
+  assert.deepStrictEqual(moved.cats.shower, { todayL: 30, monthL: 30 });
+  // From Other: only the new category grows; to Other: only the old one shrinks.
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'other', 'toilet', 6).cats.toilet, { todayL: 6, monthL: 6 });
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'other', 10).cats.tap, { todayL: 20, monthL: 20 });
+  // A use that ended yesterday moves in the month only.
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-19', 'tap', 'shower', 10).cats.shower, { todayL: 0, monthL: 10 });
+  assert.strictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'tap', 10), totals);
 });

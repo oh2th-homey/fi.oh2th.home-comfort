@@ -14,7 +14,11 @@ apps (for example Aquaro) report it.
 - With the meter reading only, the litres are counted but there are no uses.
 - With the flow only, the litres are counted from the flow.
 
-Pick another meter in the device's **Repair**. Today's and this month's litres are kept.
+Then tick the **Water uses** the home has: **Shower**, **Tap / sink**, **Toilet**, **Bath** and
+**Outdoor tap** (they need a meter with a flow). See [Categories](#categories).
+
+Pick another meter or change the water uses in the device's **Repair**. Today's and this month's
+litres are kept.
 
 ## What it shows
 
@@ -50,8 +54,35 @@ checked like this; its uses count as soon as the flow rises.
 The meter sees all the home's water, so two uses at the same time (a tap while a shower runs)
 count as one.
 
+## Categories
+
+Each use is counted in one of the ticked water uses by its litres, length and flow:
+
+| Category | Pattern |
+| --- | --- |
+| Bath | 80 l or more at over 10 l/min |
+| Outdoor tap | 30 minutes or more, or 10 minutes or more at over 12 l/min |
+| Shower | 3 minutes or more at 4-13 l/min |
+| Toilet | 3-10 l in under 2.5 minutes at a steady flow |
+| Tap / sink | under 3 minutes |
+
+The first ticked one that fits, in this order, wins. A use that fits none of them, and water the
+meter counts beyond the uses, is **Other**, so the categories add up to the house total. For each
+category and Other the device shows its water today and this month and, with a water price, its
+cost today and this month (litres at the water price; the base fee is only in the house's cost).
+
+**Last use** starts with the category, for example *Shower 07:42 - 07:47, 38 l at 7.6 l/min*.
+
+### Correct a category
+
+The buttons **Last use was Shower**, **Last use was Toilet** and so on (one per ticked water use)
+correct the category: of the use going on, or of the last use when it ended at most 15 minutes ago.
+Its litres move to the new category, today and this month. Pressed again, it moves again. The
+corrections are kept to learn the home's own patterns later.
+
 ## Flow cards
 
 - Trigger **Water use started** (flow).
-- Trigger **Water use ended** (litres, minutes, average flow, cost; cost 0 without a water price).
+- Trigger **Water use ended** (litres, minutes, average flow, cost, category; cost 0 without a
+  water price).
 - Homey's own cards for the water today and this month, the flow and the costs.

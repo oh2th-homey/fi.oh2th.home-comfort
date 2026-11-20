@@ -117,7 +117,9 @@
       "both": "Litres from the meter reading, uses from the flow.",
       "meter_only": "Litres from the meter reading. Without a flow there are no uses.",
       "flow_only": "Litres and uses from the flow.",
-      "no_meter": "Choose the house water meter."
+      "no_meter": "Choose the house water meter.",
+      "categories": "Water uses",
+      "categories_hint": "Tick the kinds of water use the home has. Each use is counted in one of them by its flow and length, the rest in Other. Correct a wrong one with the Last use was buttons. Needs a meter with a flow."
     }
   },
   "error": {
@@ -345,6 +347,16 @@
     "last_use": {
       "running": "Running since __start__ - __litres__ l",
       "ended": "__start__ - __end__, __litres__ l at __flow__ l/min"
-    }
+    },
+    "category": {
+      "shower": "Shower",
+      "tap": "Tap / sink",
+      "toilet": "Toilet",
+      "bath": "Bath",
+      "outdoor": "Outdoor tap",
+      "other": "Other"
+    },
+    "last_use_was": "Last use was __category__",
+    "no_recent_use": "No water use in the last 15 minutes"
   }
 }

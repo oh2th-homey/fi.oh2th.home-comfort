@@ -986,6 +986,14 @@
               "en": "Cost"
             },
             "example": 0.15
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "title": {
+              "en": "Category"
+            },
+            "example": "Shower"
           }
         ],
         "id": "water_use_ended"

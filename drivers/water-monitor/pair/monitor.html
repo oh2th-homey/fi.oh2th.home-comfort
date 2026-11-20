@@ -22,6 +22,11 @@
     <select class="homey-form-select" id="wm-meter"></select>
   </div>
   <p class="homey-form-hint" id="wm-hint"></p>
+  <div class="homey-form-group">
+    <label class="homey-form-label" data-i18n="pair.monitor.categories"></label>
+    <p class="homey-form-hint" data-i18n="pair.monitor.categories_hint"></p>
+    <fieldset class="homey-form-checkbox-set" id="wm-categories"></fieldset>
+  </div>
   <p class="wm-error" id="wm-error"></p>
   <button class="homey-button-primary-full" id="wm-save" data-i18n="pair.water.save"></button>
 </form>
@@ -64,13 +69,14 @@
         return;
       }
       const meter = { id: el('wm-meter').value };
+      const categories = [...document.querySelectorAll('#wm-categories input:checked')].map((box) => box.value);
       try {
         if (view.repair) {
-          await Homey.emit('save_monitor_sources', { meter });
+          await Homey.emit('save_monitor_sources', { meter, categories });
           Homey.done();
           return;
         }
-        const device = await Homey.emit('create_monitor', { name: el('wm-name').value.trim(), meter });
+        const device = await Homey.emit('create_monitor', { name: el('wm-name').value.trim(), meter, categories });
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
@@ -87,6 +93,24 @@
         el('wm-meter').appendChild(option('', Homey.__('pair.water.choose')));
         for (const meter of view.meters) el('wm-meter').appendChild(option(meter.id, label(meter)));
         el('wm-meter').value = view.current && view.meters.some((m) => m.id === view.current.id) ? view.current.id : '';
+        // The categories, as Homey's checkboxes; a new device starts with all ticked.
+        const ticked = view.current ? view.current.categories : view.categories.map((c) => c.id);
+        for (const category of view.categories) {
+          const label = document.createElement('label');
+          label.className = 'homey-form-checkbox';
+          const box = document.createElement('input');
+          box.className = 'homey-form-checkbox-input';
+          box.type = 'checkbox';
+          box.value = category.id;
+          box.checked = ticked.includes(category.id);
+          const check = document.createElement('span');
+          check.className = 'homey-form-checkbox-checkmark';
+          const text = document.createElement('span');
+          text.className = 'homey-form-checkbox-text';
+          text.textContent = category.title;
+          label.append(box, check, text);
+          el('wm-categories').appendChild(label);
+        }
         showHint();
         el('wm-form').style.display = '';
       } catch (error) {

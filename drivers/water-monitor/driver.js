@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const mainDriver = require('../main-driver');
+const { chosenCategories, CATEGORIES } = require('../../lib/water-use');
 
 /**
  * Water Monitor (issue #37): read only, from the house water meter's standard capabilities: meter_water (m³) for the
@@ -10,27 +11,29 @@ const mainDriver = require('../main-driver');
 module.exports = class waterMonitorDriver extends mainDriver {
   async onPair(session) {
     session.setHandler('get_monitor_sources', async () => this.sourcesView(null));
-    session.setHandler('create_monitor', async ({ name, meter }) => ({
+    session.setHandler('create_monitor', async ({ name, meter, categories }) => ({
       name: name || this.homey.__('pair.monitor.name'),
       data: { id: `water-monitor-${crypto.randomUUID()}` },
-      store: { meter: await this.checkMeter(meter) }
+      store: { meter: await this.checkMeter(meter), categories: chosenCategories(categories) }
     }));
   }
 
   async onRepair(session, device) {
     session.setHandler('get_monitor_sources', async () => this.sourcesView(device));
-    session.setHandler('save_monitor_sources', async ({ meter }) => device.onRepairMeter(await this.checkMeter(meter)));
+    session.setHandler('save_monitor_sources', async ({ meter, categories }) => device.onRepairMeter(await this.checkMeter(meter), chosenCategories(categories)));
   }
 
   /**
-   * @description The page's data: devices with a water meter or a water flow, and the current choice.
+   * @description The page's data: devices with a water meter or a water flow, the water use categories, and the current
+   * choices.
    */
   async sourcesView(device) {
     const candidates = await this.homey.app.members.candidates({ water: true });
     return {
       repair: !!device,
       meters: candidates.filter((d) => d.waterMeter || d.waterFlow).map((d) => ({ id: d.id, name: d.name, zone: d.zone, meter: d.waterMeter, flow: d.waterFlow })),
-      current: device ? device.getStoreValue('meter') : null
+      categories: CATEGORIES.map((id) => ({ id, title: this.homey.__(`monitor.category.${id}`) })),
+      current: device ? { ...device.getStoreValue('meter'), categories: chosenCategories(device.getStoreValue('categories')) } : null
     };
   }
 
