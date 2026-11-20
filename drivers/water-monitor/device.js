@@ -25,7 +25,24 @@ module.exports = class waterMonitorDevice extends mainDevice {
     this.flowLast = null;
     this.use = null;
     this.dirty = false;
+    await this.refreshMeter();
     await this.subscribeSources();
+  }
+
+  /**
+   * @description Meters picked before the flow capability was stored (flowCap) are checked again, so a meter with
+   * measure_water_flow gets its flow without a repair.
+   */
+  async refreshMeter() {
+    const meter = this.getStoreValue('meter');
+    if (!meter || meter.flowCap !== undefined) return;
+    try {
+      const checked = await this.driver.checkMeter({ id: meter.id });
+      this.log(`${this.getName()} - refreshMeter - ${checked.name}: meter ${checked.meter}, flow ${checked.flowCap}`);
+      await this.setStoreValue('meter', checked);
+    } catch (error) {
+      this.error(`${this.getName()} - refreshMeter - ${error}`);
+    }
   }
 
   async onDeleted() {
@@ -109,14 +126,14 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * Sources: the water meter's meter_water and measure_water, chosen at pairing or repair.
+   * Sources: the water meter's meter_water and flow (measure_water or measure_water_flow), chosen at pairing or repair.
    */
   sources() {
-    const { id, name, meter, flow } = this.meter();
+    const { id, name, meter, flow, flowCap } = this.meter();
     if (!id) return [];
     const list = [];
     if (meter) list.push({ key: 'meter', id, name, cap: 'meter_water' });
-    if (flow) list.push({ key: 'flow', id, name, cap: FLOW });
+    if (flow) list.push({ key: 'flow', id, name, cap: flowCap || FLOW });
     return list;
   }
 

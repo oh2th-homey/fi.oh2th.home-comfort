@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const use = require('../lib/water-use');
+const { waterFlowCapability } = require('../lib/members');
 
 const S = 1000;
 const M = 60000;
@@ -161,4 +162,11 @@ test('baseFee: spread evenly over the month, up to and including the date; null 
   assert.ok(Math.abs(feb.month - 28) < 1e-9);
   assert.strictEqual(use.baseFee(0, '2026-11-20'), null);
   assert.strictEqual(use.baseFee(null, '2026-11-20'), null);
+});
+
+test('waterFlowCapability: measure_water first, else measure_water_flow in l/min', () => {
+  assert.strictEqual(waterFlowCapability({ measure_water: {}, measure_water_flow: { units: 'L/min' } }), 'measure_water');
+  assert.strictEqual(waterFlowCapability({ measure_water_flow: { units: 'L/min' } }), 'measure_water_flow');
+  assert.strictEqual(waterFlowCapability({ measure_water_flow: { units: 'm³/h' } }), null);
+  assert.strictEqual(waterFlowCapability({ meter_water: {} }), null);
 });

@@ -7,7 +7,8 @@ they cost, and each use of water as it happens. It reads the house water meter a
 
 Add device → Adaptive Home Comfort → **Water Monitor**, then choose the **House water meter**: a
 device of any app with Homey's standard **Water meter** (`meter_water`, m³) and/or **Water flow**
-(`measure_water`, l/min).
+(`measure_water`, l/min). A flow as `measure_water_flow` in l/min works too, as some water meter
+apps (for example Aquaro) report it.
 
 - With both, the litres come from the meter reading and the uses from the flow.
 - With the meter reading only, the litres are counted but there are no uses.

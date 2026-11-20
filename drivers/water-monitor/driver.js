@@ -5,7 +5,7 @@ const mainDriver = require('../main-driver');
 
 /**
  * Water Monitor (issue #37): read only, from the house water meter's standard capabilities: meter_water (m³) for the
- * litres and measure_water (l/min) for the flow and the uses. One page pairs and repairs.
+ * litres and measure_water (l/min; or measure_water_flow, lib/members.js) for the flow and the uses. One page pairs and repairs.
  */
 module.exports = class waterMonitorDriver extends mainDriver {
   async onPair(session) {
@@ -35,12 +35,13 @@ module.exports = class waterMonitorDriver extends mainDriver {
   }
 
   /**
-   * @description The picked water meter as stored: { id, name, meter, flow } (whether it has meter_water and measure_water).
+   * @description The picked water meter as stored: { id, name, meter, flow, flowCap }: whether it has meter_water and a
+   * flow, and the flow's capability (lib/members.js waterFlowCapability).
    */
   async checkMeter(pick) {
     const candidates = await this.homey.app.members.candidates({ water: true });
     const device = pick && candidates.find((d) => d.id === pick.id && (d.waterMeter || d.waterFlow));
     if (!device) throw new Error(this.homey.__('pair.monitor.no_meter'));
-    return { id: device.id, name: device.name, meter: device.waterMeter, flow: device.waterFlow };
+    return { id: device.id, name: device.name, meter: device.waterMeter, flow: device.waterFlow, flowCap: device.waterFlowCap };
   }
 };
