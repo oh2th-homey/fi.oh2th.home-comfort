@@ -78,7 +78,7 @@
       const on = decimal(document.getElementById(`ron-${memberId}`).value);
       const off = decimal(document.getElementById(`roff-${memberId}`).value);
       const target = 21;
-      const show = (value) => (Number.isFinite(value) ? value.toFixed(1) : '—');
+      const show = (value) => (Number.isFinite(value) ? value.toFixed(1) : '-');
       const text = Homey.__('pair.members.relay_preview', { target, on: show(target - on), off: show(target + off) });
       document.getElementById(`rprev-${memberId}`).textContent = text;
     }

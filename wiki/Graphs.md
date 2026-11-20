@@ -20,7 +20,7 @@ Tomorrow shows **Prices not known yet** until tomorrow's prices arrive (see [Pri
 - **Target** (yellow): what the zone aimed at. After now it is dashed: what the zone will aim
   at, from the zone's rules and the known prices, with the occupancy, season and setpoints as
   they are now. It changes when they change.
-- **Eco–comfort** (shaded): the band between eco and comfort.
+- **Eco-comfort** (shaded): the band between eco and comfort.
 - The strip under the graph marks the **price peaks** (orange) and the prices over **Expensive
   above** (red, see [Prices](Prices)).
 - The headline: today the temperature and target now, tomorrow the eco time.

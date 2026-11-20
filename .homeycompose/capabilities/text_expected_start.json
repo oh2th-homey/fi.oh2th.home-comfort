@@ -4,7 +4,7 @@
     "en": "Expected start"
   },
   "hint": {
-    "en": "When heating starts next: a time, Now while heating, or – when nothing is planned."
+    "en": "When heating starts next: a time, Now while heating, or - when nothing is planned."
   },
   "getable": true,
   "setable": false,

@@ -217,7 +217,7 @@
       "at_max": "At maximum __max__",
       "below_keep": "Below keep __keep__",
       "reheat": "Below keep: heating to __target__ °C",
-      "block_wait": "Block __start__–__until__ for __ready__",
+      "block_wait": "Block __start__ - __until__ for __ready__",
       "block_heat": "Block until __until__ for __ready__",
       "block_done": "Heating block done for __ready__",
       "topup_heat": "Topping up to __target__ °C, cheaper than the block",
@@ -273,7 +273,7 @@
     },
     "start": {
       "now": "Now",
-      "none": "–"
+      "none": "-"
     },
     "duration": {
       "minutes": "__m__ min",
@@ -289,7 +289,7 @@
       "6": "Sat"
     },
     "filter": {
-      "cycle": "__start__–__end__",
+      "cycle": "__start__ - __end__",
       "off": "off (__price__/kWh)",
       "summary": "__day__: __cycles__"
     },
@@ -313,7 +313,7 @@
     "source": {
       "met_nordic": "MET Nordic (1 km) for 2½ days, then ECMWF; fetched __time__",
       "best_match": "Open-Meteo best match; fetched __time__",
-      "off": "–",
+      "off": "-",
       "failed": "Not fetched since __time__: __error__",
       "never": "Not fetched yet: __error__"
     }
@@ -323,7 +323,7 @@
     "tomorrow": "Tomorrow",
     "temperature": "Temperature",
     "target": "Target",
-    "band": "Eco–comfort",
+    "band": "Eco-comfort",
     "peak": "Price peak",
     "expensive": "Expensive",
     "price": "Price",

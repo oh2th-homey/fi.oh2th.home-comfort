@@ -248,7 +248,7 @@ Once the next day's prices are known and the current day's cycles are over, the 
 the cheapest time in each window and runs **Filter cycles planned**. Tokens: **Cycle 1 start**
 and **Cycle 2 start** (HH:mm), **Cycle 2 runs** (yes/no), **Cycle 1 runs** (always yes, kept for
 older flows), and a **Summary**
-such as `Sun: 02:00–04:00, 14:00–15:00`. The tub repeats its schedule daily, so the new times are
+such as `Sun: 02:00 - 04:00, 14:00 - 15:00`. The tub repeats its schedule daily, so the new times are
 sent only after the day's last cycle is over; until the prices come, the tub keeps the times it
 has. **Planned** in the settings shows the last plan.
 

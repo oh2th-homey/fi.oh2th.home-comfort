@@ -237,7 +237,7 @@
         "label": {
           "en": "Forecast source"
         },
-        "value": "–",
+        "value": "-",
         "hint": {
           "en": "Where the forecast comes from and when it was last fetched."
         }
