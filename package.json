@@ -1,6 +1,6 @@
 {
   "name": "fi.oh2th.home-comfort",
-  "version": "2.6.1",
+  "private": true,
   "main": "app.js",
   "scripts": {
     "test": "node --test",
