@@ -3,7 +3,6 @@ local_assets/
 wiki/
 .github/
 tools/
-.env
 docs/
 CLAUDE.md
 CLAUDE.local.md
