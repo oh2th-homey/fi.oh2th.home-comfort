@@ -343,8 +343,8 @@
   },
   "monitor": {
     "last_use": {
-      "running": "Running since __start__: __litres__ l",
-      "ended": "__start__–__end__: __litres__ l, __flow__ l/min"
+      "running": "Running since __start__ – __litres__ l",
+      "ended": "__start__–__end__ – __litres__ l, __flow__ l/min"
     }
   }
 }
