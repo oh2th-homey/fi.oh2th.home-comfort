@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "Season changed"
+  },
+  "hint": {
+    "en": "The season the zones follow changed: heating, cooling or off. Also when Automatic chooses another season."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=controller"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "season",
+      "type": "string",
+      "title": {
+        "en": "Season"
+      },
+      "example": {
+        "en": "heating"
+      }
+    }
+  ]
+}

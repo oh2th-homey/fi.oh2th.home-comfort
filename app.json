@@ -637,6 +637,34 @@
       },
       {
         "title": {
+          "en": "Season changed"
+        },
+        "hint": {
+          "en": "The season the zones follow changed: heating, cooling or off. Also when Automatic chooses another season."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=controller"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "season",
+            "type": "string",
+            "title": {
+              "en": "Season"
+            },
+            "example": {
+              "en": "heating"
+            }
+          }
+        ],
+        "id": "season_changed"
+      },
+      {
+        "title": {
           "en": "Heating held by the price ceiling"
         },
         "hint": {
@@ -1902,6 +1930,12 @@
               "title": {
                 "en": "Off"
               }
+            },
+            {
+              "id": "auto",
+              "title": {
+                "en": "Automatic"
+              }
             }
           ]
         },
@@ -2085,6 +2119,65 @@
               "value": "",
               "hint": {
                 "en": "Last day away as YYYY-MM-DD. Setting a day turns Away on; it ends after that day. Empty: no end date."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Automatic season"
+          },
+          "children": [
+            {
+              "id": "season_heat_below",
+              "type": "number",
+              "label": {
+                "en": "Heating when outdoor mean below"
+              },
+              "value": 10,
+              "min": -20,
+              "max": 40,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Season Automatic: heating when the outdoor mean is below this. The outdoor mean is of the past 3 days, or with the forecast the past 2 days and the next 24 hours."
+              }
+            },
+            {
+              "id": "season_cool_outdoor_above",
+              "type": "number",
+              "label": {
+                "en": "Cooling when outdoor mean above"
+              },
+              "value": 18,
+              "min": -20,
+              "max": 40,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "Season Automatic: cooling when the outdoor mean is above this and the indoor mean is above the next setting. Between the two outdoor limits the season stays as it is."
+              }
+            },
+            {
+              "id": "season_cool_indoor_above",
+              "type": "number",
+              "label": {
+                "en": "and indoor mean above"
+              },
+              "value": 23,
+              "min": -20,
+              "max": 40,
+              "step": 0.5,
+              "units": {
+                "en": "°C"
+              },
+              "hint": {
+                "en": "The 24-hour mean of the zones that can cool. Without such zones Automatic never chooses cooling."
               }
             }
           ]

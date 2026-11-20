@@ -1,18 +1,19 @@
 'use strict';
 
-const { localTime, strToMins, localDate, addDays, isDate, isTime, updateCapabilities } = require('oh2th-homey-helpers');
+const { localTime, strToMins, localDate, addDays, isDate, isTime, updateCapabilities, formatTemperature } = require('oh2th-homey-helpers');
 const mainDevice = require('../main-device');
 const prices = require('../../lib/prices');
 const daily = require('../../lib/daily');
 const water = require('../../lib/water');
 const meters = require('../../lib/meters');
 const forecast = require('../../lib/forecast');
+const season = require('../../lib/season');
 
 const OCCUPANCY = ['present', 'coming_home', 'away'];
-const SEASONS = ['heating', 'cooling', 'off'];
 // Season is shown with the standard thermostat_mode capability.
-const SEASON_MODE = { heating: 'heat', cooling: 'cool', off: 'off' };
 const MODE_SEASON = { heat: 'heating', cool: 'cooling', off: 'off' };
+// Season Automatic (issue #6): the app chooses heating or cooling from the means it keeps (lib/season.js).
+const AUTO = 'auto';
 
 // An outdoor sensor not updated for this long counts as unknown.
 const OUTDOOR_MAX_AGE_MS = 3 * 60 * 60 * 1000;
@@ -74,6 +75,8 @@ module.exports = class controllerDevice extends mainDevice {
     if (changedKeys.includes('currency')) await this.applyCurrency(currency);
     if (newSettings.absence_until !== '' && !isDate(newSettings.absence_until)) throw new Error(this.homey.__('error.invalid_date'));
     if (newSettings.price_high > 0 && newSettings.price_ceiling > 0 && newSettings.price_high >= newSettings.price_ceiling) throw new Error(this.homey.__('error.price_levels'));
+    if (newSettings.season_heat_below >= newSettings.season_cool_outdoor_above) throw new Error(this.homey.__('error.season_limits'));
+    if (changedKeys.some((key) => key.startsWith('season_'))) await this.updateAutoSeason(Date.now(), newSettings);
 
     // Settings are saved after this returns: show or hide the forecast and fetch it then.
     if (changedKeys.includes('forecast_open_meteo')) this.setTimer('forecast', () => this.onForecastSetting().catch(this.error), 500);
@@ -258,7 +261,7 @@ module.exports = class controllerDevice extends mainDevice {
     try {
       if (check) await this.applyCurrency();
       if (!OCCUPANCY.includes(this.getCapabilityValue('enum_occupancy'))) await this.setValue('enum_occupancy', 'present', check);
-      if (!MODE_SEASON[this.getCapabilityValue('thermostat_mode')]) await this.setValue('thermostat_mode', 'heat', check);
+      if (!this.validMode(this.getCapabilityValue('thermostat_mode'))) await this.setValue('thermostat_mode', 'heat', check);
       if (typeof this.getCapabilityValue('is_long_absence') !== 'boolean') await this.setValue('is_long_absence', this.getSetting('absence_until') !== '', check);
       await this.evaluatePrices(this.getSettings(), check);
     } catch (error) {
@@ -274,6 +277,8 @@ module.exports = class controllerDevice extends mainDevice {
     if (local.minutes % 5 === 0) await this.refreshPrices(now.getTime());
     if (local.minutes % 5 === 0) await this.refreshForecast(now.getTime());
     await this.checkAbsence(local);
+    await this.sampleSeason(now.getTime(), local.minutes % 15 === 0);
+    await this.updateAutoSeason(now.getTime());
     if (local.minutes % 15 === 0) await this.evaluatePrices();
     if (local.minutesOfDay === strToMins(this.getSettings().tomorrow_check_time)) await this.checkTomorrow(now.getTime());
   }
@@ -393,18 +398,117 @@ module.exports = class controllerDevice extends mainDevice {
     }
   }
 
+  validMode(mode) {
+    return mode === AUTO || !!MODE_SEASON[mode];
+  }
+
+  /**
+   * @description The effective season the zones follow: the chosen one, or in Automatic the one the app decided.
+   */
   getSeason() {
-    return MODE_SEASON[this.getCapabilityValue('thermostat_mode')] || 'heating';
+    const mode = this.getCapabilityValue('thermostat_mode');
+    if (mode === AUTO) return this.getStoreValue('autoSeason') === 'cooling' ? 'cooling' : 'heating';
+    return MODE_SEASON[mode] || 'heating';
   }
 
   async onCapability_THERMOSTAT_MODE(value) {
     this.log(`${this.getName()} - onCapability_THERMOSTAT_MODE - ${value}`);
     try {
-      if (!MODE_SEASON[value]) throw new Error(this.homey.__('error.invalid_value', { value }));
-      return Promise.resolve(await this.changeEnum('season', MODE_SEASON[value]));
+      if (!this.validMode(value)) throw new Error(this.homey.__('error.invalid_value', { value }));
+      return Promise.resolve(await this.changeMode(value));
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  /**
+   * @description Set the season (Heating, Cooling, Off or Automatic) and let the zones re-evaluate. Automatic starts from
+   * the season chosen before it (Off becomes Heating) and decides at once.
+   * @returns {Promise<boolean>} true when changed
+   */
+  async changeMode(mode) {
+    if (mode === this.getCapabilityValue('thermostat_mode')) return false;
+    const before = this.getSeason();
+    // A manual season drops the automatic reason; Automatic decides anew.
+    this.seasonDecision = null;
+    if (mode === AUTO) await this.setStoreValue('autoSeason', before === 'cooling' ? 'cooling' : 'heating');
+    await this.setValue('thermostat_mode', mode);
+    if (mode === AUTO) await this.updateAutoSeason(Date.now(), this.getSettings(), true);
+    await this.onSeasonChanged(before);
+    await this.evaluatePrices();
+    return true;
+  }
+
+  /**
+   * @description After the season may have changed: fire Season changed with the effective season, let the zones re-evaluate.
+   * Homey fires thermostat_mode_changed itself when the Season capability changes.
+   */
+  async onSeasonChanged(before) {
+    const now = this.getSeason();
+    if (now !== before) await this.triggerFlow('season_changed', { season: now });
+    await this.homey.app.onSharedStateChanged();
+  }
+
+  /**
+   * @description Sample the outdoor temperature and the mean of the zones that can cool into hourly buckets (lib/season.js),
+   * kept in memory and saved in the store every quarter.
+   */
+  async sampleSeason(now, save) {
+    if (!this.seasonSamples) this.seasonSamples = this.getStoreValue('seasonSamples') || { outdoor: [], indoor: [] };
+    const samples = this.seasonSamples;
+    samples.outdoor = season.addSample(samples.outdoor, now, this.outdoorTemperature(), season.OUTDOOR_HOURS);
+    samples.indoor = season.addSample(samples.indoor, now, this.coolingZonesTemperature(), season.INDOOR_HOURS);
+    if (save) await this.setStoreValue('seasonSamples', samples).catch(this.error);
+  }
+
+  /**
+   * @description Mean temperature now of the zones with cooling (an A/C member), or null without any.
+   */
+  coolingZonesTemperature() {
+    let zones = [];
+    try {
+      zones = this.homey.drivers.getDriver('zone').getDevices();
+    } catch (error) {
+      return null;
+    }
+    const values = zones
+      .filter((zone) => typeof zone.hasCooling === 'function' && zone.hasCooling())
+      .map((zone) => zone.getCapabilityValue('measure_temperature'))
+      .filter((value) => typeof value === 'number' && Number.isFinite(value));
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }
+
+  /**
+   * @description In Automatic: decide the season from the means and apply it; the reason is shown before the price reason.
+   * @param {boolean} [quiet] - Don't fire or re-evaluate (the caller does)
+   */
+  async updateAutoSeason(now, settings = this.getSettings(), quiet = false) {
+    if (this.getCapabilityValue('thermostat_mode') !== AUTO) {
+      this.seasonDecision = null;
+      return;
+    }
+    if (!this.seasonSamples) this.seasonSamples = this.getStoreValue('seasonSamples') || { outdoor: [], indoor: [] };
+    const before = this.getSeason();
+    const outdoor = season.outdoorMean(this.seasonSamples.outdoor, now, this.forecastOn() ? this.getStoreValue('forecast') : null);
+    const decision = season.decide({ current: before, outdoor: outdoor.mean, indoor: season.indoorMean(this.seasonSamples.indoor, now), thresholds: season.thresholds(settings) });
+    const reasonChanged = this.seasonReasonText(decision) !== this.seasonReasonText(this.seasonDecision);
+    this.seasonDecision = decision;
+    if (decision.season !== before) {
+      this.log(`${this.getName()} - updateAutoSeason - ${before} -> ${decision.season}: ${this.seasonReasonText(decision)}`);
+      await this.setStoreValue('autoSeason', decision.season);
+      if (!quiet) await this.onSeasonChanged(before);
+    }
+    if (!quiet && (reasonChanged || decision.season !== before)) await this.evaluatePrices();
+  }
+
+  /**
+   * @description The automatic season's reason, e.g. "Heating: outdoor mean 7.2 °C"; empty when not in Automatic.
+   */
+  seasonReasonText(decision) {
+    if (!decision) return '';
+    const imperial = this.homey.app.isImperial();
+    const args = { outdoor: formatTemperature(decision.args.outdoor, imperial), indoor: formatTemperature(decision.args.indoor, imperial) };
+    return `${this.homey.__(`season.${decision.season}`)}: ${this.homey.__(`season_reason.${decision.code}`, args)}`;
   }
 
   async onCapability_LONG_ABSENCE(value) {
@@ -434,13 +538,12 @@ module.exports = class controllerDevice extends mainDevice {
    * @returns {Promise<boolean>} true when changed
    */
   async changeEnum(key, value) {
-    const values = { occupancy: OCCUPANCY, season: SEASONS }[key];
+    const values = { occupancy: OCCUPANCY }[key];
     if (!values.includes(value)) throw new Error(this.homey.__('error.invalid_value', { value }));
-    const capability = { occupancy: 'enum_occupancy', season: 'thermostat_mode' }[key];
-    const capabilityValue = key === 'season' ? SEASON_MODE[value] : value;
-    if (capabilityValue === this.getCapabilityValue(capability)) return false;
-    await this.setValue(capability, capabilityValue);
-    // Homey fires the "<capability>_changed" trigger itself for enum capabilities (enum_occupancy, thermostat_mode).
+    const capability = { occupancy: 'enum_occupancy' }[key];
+    if (value === this.getCapabilityValue(capability)) return false;
+    await this.setValue(capability, value);
+    // Homey fires the "<capability>_changed" trigger itself for enum capabilities.
     await this.homey.app.onSharedStateChanged();
     return true;
   }
@@ -673,7 +776,8 @@ module.exports = class controllerDevice extends mainDevice {
     await this.setValue('is_expensive', result.expensive, firstRun);
     await this.setValue('enum_price_level', result.level, firstRun);
     await this.setValue('text_prices_until', result.until ? this.formatLocal(result.until) : this.homey.__('price.none'), firstRun);
-    await this.setValue('text_reason', this.reasonText(reasons), firstRun);
+    // In Automatic the season's reason first (issue #6).
+    await this.setValue('text_reason', [this.seasonReasonText(this.seasonDecision), this.reasonText(reasons)].filter(Boolean).join('; '), firstRun);
 
     if (!firstRun && (wasExpensive !== result.expensive || wasLevel !== result.level || wasPeak !== this.pricePeakNow)) await this.homey.app.onSharedStateChanged();
     return result;

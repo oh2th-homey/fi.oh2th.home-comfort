@@ -5,7 +5,8 @@ The controller holds what all zones share. You can add only one.
 - **Occupancy**: Home (someone is home), Coming home (someone is on the way) or Out
   (nobody is home right now). Set it with the **Set occupancy** card, for example from presence or a
   geofence.
-- **Season**: Heating, Cooling or Off.
+- **Season**: Heating, Cooling, Off or Automatic. In [Automatic](#automatic-season) the app
+  chooses heating or cooling itself.
 - **Away**: on when everyone has left for days, off when you are home. All zones go to eco and
   nothing cools. To stop
   all heating and cooling, set the season to Off.
@@ -26,7 +27,8 @@ The controller holds what all zones share. You can add only one.
   counted by your energy app, for example Power by the Hour's consumption devices, with your own
   tariff. To follow the cost of all heating and cooling in one place, point such a device at the
   controller's heating power.
-- **Reason**: why the price is expensive or not, in one phrase, the strongest first: `Expensive:
+- **Reason**: in Automatic first the season and why (`Heating: outdoor mean 7.2 °C`), then why the
+  price is expensive or not, in one phrase, the strongest first: `Expensive:
   over 0.15 €/kWh` (over Expensive above), `Price peak: over 0.27 €/kWh`, `High: over 0.10 €/kWh`
   or `Normal`.
 
@@ -48,7 +50,29 @@ The app only reads these meters; it never switches them.
   **Prices missing for tomorrow**.
 - **Away until**: the last day away. See
   [Leave for days](How-to#leave-for-days).
+- **Automatic season**: the limits of the [automatic season](#automatic-season).
 - **Outdoor forecast from Open-Meteo** (default off): see [Outdoor forecast](#outdoor-forecast).
+
+## Automatic season
+
+With the season set to **Automatic**, the controller chooses heating or cooling from the
+temperatures it has collected itself:
+
+- **Outdoor mean**: the outdoor temperature over the past 3 days. With the
+  [outdoor forecast](#outdoor-forecast) on, the past 2 days and the next 24 hours.
+- **Indoor mean**: the temperature over the past 24 hours of the zones that can cool (zones with an
+  air conditioner).
+
+The season becomes **Heating** when the outdoor mean is below **Heating when outdoor mean below**
+(default 10 °C), and **Cooling** when the outdoor mean is above **Cooling when outdoor mean above**
+(default 18 °C) and the indoor mean is above **and indoor mean above** (default 23 °C). Between the
+limits the season stays as it is, so it doesn't switch back and forth. Without zones that can cool,
+Automatic always heats.
+
+Automatic never chooses Off, because Off also stops frost protection in the zones. The means start
+when the controller is added or updated: for about the first 2–3 days the season stays as it was
+(Heating if it was Off). Setting the season to Heating, Cooling or Off takes over from Automatic;
+setting it back to Automatic hands the choice back to the app.
 
 ## Outdoor forecast
 

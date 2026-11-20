@@ -37,6 +37,12 @@
           "title": {
             "en": "Off"
           }
+        },
+        {
+          "id": "auto",
+          "title": {
+            "en": "Automatic"
+          }
         }
       ]
     },
