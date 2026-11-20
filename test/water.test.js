@@ -689,6 +689,9 @@ test('state: heating whenever demanded, ready while held, stopped without a temp
   assert.strictEqual(water.state(main, 16 * H), 'heating');
   assert.strictEqual(water.heatingNews(15.5 * H, main, {}), null);
   assert.strictEqual(water.heatingNews(16.25 * H, main, {}), 'started');
+  // Its reason: cheap hours before the main heating, heating for the ready time from its start.
+  assert.strictEqual(water.shownReason(main, 15.5 * H).code, 'heating');
+  assert.strictEqual(water.shownReason(main, 16 * H).code, 'heating_main');
   assert.strictEqual(water.state({ demand: true, safe: true, reason: { code: 'heating' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, reason: { code: 'heating_keep' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, reason: { code: 'learning_heat' } }), 'heating');
