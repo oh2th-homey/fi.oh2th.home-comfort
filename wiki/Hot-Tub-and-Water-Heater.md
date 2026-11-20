@@ -210,7 +210,12 @@ on** → **Ready at 06:00**. The one-off ready time plans the night's cheapest b
 
 In standing water the warm water rises, so a sensor near the surface reads high until the
 circulation mixes the water. The device plans still water with the reading minus this **mixing
-drop**. The first 15 minutes of each heating are left out of learning while the water mixes.
+drop**. The drop grows the longer the water stands, so it is learned for how long the water stood
+(1-2 h, 2-4 h, 4-8 h, 8 h and more); until a range is learned, the overall drop is used, scaled
+down for water that stood less than 8 hours. The setting shows the learned ranges, for example
+`1-2 h 0.3, 8+ h 1.2 °C`. After an app restart the device remembers whether the pump ran lately,
+so water it just mixed isn't taken as standing water. The first 15 minutes of each heating are
+left out of learning while the water mixes.
 
 With a **power meter** the device tells three states apart: **still** (standby), **circulating**
 (the base load, such as a filter pump) and **heating**. It learns the heat loss over each still

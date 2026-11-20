@@ -386,7 +386,7 @@
         },
         "value": "-",
         "hint": {
-          "en": "How much higher the water temperature reads while the water stands still. Planned with the reading minus this."
+          "en": "How much higher the water temperature reads while the water stands still, by how long it has stood. Planned with the reading minus this."
         }
       },
       {

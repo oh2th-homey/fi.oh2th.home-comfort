@@ -493,14 +493,19 @@ module.exports = class waterDevice extends mainDevice {
   planTemperature(now = Date.now()) {
     // A tank's average over its heights needs no mixing drop.
     if (this.isTank()) return this.waterTemperature();
-    return water.mixedTemperature(this.waterTemperature(), this.getStoreValue('model'), this.isStill(now));
+    return water.mixedTemperature(this.waterTemperature(), this.getStoreValue('model'), this.stillHours(now));
+  }
+
+  /**
+   * @description How long the water has stood still, hours (lib/water.js stillHours).
+   */
+  stillHours(now) {
+    const opts = { flow: this.flowState(), meter: !!this.getStoreValue('power'), still: this.still, heating: this.isHeating(), stillSince: this.getStoreValue('stillSince') };
+    return water.stillHours(opts, now);
   }
 
   isStill(now) {
-    return water.isStill(
-      { flow: this.flowState(), meter: !!this.getStoreValue('power'), still: this.still, heating: this.isHeating(), stillSince: this.getStoreValue('stillSince') },
-      now
-    );
+    return this.stillHours(now) >= STILL_MS / 3600000;
   }
 
   /**
@@ -607,9 +612,9 @@ module.exports = class waterDevice extends mainDevice {
       // Heating: the water is still mixing. Once mixed, learn how much the still water read too high.
       if (now < seg.start) return;
       if (typeof seg.before === 'number') {
-        const mix = water.learnMix(this.getStoreValue('model'), { before: seg.before, after: raw, heatedHours: SETTLE_MS / 3600000 });
+        const mix = water.learnMix(this.getStoreValue('model'), { before: seg.before, after: raw, heatedHours: SETTLE_MS / 3600000, stoodHours: seg.stood });
         if (mix.value !== null) {
-          this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C: average ${mix.model.mixDrop.toFixed(2)} °C`);
+          this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C${mix.bin === null ? '' : ` after ${mix.bin}+ h still`}: average ${mix.model.mixDrop.toFixed(2)} °C`);
           await this.setStoreValue('model', mix.model).catch(this.error);
           await this.showModel(mix.model);
         }
@@ -650,7 +655,7 @@ module.exports = class waterDevice extends mainDevice {
     if (step.mix) {
       const mix = water.learnMix(this.getStoreValue('model'), step.mix);
       if (mix.value !== null) {
-        this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C: average ${mix.model.mixDrop.toFixed(2)} °C`);
+        this.log(`${this.getName()} - learned mixing drop ${mix.value.toFixed(2)} °C${mix.bin === null ? '' : ` after ${mix.bin}+ h still`}: average ${mix.model.mixDrop.toFixed(2)} °C`);
         await this.setStoreValue('model', mix.model).catch(this.error);
         await this.showModel(mix.model);
       }
@@ -735,7 +740,9 @@ module.exports = class waterDevice extends mainDevice {
   async startSegment(heating, now, raw, surroundings, previous) {
     if (heating) {
       const before = previous && !previous.heating && this.isStillBefore(now) ? raw : null;
-      await this.saveSegment({ heating, start: now + SETTLE_MS, from: null, before, outSum: 0, outN: 0 });
+      const stillSince = this.getStoreValue('stillSince');
+      const stood = before !== null && typeof stillSince === 'number' ? (now - stillSince) / 3600000 : null;
+      await this.saveSegment({ heating, start: now + SETTLE_MS, from: null, before, stood, outSum: 0, outN: 0 });
       return;
     }
     // Heating (circulation) stopped now: the water starts standing still.
@@ -768,13 +775,26 @@ module.exports = class waterDevice extends mainDevice {
   /**
    * @description The learned curve in the device settings (labels).
    */
+  /**
+   * @description The mixing drop as shown: per standing time where learned, e.g. "1-2 h 0.3, 8+ h 1.2 °C", else overall.
+   */
+  mixText(m) {
+    const bins = water.MIX_BINS.filter((bin) => m.mixBins[bin] && typeof m.mixBins[bin].drop === 'number');
+    if (!bins.length) return `${m.mixDrop.toFixed(1)} °C`;
+    const range = (bin) => {
+      const next = water.MIX_BINS[water.MIX_BINS.indexOf(bin) + 1];
+      return next ? `${bin}-${next} h` : `${bin}+ h`;
+    };
+    return `${bins.map((bin) => `${range(bin)} ${m.mixBins[bin].drop.toFixed(1)}`).join(', ')} °C`;
+  }
+
   async showModel(stored) {
     const m = water.model(stored);
     const learned = water.confident(m) ? this.homey.__('water.model.learned') : this.homey.__('water.model.learning', { hours: Math.round(m.heatHours * 10) / 10 });
     await this.setSettings({
       learned_heat_rate: `${m.heatRate.toFixed(1)} °C/h`,
       learned_loss: `${(m.loss * 100).toFixed(2)} %/h`,
-      learned_mix: `${m.mixDrop.toFixed(1)} °C`,
+      learned_mix: this.mixText(m),
       learned_state: learned
     }).catch(this.error);
   }
