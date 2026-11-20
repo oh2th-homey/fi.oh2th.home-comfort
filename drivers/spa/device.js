@@ -168,7 +168,7 @@ module.exports = class spaDevice extends waterDevice {
   }
 
   /**
-   * @description E.g. "Sun: 02:00–04:00, off (0.21/kWh)".
+   * @description E.g. "Sun: 02:00 - 04:00, off (0.21/kWh)".
    */
   filterSummary(date, times) {
     const hhmm = (ms) => localTime(this, new Date(ms)).time;

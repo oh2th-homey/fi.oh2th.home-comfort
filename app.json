@@ -242,7 +242,7 @@
               "en": "Summary"
             },
             "example": {
-              "en": "Sun: 02:00–04:00, 14:00–15:00"
+              "en": "Sun: 02:00 - 04:00, 14:00 - 15:00"
             }
           }
         ],
@@ -2208,7 +2208,7 @@
               "label": {
                 "en": "Forecast source"
               },
-              "value": "–",
+              "value": "-",
               "hint": {
                 "en": "Where the forecast comes from and when it was last fetched."
               }
@@ -3962,7 +3962,7 @@
         "en": "Expected ready"
       },
       "hint": {
-        "en": "When it is expected at the temperature it heats to, by the learned heating: Now when it is there, – when nothing is planned."
+        "en": "When it is expected at the temperature it heats to, by the learned heating: Now when it is there, - when nothing is planned."
       },
       "getable": true,
       "setable": false,
@@ -3975,7 +3975,7 @@
         "en": "Expected start"
       },
       "hint": {
-        "en": "When heating starts next: a time, Now while heating, or – when nothing is planned."
+        "en": "When heating starts next: a time, Now while heating, or - when nothing is planned."
       },
       "getable": true,
       "setable": false,
