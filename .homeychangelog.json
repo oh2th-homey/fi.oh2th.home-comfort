@@ -79,5 +79,8 @@
   },
   "2.6.1": {
     "en": "NEW: The Home Controller shows where the outdoor forecast comes from and when it was fetched."
+  },
+  "2.7.0": {
+    "en": "NEW: Season Automatic, the Home Controller chooses heating or cooling from the past days' outdoor temperature, the forecast and the indoor temperature."
   }
 }
