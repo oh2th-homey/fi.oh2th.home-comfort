@@ -1,8 +1,7 @@
 test/
-local_assets/
 wiki/
 .github/
 tools/
 docs/
 CLAUDE.md
-CLAUDE.local.md
+.claude/
