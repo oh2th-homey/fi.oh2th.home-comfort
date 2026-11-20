@@ -40,7 +40,14 @@ is its litres at the water price, without the base fee.
 
 A use starts when water starts running and ends a minute after it stops: a short pause in a
 shower is still the same shower, while a washing machine's fills a few minutes apart are separate
-uses. The meter sees all the home's water, so two uses at the same time (a tap while a shower runs)
+uses.
+
+Some meters report a small flow while no water passes, for example an ultrasonic meter some time
+after a use. So a use counts only once the meter reading has moved by a litre: **Water use
+started** runs then, and a flow that ends before that is ignored. A meter with only a flow can't be
+checked like this; its uses count as soon as the flow rises.
+
+The meter sees all the home's water, so two uses at the same time (a tap while a shower runs)
 count as one.
 
 ## Flow cards

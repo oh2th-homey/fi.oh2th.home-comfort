@@ -995,7 +995,7 @@
           "en": "Water use started"
         },
         "hint": {
-          "en": "Water started running: the flow rose above zero."
+          "en": "Water is running: the flow rose and the meter reading moved by a litre. With a flow-only meter, as soon as the flow rises."
         },
         "args": [
           {

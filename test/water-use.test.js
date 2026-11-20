@@ -170,3 +170,28 @@ test('waterFlowCapability: measure_water first, else measure_water_flow in l/min
   assert.strictEqual(waterFlowCapability({ measure_water_flow: { units: 'm³/h' } }), null);
   assert.strictEqual(waterFlowCapability({ meter_water: {} }), null);
 });
+
+test('confirmUse: confirmed once the meter reading rose a litre; a flow without water stays unconfirmed', () => {
+  let { use: state } = use.useStep(null, 0, 1.2);
+  assert.strictEqual(state.confirmed, false);
+  let result = use.confirmUse(state, 47.47);
+  state = result.use;
+  assert.strictEqual(state.meterStart, 47.47);
+  assert.strictEqual(result.confirmed, false);
+  result = use.confirmUse(state, 47.4705);
+  assert.strictEqual(result.confirmed, false);
+  result = use.confirmUse(result.use, 47.471);
+  assert.strictEqual(result.confirmed, true);
+  assert.strictEqual(use.confirmUse(result.use, 47.48).confirmed, false);
+
+  // A ghost: the flow ends before the reading moves.
+  let ghost = use.useStep(null, 0, 1.2).use;
+  ghost = use.confirmUse(ghost, 47.47).use;
+  ghost = use.useStep(ghost, 50 * S, 0).use;
+  const { ended } = use.checkEnd(ghost, 120 * S);
+  assert.strictEqual(ended.confirmed, false);
+
+  // A flow-only meter confirms at once; no reading leaves it open.
+  assert.strictEqual(use.confirmUse(use.useStep(null, 0, 5).use, null, true).confirmed, true);
+  assert.strictEqual(use.confirmUse(use.useStep(null, 0, 5).use, null).confirmed, false);
+});

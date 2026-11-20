@@ -178,6 +178,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
         this.dirty = true;
       }
       if (step.litres > 0) await this.addLitres(at, step.litres);
+      await this.confirmUse(at);
     } else if (key === 'flow') {
       const flow = this.read('flow');
       // Without meter_water the litres come from the flow.
@@ -186,7 +187,8 @@ module.exports = class waterMonitorDevice extends mainDevice {
       const step = waterUse.useStep(this.use, at, flow);
       this.use = step.use;
       if (step.ended) await this.onUseEnded(step.ended);
-      if (step.started) await this.onUseStarted(flow);
+      // The use counts once the meter reading confirms it; a flow-only meter can't, its uses count at once.
+      if (step.started) await this.confirmUse(at, !this.meter().meter);
       // The flow stopped: the use ends after the gap, also without another reading.
       if (this.use && this.use.zeroSince === at) this.setTimer('useEnd', () => this.checkUseEnd(), waterUse.END_GAP_MS + 1000);
       await this.showLastUse(at);
@@ -212,11 +214,25 @@ module.exports = class waterMonitorDevice extends mainDevice {
     await this.showLastUse(at);
   }
 
-  async onUseStarted(flow) {
-    await this.triggerFlow('water_use_started', { flow: Math.round(flow * 10) / 10 });
+  /**
+   * @description Confirm the running use by the meter reading (lib/water-use.js confirmUse); Water use started runs then.
+   */
+  async confirmUse(at, confirmNow = false) {
+    if (!this.use) return;
+    const result = waterUse.confirmUse(this.use, this.meterLast, confirmNow);
+    this.use = result.use;
+    if (!result.confirmed) return;
+    await this.triggerFlow('water_use_started', { flow: Math.round(this.use.peak * 10) / 10 });
+    await this.showLastUse(at);
   }
 
   async onUseEnded(ended) {
+    // A flow the meter reading never confirmed: no water passed. Kept apart to follow how often it happens.
+    if (!ended.confirmed) {
+      this.log(`${this.getName()} - flow without water: ${ended.litres.toFixed(1)} l by the flow in ${Math.round((ended.end - ended.start) / 1000)} s, not a use`);
+      await this.setStoreValue('ghosts', waterUse.keepUse(this.getStoreValue('ghosts'), ended)).catch(this.error);
+      return;
+    }
     const minutes = Math.round(((ended.end - ended.start) / 60000) * 10) / 10;
     const litres = Math.round(ended.litres * 10) / 10;
     const cost = waterUse.cost(ended.litres, this.price());
@@ -284,7 +300,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
 
   lastUseText(at) {
     const time = (ms) => localTime(this, new Date(ms)).time;
-    if (this.use) return this.homey.__('monitor.last_use.running', { start: time(this.use.start), litres: Math.round(waterUse.runningLitres(this.use, at)) });
+    if (this.use && this.use.confirmed) return this.homey.__('monitor.last_use.running', { start: time(this.use.start), litres: Math.round(waterUse.runningLitres(this.use, at)) });
     const last = this.getStoreValue('lastUse');
     if (!last) return this.homey.__('water.start.none');
     const litres = last.litres < 10 ? last.litres.toFixed(1) : String(Math.round(last.litres));
@@ -307,7 +323,8 @@ module.exports = class waterMonitorDevice extends mainDevice {
       price: this.price(),
       baseFee: this.baseFee(),
       use: this.use,
-      uses: this.getStoreValue('uses') || []
+      uses: this.getStoreValue('uses') || [],
+      ghosts: this.getStoreValue('ghosts') || []
     };
   }
 
