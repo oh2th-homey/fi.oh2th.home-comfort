@@ -82,5 +82,8 @@
   },
   "2.7.0": {
     "en": "NEW: Season Automatic, the Home Controller chooses heating or cooling from the past days' outdoor temperature, the forecast and the indoor temperature."
+  },
+  "2.8.0": {
+    "en": "NEW: Today and Tomorrow graphs of the plan and prices as camera images on the devices, and FIX: a Hot Tub or Water Heater no longer reports Heater problem after an app restart while its heater has stopped on its own."
   }
 }
