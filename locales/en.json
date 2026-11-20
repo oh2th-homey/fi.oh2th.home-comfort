@@ -120,7 +120,8 @@
     "date_in_past": "The last day away is already in the past",
     "no_cooling": "This zone has no cooling. Add an air conditioner with Repair.",
     "invalid_currency": "Enter a currency of 1 to 5 characters, for example € or kr.",
-    "outdoor_limit": "Stop above must be higher than Heat below."
+    "outdoor_limit": "Stop above must be higher than Heat below.",
+    "season_limits": "Cooling when outdoor mean above must be higher than Heating when outdoor mean below."
   },
   "occupancy": {
     "present": "Home",
@@ -131,6 +132,12 @@
     "heating": "Heating",
     "cooling": "Cooling",
     "off": "Off"
+  },
+  "season_reason": {
+    "collecting": "collecting outdoor temperatures",
+    "heat_below": "outdoor mean __outdoor__",
+    "cool_above": "outdoor mean __outdoor__, indoor __indoor__",
+    "between": "outdoor mean __outdoor__"
   },
   "price": {
     "none": "No prices",

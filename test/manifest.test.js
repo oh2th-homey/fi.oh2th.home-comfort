@@ -14,9 +14,11 @@ test('app.json is in sync with .homeycompose/app.json', () => {
   assert.strictEqual(app.version, compose.version);
 });
 
+// The version is only in the app manifest, where the Homey CLI bumps it; the package is private and has none.
 test('package.json matches the app manifest', () => {
   assert.strictEqual(pkg.name, app.id);
-  assert.strictEqual(pkg.version, app.version);
+  assert.strictEqual(pkg.private, true);
+  assert.strictEqual(pkg.version, undefined);
 });
 
 test('pair and repair views are the same file', () => {

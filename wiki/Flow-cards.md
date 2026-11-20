@@ -9,7 +9,8 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 - Conditions: **Occupancy is**, **Away is on**, **Price is expensive**, **Price level is**.
 - Triggers: **Occupancy changed**, **Away changed**, **Expensive now changed**, **Price
   level changed** (`normal`, `high` or `expensive`: a warning for notifications), **Prices
-  missing for tomorrow** (once a day at the check time). The **Occupancy
+  missing for tomorrow** (once a day at the check time), **Season changed** (`heating`, `cooling` or
+  `off`: the season the zones follow, also when Automatic changes it). The **Occupancy
   changed** token is `present` (Home), `coming_home` (Coming home) or `away` (Out).
 
 ## Heating Zone

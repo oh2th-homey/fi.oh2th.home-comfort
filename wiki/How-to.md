@@ -73,6 +73,12 @@ If relay off means heating in your wiring, tick **Inverted** for that relay.
 If your air conditioner app has fan mode only as its own flow card, use the zone's **Eco
 changed** trigger to run that card.
 
+### Let the app choose heating or cooling
+
+Set the Home Controller's season to **Automatic**. It heats when the past days have been cold and
+cools when they have been warm and the rooms with air conditioners are warm too. See
+[Automatic season](Home-Controller#automatic-season).
+
 ## Save heat while a window is open
 
 Pick the window or door contact as **Window/door** in the zone. When one has been open for the
