@@ -1000,7 +1000,7 @@ module.exports = class waterDevice extends mainDevice {
       if (!controller) reason = `${reason}; ${this.homey.__('water.reason.no_controller')}`;
       const keeping = ['keep_heat', 'below_keep'].includes(result.reason.code);
       await this.showTiming(now, result, keeping ? this.keepTemperature() : ready);
-      await this.setValue(STATE, water.state(result));
+      await this.setValue(STATE, water.state(result, now));
       await this.setValue('text_reason', reason);
       await this.setDemand(result.demand, reason);
       await this.announceHeating(now, result);

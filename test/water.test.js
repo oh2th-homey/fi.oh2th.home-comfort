@@ -683,6 +683,12 @@ test('power levels: a heater power set far too low still separates the pump once
 test('state: heating whenever demanded, ready while held, stopped without a temperature or at maximum', () => {
   assert.strictEqual(water.state({ demand: true, reason: { code: 'in_use_heat' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, safe: false, reason: { code: 'heating' } }), 'preheating');
+  // The main heating for the ready time, once it has started, is heating (and its Heating started is told).
+  const main = { demand: true, safe: false, reason: { code: 'heating' }, mainStart: 16 * H, use: { start: 18 * H, end: 19 * H } };
+  assert.strictEqual(water.state(main, 15.5 * H), 'preheating');
+  assert.strictEqual(water.state(main, 16 * H), 'heating');
+  assert.strictEqual(water.heatingNews(15.5 * H, main, {}), null);
+  assert.strictEqual(water.heatingNews(16.25 * H, main, {}), 'started');
   assert.strictEqual(water.state({ demand: true, safe: true, reason: { code: 'heating' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, reason: { code: 'heating_keep' } }), 'heating');
   assert.strictEqual(water.state({ demand: true, reason: { code: 'learning_heat' } }), 'heating');
