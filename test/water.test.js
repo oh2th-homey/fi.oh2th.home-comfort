@@ -1319,3 +1319,46 @@ test('isStill: by the flow and the saved still stretch; after a restart the save
   assert.strictEqual(water.isStill({ flow: null, meter: false, heating: false, stillSince: now - 0.5 * H }, now), false);
   assert.strictEqual(water.isStill({ flow: null, meter: false, heating: false, stillSince: null }, now), true);
 });
+
+test('mixDropFor: by standing time; a range not learned ramps the overall drop up over 8 hours', () => {
+  const m = { mixDrop: 1.1, mixCount: 11 };
+  assert.strictEqual(water.mixDropFor(m, 0.5), 0);
+  assert.ok(Math.abs(water.mixDropFor(m, 1.5) - (1.1 * 1.5) / 8) < 1e-9);
+  assert.strictEqual(water.mixDropFor(m, 12), 1.1);
+  assert.strictEqual(water.mixDropFor(m, Infinity), 1.1);
+  // Learned ranges win.
+  const learned = { ...m, mixBins: { 1: { drop: 0.3, count: 1 }, 8: { drop: 1.4, count: 3 } } };
+  assert.strictEqual(water.mixDropFor(learned, 1.5), 0.3);
+  assert.strictEqual(water.mixDropFor(learned, 10), 1.4);
+  assert.ok(Math.abs(water.mixDropFor(learned, 3) - (1.1 * 3) / 8) < 1e-9);
+});
+
+test('learnMix: the drop per standing time, and overall', () => {
+  // 90 minutes still: 36.9 before, 36.6 mixed without heating.
+  const first = water.learnMix({ heatRate: 1.7, mixDrop: 1.1, mixCount: 11 }, { before: 36.9, after: 36.6, heatedHours: 0, stoodHours: 1.5 });
+  assert.ok(Math.abs(first.value - 0.3) < 1e-9);
+  assert.strictEqual(first.bin, 1);
+  assert.ok(Math.abs(first.model.mixBins[1].drop - 0.3) < 1e-9);
+  assert.ok(first.model.mixDrop < 1.1);
+  const second = water.learnMix(first.model, { before: 36.9, after: 36.4, heatedHours: 0, stoodHours: 1.8 });
+  assert.ok(Math.abs(second.model.mixBins[1].drop - 0.4) < 1e-9);
+  assert.strictEqual(second.model.mixBins[1].count, 2);
+  // Without the standing time only the overall drop is learned.
+  const plain = water.learnMix({ mixDrop: 1 }, { before: 37, after: 36, heatedHours: 0 });
+  assert.strictEqual(plain.bin, null);
+  assert.deepStrictEqual(plain.model.mixBins, {});
+});
+
+test('stillHours and mixedTemperature: plan with the drop for the time stood', () => {
+  const H = 3600000;
+  const now = 20 * H;
+  const m = { mixDrop: 1.1, mixBins: { 1: { drop: 0.3, count: 1 } } };
+  const hours = water.stillHours({ flow: 'still', meter: true, still: { phase: 'still', at: now - 1.5 * H } }, now);
+  assert.strictEqual(hours, 1.5);
+  assert.strictEqual(water.mixedTemperature(36.9, m, hours), 36.6);
+  assert.strictEqual(water.mixedTemperature(36.9, m, 0.5), 36.9);
+  assert.strictEqual(water.mixedTemperature(36.9, m, true), 35.8);
+  assert.strictEqual(water.mixedTemperature(36.9, m, false), 36.9);
+  assert.strictEqual(water.stillHours({ flow: null, meter: true, still: null }, now), Infinity);
+  assert.strictEqual(water.stillHours({ flow: 'heating', meter: true, still: null }, now), 0);
+});
