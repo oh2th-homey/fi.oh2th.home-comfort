@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Last use"
+  },
+  "hint": {
+    "en": "The water use going on now, or the last one: when, how many litres and the average flow."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "./assets/capabilities/clock.svg"
+}

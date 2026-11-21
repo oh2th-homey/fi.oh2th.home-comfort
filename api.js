@@ -24,10 +24,10 @@ module.exports = {
 
   /**
    * @description GET /water: what each Hot Tub, Water Heater and Sauna has learned (model, hours seen, open segment or
-   * session), to follow the learning.
+   * session), and each Water Monitor's totals and recent uses, to follow the learning.
    */
   async getWater({ homey }) {
-    const devices = ['spa', 'water-heater', 'sauna'].flatMap((id) => homey.drivers.getDriver(id).getDevices());
+    const devices = ['spa', 'water-heater', 'sauna', 'water-monitor'].flatMap((id) => homey.drivers.getDriver(id).getDevices());
     return devices.filter((device) => typeof device.learningState === 'function').map((device) => device.learningState());
   }
 };

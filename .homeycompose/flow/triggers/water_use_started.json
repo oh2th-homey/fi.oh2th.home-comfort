@@ -1,0 +1,25 @@
+{
+  "title": {
+    "en": "Water use started"
+  },
+  "hint": {
+    "en": "Water is running: the flow rose and the meter reading moved by a litre. With a flow-only meter, as soon as the flow rises."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=water-monitor"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "flow",
+      "type": "number",
+      "title": {
+        "en": "Flow (l/min)"
+      },
+      "example": 7.5
+    }
+  ]
+}

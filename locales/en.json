@@ -109,6 +109,17 @@
       "power": "Stove power meter (optional)",
       "no_power": "None (e.g. a wood-burning stove)",
       "no_temperature": "Choose the sauna temperature."
+    },
+    "monitor": {
+      "name": "Water Monitor",
+      "subtitle": "Litres and cost of the home's water today and this month, and each use, from the house water meter. Nothing is switched.",
+      "meter": "House water meter",
+      "both": "Litres from the meter reading, uses from the flow.",
+      "meter_only": "Litres from the meter reading. Without a flow there are no uses.",
+      "flow_only": "Litres and uses from the flow.",
+      "no_meter": "Choose the house water meter.",
+      "categories": "Water uses",
+      "categories_hint": "Tick the kinds of water use the home has. A use is Unknown until a Last use was button labels it; after a few labels, clear matches are counted by themselves. Needs a meter with a flow."
     }
   },
   "error": {
@@ -332,5 +343,22 @@
     "outdoor_now": "outdoor __outdoor__",
     "outdoor_low": "low __outdoor__",
     "ready_at": "Ready __temperature__ at __time__"
+  },
+  "monitor": {
+    "last_use": {
+      "running": "Running since __start__ - __litres__ l",
+      "ended": "__start__ - __end__, __litres__ l at __flow__ l/min"
+    },
+    "category": {
+      "shower": "Shower",
+      "sink": "Sink",
+      "toilet": "Washroom",
+      "bath": "Bath",
+      "outdoor": "Outdoor tap",
+      "unknown": "Unknown"
+    },
+    "last_use_was": "Last use was __category__",
+    "no_recent_use": "No water use in the last 15 minutes",
+    "not_ticked": "That water use is not ticked on this Water Monitor"
   }
 }

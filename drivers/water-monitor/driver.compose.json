@@ -1,0 +1,47 @@
+{
+  "name": {
+    "en": "Water Monitor"
+  },
+  "class": "sensor",
+  "capabilities": ["meter_water.today", "meter_water.month"],
+  "capabilitiesOptions": {
+    "meter_water.today": {
+      "title": {
+        "en": "Water today"
+      },
+      "units": {
+        "en": "l"
+      },
+      "decimals": 0
+    },
+    "meter_water.month": {
+      "title": {
+        "en": "Water this month"
+      },
+      "units": {
+        "en": "m³"
+      },
+      "decimals": 2
+    },
+    "button.reset": {
+      "maintenanceAction": true,
+      "title": {
+        "en": "Reset counters"
+      },
+      "desc": {
+        "en": "Sets all water and cost counters to zero and clears the last uses. Insights are kept. Can't be undone."
+      }
+    }
+  },
+  "$extends": ["device"],
+  "pair": [
+    {
+      "id": "monitor"
+    }
+  ],
+  "repair": [
+    {
+      "id": "monitor"
+    }
+  ]
+}
