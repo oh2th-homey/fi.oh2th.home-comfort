@@ -160,14 +160,14 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The tiles (grouped by what they show), the flow and Last use with a flow source, the Last use was
+   * @description The flow and Last use with a flow source, the tiles (grouped by what they show), the Last use was
    * buttons and the maintenance action, in this order: Homey shows them in the order they were added and they can't be
    * moved there, so ones that would come out of order are added again.
    */
   async checkCapabilities() {
     const tiles = this.tiles();
-    const capabilities = tiles.map((tile) => tile.cap);
-    if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
+    const capabilities = this.meter().flow ? [FLOW, LAST_USE] : [];
+    capabilities.push(...tiles.map((tile) => tile.cap));
     // "Last use was …" buttons for the chosen categories.
     if (this.meter().flow) capabilities.push(...this.categories().map(labelButton));
     capabilities.push(RESET);

@@ -89,10 +89,10 @@ Unknown also holds the water the meter counts beyond the uses, so the categories
 house total. For each category and Unknown the device shows the same water and costs as for the
 house (litres at the water price; the base fee is only in the house's cost).
 
-The tiles are grouped by what they show: water today, water this month, cost this month, water
+Flow and Last use come first. Then the tiles are grouped by what they show: water today, water this month, cost this month, water
 last month, cost last month, water this year, cost this year, water last year and cost last year.
 Each group has the house's tile first, then the categories in the pairing order, and Unknown last.
-Flow, Last use and the Last use was buttons come after them. Tiles can't be moved in the Homey
+The Last use was buttons come after them. Tiles can't be moved in the Homey
 app, so when a category is ticked later (or a water price is set after the categories), the
 device adds the tiles after it again in order; those tiles start a new insights history.
 
