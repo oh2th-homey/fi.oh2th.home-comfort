@@ -162,6 +162,8 @@
         errorEl.textContent = Homey.__('pair.water.no_water');
         return;
       }
+      // Saving can take a while (capabilities are added one by one): a spinner until it is done.
+      Homey.showLoadingOverlay();
       try {
         if (view.repair) {
           await Homey.emit('save_sources', { sources, filterCycles });
@@ -172,6 +174,7 @@
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
+        Homey.hideLoadingOverlay();
         errorEl.textContent = error.message || String(error);
       }
     });

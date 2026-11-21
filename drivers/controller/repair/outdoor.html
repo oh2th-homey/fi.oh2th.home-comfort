@@ -124,6 +124,8 @@
       const outdoor = sensorEl.value ? { id: sensorEl.value, cap: capEl.value || null } : null;
       const priceSource = pricesEl.value;
       const otherMeters = [...metersEl.querySelectorAll('input:checked')].map((input) => input.dataset.id);
+      // Saving can take a while (capabilities are added one by one): a spinner until it is done.
+      Homey.showLoadingOverlay();
       try {
         if (repair) {
           await Homey.emit('save_outdoor', { outdoor, priceSource, otherMeters });
@@ -134,6 +136,7 @@
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
+        Homey.hideLoadingOverlay();
         errorEl.textContent = error.message || String(error);
       }
     });

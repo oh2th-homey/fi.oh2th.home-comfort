@@ -182,6 +182,8 @@
 
     saveEl.addEventListener('click', async () => {
       errorEl.textContent = '';
+      // Saving can take a while (capabilities are added one by one): a spinner until it is done.
+      Homey.showLoadingOverlay();
       try {
         const members = collect();
         if (selection.repair) {
@@ -193,6 +195,7 @@
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
+        Homey.hideLoadingOverlay();
         errorEl.textContent = error.message || String(error);
       }
     });

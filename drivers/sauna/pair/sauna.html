@@ -86,6 +86,8 @@
         humidity: el('sa-humidity').value ? { id: el('sa-humidity').value } : null,
         power: el('sa-power').value ? { id: el('sa-power').value } : null
       };
+      // Saving can take a while (capabilities are added one by one): a spinner until it is done.
+      Homey.showLoadingOverlay();
       try {
         if (view.repair) {
           await Homey.emit('save_sauna_sources', { sources });
@@ -96,6 +98,7 @@
         await Homey.createDevice(device);
         Homey.done();
       } catch (error) {
+        Homey.hideLoadingOverlay();
         errorEl.textContent = error.message || String(error);
       }
     });
