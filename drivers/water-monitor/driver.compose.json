@@ -22,6 +22,15 @@
         "en": "m³"
       },
       "decimals": 2
+    },
+    "button.reset": {
+      "maintenanceAction": true,
+      "title": {
+        "en": "Reset counters"
+      },
+      "desc": {
+        "en": "Sets all water and cost counters to zero and clears the last uses. Insights are kept. Can't be undone."
+      }
     }
   },
   "$extends": ["device"],

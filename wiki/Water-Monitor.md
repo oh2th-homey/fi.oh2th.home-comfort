@@ -41,6 +41,11 @@ litres are kept.
 Both are in the Home Controller's currency; 0 leaves them out. A use's cost (**Water use ended**)
 is its litres at the water price, without the base fee.
 
+**Reset counters** (the device's settings, **Maintenance actions**) sets the water and the costs
+today, this month and per category to zero, and clears Last use. It can't be undone. The
+insights are kept, and so are the learned uses: the categories keep their patterns. The base
+fee's share of the days so far stays in this month's cost.
+
 ## Uses
 
 A use starts when water starts running and ends a minute after it stops: a short pause in a

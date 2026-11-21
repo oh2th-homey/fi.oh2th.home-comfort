@@ -22,6 +22,8 @@ const categoryCaps = (category) => ({
   costMonth: `measure_monetary.${category}_month`
 });
 const labelButton = (category) => `button.${category}`;
+// Maintenance action Reset counters: last, it isn't a tile.
+const RESET = 'button.reset';
 
 /**
  * Water Monitor (issue #37): the house water meter's litres and cost today and this month, and its flow cut into uses
@@ -154,10 +156,13 @@ module.exports = class waterMonitorDevice extends mainDevice {
     }
     // "Last use was …" buttons for the chosen categories.
     if (this.meter().flow) capabilities.push(...this.categories().map(labelButton));
+    capabilities.push(RESET);
     const reorder = outOfOrder(this.getCapabilities(), capabilities);
     if (reorder.length) this.log(`${this.getName()} - checkCapabilities - adding again in order: ${reorder.join(', ')}`);
     for (const cap of reorder) await this.removeCapability(cap).catch(this.error);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
+    // Added to a device paired before it: the manifest's options (maintenance action, title, warning).
+    if (result.added.includes(RESET)) await this.setCapabilityOptions(RESET, this.driver.manifest.capabilitiesOptions[RESET]).catch(this.error);
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
     // Titles of the category tiles and buttons: set when added, and again when a category was renamed.
     for (const category of this.shownCategories()) {
@@ -196,12 +201,33 @@ module.exports = class waterMonitorDevice extends mainDevice {
    */
   async setCapabilityListeners() {
     this.buttonListeners = this.buttonListeners || new Set();
+    if (this.hasCapability(RESET) && !this.buttonListeners.has(RESET)) {
+      this.registerCapabilityListener(RESET, () => this.onReset());
+      this.buttonListeners.add(RESET);
+    }
     for (const category of waterUse.CATEGORIES) {
       const button = labelButton(category);
       if (!this.hasCapability(button) || this.buttonListeners.has(button)) continue;
       this.registerCapabilityListener(button, () => this.onLabel(category));
       this.buttonListeners.add(button);
     }
+  }
+
+  /**
+   * @description Maintenance action Reset counters: water and costs today, this month and per category start from zero,
+   * and the last uses are cleared. The learned uses are kept, and so are the insights. The meter's last reading stays
+   * the starting point, so only water from now on is counted.
+   */
+  async onReset() {
+    const at = Date.now();
+    this.log(`${this.getName()} - onReset`);
+    this.totals = waterUse.rollover(null, this.date(at));
+    this.use = null;
+    this.pendingLabel = null;
+    this.dirty = true;
+    for (const key of ['lastUse', 'uses', 'ghosts']) await this.unsetStoreValue(key).catch(this.error);
+    await this.save();
+    await this.show(at);
   }
 
   /**
