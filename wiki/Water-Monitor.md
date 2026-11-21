@@ -23,10 +23,12 @@ litres are kept.
 
 ## What it shows
 
-- **Water today** (l) and **Water this month** (m³). They start from zero at midnight and on the
-  first day of the month.
-- **Water cost today** and **Water cost this month**, when a [water price or base fee](#settings)
-  is set.
+- **Water today** (l), **Water this month**, **Water last month**, **Water this year** and
+  **Water last year** (m³). Today starts from zero at midnight, this month on the first day of the
+  month, this year on 1 January.
+- **Water cost this month**, **last month**, **this year** and **last year**, when a
+  [water price or base fee](#settings) is set.
+- The same for each category and Unknown (see [Categories](#categories)).
 - **Flow** now (l/min).
 - **Last use**: the use going on (*Running since 07:42 - 12 l*) or the last one
   (*07:42 - 07:47, 38 l at 7.6 l/min*).
@@ -34,17 +36,18 @@ litres are kept.
 ## Settings
 
 - **Water price** (per m³): supply and wastewater together, as on the water bill (with VAT if you
-  pay it). The litres are counted at this price, so a new price applies to the whole month.
-- **Base fee** (per month): the bill's fixed fee, spread evenly over the month's days. Today's
-  cost has one day's share; this month's cost has the shares of the days so far.
+  pay it). The litres are counted at this price, so a new price applies to the whole month. A month
+that has ended keeps the price and fee it had, in last month's and the years' costs.
+- **Base fee** (per month): the bill's fixed fee, spread evenly over the month's days. This month's
+  cost has the shares of the days so far; an ended month has the whole fee.
 
 Both are in the Home Controller's currency; 0 leaves them out. A use's cost (**Water use ended**)
 is its litres at the water price, without the base fee.
 
-**Reset counters** (the device's settings, **Maintenance actions**) sets the water and the costs
-today, this month and per category to zero, and clears Last use. It can't be undone. The
+**Reset counters** (the device's settings, **Maintenance actions**) sets all the water and cost
+counters to zero (also last month and the years), and clears Last use. It can't be undone. The
 insights are kept, and so are the learned uses: the categories keep their patterns. The base
-fee's share of the days so far stays in this month's cost.
+fee's share of the days so far stays in this month's and this year's cost.
 
 ## Uses
 
@@ -83,14 +86,15 @@ went to the wrong category, move it with the buttons: it then teaches the right 
 the category it already has confirms it. Each category learns from its latest 30 uses.
 
 Unknown also holds the water the meter counts beyond the uses, so the categories add up to the
-house total. For each category and Unknown the device shows its water today and this month and,
-with a water price, its cost today and this month (litres at the water price; the base fee is
-only in the house's cost).
+house total. For each category and Unknown the device shows the same water and costs as for the
+house (litres at the water price; the base fee is only in the house's cost).
 
-The tiles come in this order: the house's water and cost, Flow and Last use, then each category's
-four tiles in the pairing order, and Unknown last. Tiles can't be moved in the Homey app, so when a
-category is ticked later (or a water price is set after the categories), the device adds the
-tiles after it again in order; those tiles start a new insights history.
+The tiles are grouped by what they show: water today, water this month, cost this month, water
+last month, cost last month, water this year, cost this year, water last year and cost last year.
+Each group has the house's tile first, then the categories in the pairing order, and Unknown last.
+Flow, Last use and the Last use was buttons come after them. Tiles can't be moved in the Homey
+app, so when a category is ticked later (or a water price is set after the categories), the
+device adds the tiles after it again in order; those tiles start a new insights history.
 
 **Last use** starts with the category, for example *Shower 07:42 - 07:47, 38 l at 7.6 l/min*.
 

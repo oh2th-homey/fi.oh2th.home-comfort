@@ -5,22 +5,24 @@ const mainDevice = require('../main-device');
 const waterUse = require('../../lib/water-use');
 const { outOfOrder } = require('../../lib/capabilities');
 
-const TODAY = 'meter_water.today';
-const MONTH = 'meter_water.month';
 const FLOW = 'measure_water';
 const LAST_USE = 'text_last_use';
-const COST_TODAY = 'measure_monetary.today';
-const COST_MONTH = 'measure_monetary.month';
-const COST_TITLES = { [COST_TODAY]: { en: 'Water cost today' }, [COST_MONTH]: { en: 'Water cost this month' } };
 // A "Last use was …" button labels the use going on, or the last one when it ended at most this long ago.
 const LABEL_WINDOW_MS = 15 * 60 * 1000;
-// Per water use category (and Unknown): litres and cost today and this month, e.g. meter_water.shower_today.
-const categoryCaps = (category) => ({
-  today: `meter_water.${category}_today`,
-  month: `meter_water.${category}_month`,
-  costToday: `measure_monetary.${category}_today`,
-  costMonth: `measure_monetary.${category}_month`
-});
+// The tiles, grouped by what they show: each group has the house's tile (meter_water.month) and then each category's
+// and Unknown's (meter_water.shower_month). Costs only with a water price or base fee. Field is lib periods'.
+const GROUPS = [
+  { id: 'today', field: 'todayL', label: 'today', kind: 'l' },
+  { id: 'month', field: 'monthL', label: 'this month', kind: 'm3' },
+  { id: 'month', field: 'monthCost', label: 'cost this month', kind: 'cost' },
+  { id: 'last_month', field: 'lastMonthL', label: 'last month', kind: 'm3' },
+  { id: 'last_month', field: 'lastMonthCost', label: 'cost last month', kind: 'cost' },
+  { id: 'year', field: 'yearL', label: 'this year', kind: 'm3' },
+  { id: 'year', field: 'yearCost', label: 'cost this year', kind: 'cost' },
+  { id: 'last_year', field: 'lastYearL', label: 'last year', kind: 'm3' },
+  { id: 'last_year', field: 'lastYearCost', label: 'cost last year', kind: 'cost' }
+];
+const tileCap = (owner, group) => `${group.kind === 'cost' ? 'measure_monetary' : 'meter_water'}.${owner === 'house' ? '' : `${owner}_`}${group.id}`;
 const labelButton = (category) => `button.${category}`;
 // Maintenance action Reset counters: last, it isn't a tile.
 const RESET = 'button.reset';
@@ -34,6 +36,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
   async onInitDevice() {
     this.sourceListeners = {};
     this.totals = this.getStoreValue('totals') || null;
+    if (this.totals) this.totals = waterUse.rollover(this.totals, this.date(Date.now()), this.pricing());
     this.meterLast = this.getStoreValue('meterLast');
     this.flowLast = null;
     this.use = null;
@@ -141,19 +144,30 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The manifest's capabilities, the costs with a water price or base fee, the flow and Last use with a flow
-   * source, litres (and costs) per chosen category, and the Last use was buttons, in this order: Homey shows them in
-   * the order they were added and they can't be moved there, so ones that would come out of order are added again.
+   * @description The tiles in order (GROUPS), each { cap, owner, group, title }: the house's and the shown categories'.
+   */
+  tiles() {
+    const owners = ['house', ...this.shownCategories()];
+    const tiles = [];
+    for (const group of GROUPS) {
+      if (group.kind === 'cost' && !this.hasCosts()) continue;
+      for (const owner of owners) {
+        const name = owner === 'house' ? 'Water' : this.categoryTitle(owner);
+        tiles.push({ cap: tileCap(owner, group), owner, group, title: `${name} ${group.label}` });
+      }
+    }
+    return tiles;
+  }
+
+  /**
+   * @description The tiles (grouped by what they show), the flow and Last use with a flow source, the Last use was
+   * buttons and the maintenance action, in this order: Homey shows them in the order they were added and they can't be
+   * moved there, so ones that would come out of order are added again.
    */
   async checkCapabilities() {
-    const capabilities = [...(this.driver.manifest.capabilities || [])];
-    if (this.hasCosts()) capabilities.push(COST_TODAY, COST_MONTH);
+    const tiles = this.tiles();
+    const capabilities = tiles.map((tile) => tile.cap);
     if (this.meter().flow) capabilities.push(FLOW, LAST_USE);
-    for (const category of this.shownCategories()) {
-      const caps = categoryCaps(category);
-      capabilities.push(caps.today, caps.month);
-      if (this.hasCosts()) capabilities.push(caps.costToday, caps.costMonth);
-    }
     // "Last use was …" buttons for the chosen categories.
     if (this.meter().flow) capabilities.push(...this.categories().map(labelButton));
     capabilities.push(RESET);
@@ -164,12 +178,10 @@ module.exports = class waterMonitorDevice extends mainDevice {
     // Added to a device paired before it: the manifest's options (maintenance action, title, warning).
     if (result.added.includes(RESET)) await this.setCapabilityOptions(RESET, this.driver.manifest.capabilitiesOptions[RESET]).catch(this.error);
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
-    // Titles of the category tiles and buttons: set when added, and again when a category was renamed.
-    for (const category of this.shownCategories()) {
-      const caps = categoryCaps(category);
-      const title = this.categoryTitle(category);
-      await this.setTitle(caps.today, { title: { en: `${title} today` }, units: { en: 'l' }, decimals: 0 }, result.added);
-      await this.setTitle(caps.month, { title: { en: `${title} this month` }, units: { en: 'm³' }, decimals: 2 }, result.added);
+    // Titles of the litres tiles and buttons: set when added, and again when a category was renamed (costs: applyCurrency).
+    for (const tile of tiles.filter((t) => t.group.kind !== 'cost')) {
+      const units = tile.group.kind === 'l' ? { units: { en: 'l' }, decimals: 0 } : { units: { en: 'm³' }, decimals: 2 };
+      await this.setTitle(tile.cap, { title: { en: tile.title }, ...units }, result.added);
     }
     for (const category of this.categories()) {
       const title = this.homey.__('monitor.last_use_was', { category: this.categoryTitle(category) });
@@ -221,7 +233,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
   async onReset() {
     const at = Date.now();
     this.log(`${this.getName()} - onReset`);
-    this.totals = waterUse.rollover(null, this.date(at));
+    this.totals = waterUse.rollover(null, this.date(at), this.pricing());
     this.use = null;
     this.pendingLabel = null;
     this.dirty = true;
@@ -286,25 +298,14 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The title of a cost capability: the house's (Water cost today) or a category's (Shower cost today).
-   */
-  costTitle(cap) {
-    if (COST_TITLES[cap]) return COST_TITLES[cap];
-    const [, key] = cap.split('.');
-    const month = key.endsWith('_month');
-    const title = this.categoryTitle(key.replace(/_(today|month)$/, ''));
-    return { en: `${title} cost ${month ? 'this month' : 'today'}` };
-  }
-
-  /**
    * @description The cost capabilities' unit: the Home Controller's currency.
    */
   async applyCurrency() {
     const controller = this.homey.app.findController();
     const units = { en: controller ? controller.currency() : '€' };
-    for (const cap of this.getCapabilities().filter((id) => id.startsWith('measure_monetary.'))) {
+    for (const tile of this.tiles().filter((t) => t.group.kind === 'cost' && this.hasCapability(t.cap))) {
       // setCapabilityOptions replaces the options: pass title and decimals too.
-      await this.setCapabilityOptions(cap, { title: this.costTitle(cap), units, decimals: 2 }).catch(this.error);
+      await this.setCapabilityOptions(tile.cap, { title: { en: tile.title }, units, decimals: 2 }).catch(this.error);
     }
   }
 
@@ -330,6 +331,13 @@ module.exports = class waterMonitorDevice extends mainDevice {
     return this.positiveSetting('base_fee');
   }
 
+  /**
+   * @description The water price and base fee now, kept with the totals: a month that ends is costed at them.
+   */
+  pricing() {
+    return { price: this.price(), fee: this.baseFee() };
+  }
+
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     this.log(`${this.getName()} - onSettings - changed: ${changedKeys}`);
     // Settings are saved after this returns: show or hide the costs then.
@@ -337,6 +345,9 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   async onCostSettings() {
+    this.totals = waterUse.rollover(this.totals, this.date(Date.now()), this.pricing());
+    this.dirty = true;
+    await this.save();
     await this.checkCapabilities();
     await this.applyCurrency();
     await this.show(Date.now());
@@ -496,8 +507,8 @@ module.exports = class waterMonitorDevice extends mainDevice {
     if (localTime(this, now).minutes % 5 === 0) await this.subscribeSources();
     if (!this.meter().meter && this.flowLast) await this.integrateFlow(at, this.flowLast.flow);
     if (this.use) await this.checkUseEnd(at);
-    const rolled = waterUse.rollover(this.totals, this.date(at));
-    if (!this.totals || rolled.date !== this.totals.date) {
+    const rolled = waterUse.rollover(this.totals, this.date(at), this.pricing());
+    if (!this.totals || rolled.date !== this.totals.date || JSON.stringify(rolled.pricing) !== JSON.stringify(this.totals.pricing)) {
       this.totals = rolled;
       this.dirty = true;
     }
@@ -521,31 +532,15 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   async showTotals() {
-    const totals = this.totals || { todayL: 0, monthL: 0 };
-    await this.setValue(TODAY, Math.round(totals.todayL));
-    await this.setValue(MONTH, Math.round(totals.monthL) / 1000);
-    if (this.hasCapability(COST_TODAY)) {
-      // The litres at the water price, plus the base fee's share of the days so far.
-      const price = this.price();
-      const fee = waterUse.baseFee(this.baseFee(), this.totals ? this.totals.date : this.date(Date.now()));
-      const round = (value) => Math.round(value * 100) / 100;
-      await this.setValue(COST_TODAY, round((waterUse.cost(totals.todayL, price) ?? 0) + (fee ? fee.today : 0)));
-      await this.setValue(COST_MONTH, round((waterUse.cost(totals.monthL, price) ?? 0) + (fee ? fee.month : 0)));
-    }
-    // Per category: litres, and the litres at the water price (the base fee stays in the house's cost).
-    const shown = this.shownCategories();
-    if (!shown.length) return;
-    const sums = waterUse.categoryTotals(this.totals, this.categories());
-    for (const category of shown) {
-      const caps = categoryCaps(category);
-      const { todayL, monthL } = sums[category];
-      await this.setValue(caps.today, Math.round(todayL));
-      await this.setValue(caps.month, Math.round(monthL) / 1000);
-      if (this.hasCapability(caps.costToday)) {
-        await this.setValue(caps.costToday, Math.round((waterUse.cost(todayL, this.price()) ?? 0) * 100) / 100);
-        await this.setValue(caps.costMonth, Math.round((waterUse.cost(monthL, this.price()) ?? 0) * 100) / 100);
-      }
-    }
+    const totals = this.totals || waterUse.rollover(null, this.date(Date.now()), this.pricing());
+    const values = waterUse.periods(totals, this.categories());
+    const round = (value, kind) => {
+      if (value === null) return null;
+      if (kind === 'l') return Math.round(value);
+      if (kind === 'm3') return Math.round(value) / 1000;
+      return Math.round(value * 100) / 100;
+    };
+    for (const tile of this.tiles()) await this.setValue(tile.cap, round(values[tile.owner][tile.group.field], tile.group.kind));
   }
 
   /**

@@ -28,17 +28,70 @@ function run(readings, checkAt = null) {
 }
 
 test('rollover: today resets on a new day, the month on a new month, also per category', () => {
-  const totals = { date: '2026-11-19', month: '2026-11', todayL: 300, monthL: 9000, cats: { shower: { todayL: 100, monthL: 3000 } } };
+  const totals = { date: '2026-11-19', month: '2026-11', todayL: 300, monthL: 9000, cats: { shower: { todayL: 100, monthL: 3000 } }, history: {}, pricing: null };
   assert.deepStrictEqual(use.rollover(totals, '2026-11-19'), totals);
-  assert.deepStrictEqual(use.rollover(totals, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 9000, cats: { shower: { todayL: 0, monthL: 3000 } } });
-  assert.deepStrictEqual(use.rollover(totals, '2026-12-01'), { date: '2026-12-01', month: '2026-12', todayL: 0, monthL: 0, cats: { shower: { todayL: 0, monthL: 0 } } });
-  assert.deepStrictEqual(use.rollover(null, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 0, cats: {} });
+  assert.deepStrictEqual(use.rollover(totals, '2026-11-20'), { ...totals, date: '2026-11-20', todayL: 0, cats: { shower: { todayL: 0, monthL: 3000 } } });
+  const december = use.rollover({ ...totals, pricing: { price: 5, fee: 18 } }, '2026-12-01', { price: 6, fee: 18 });
+  assert.deepStrictEqual(december.cats, { shower: { todayL: 0, monthL: 0 } });
+  assert.strictEqual(december.monthL, 0);
+  // The month that ended goes to the history with the price it had; the new price is kept for this month.
+  assert.deepStrictEqual(december.history['2026-11'], { L: 9000, cats: { shower: 3000 }, price: 5, fee: 18 });
+  assert.deepStrictEqual(december.pricing, { price: 6, fee: 18 });
+  assert.deepStrictEqual(use.rollover(null, '2026-11-20'), { date: '2026-11-20', month: '2026-11', todayL: 0, monthL: 0, cats: {}, history: {}, pricing: null });
+  // This year's and last year's months are kept.
+  const old = { ...totals, history: { '2024-12': { L: 1, cats: {}, price: null, fee: null }, '2025-01': { L: 2, cats: {}, price: null, fee: null } } };
+  assert.deepStrictEqual(Object.keys(use.rollover(old, '2026-12-01').history), ['2025-01', '2026-11']);
+});
+
+test('periods: this month, last month, this year and last year, litres and costs, house and categories', () => {
+  const record = (L, shower, price = 4, fee = 30) => ({ L, cats: { shower }, price, fee });
+  const totals = {
+    date: '2026-11-15',
+    month: '2026-11',
+    todayL: 200,
+    monthL: 5000,
+    cats: { shower: { todayL: 50, monthL: 2000 } },
+    history: { '2025-12': record(6000, 2500), '2026-01': record(4000, 1000), '2026-10': record(3000, 1000, 5) },
+    pricing: { price: 4, fee: 30 }
+  };
+  const p = use.periods(totals, ['shower', 'sink']);
+  assert.deepStrictEqual(Object.keys(p), ['house', 'shower', 'sink', 'unknown']);
+  assert.strictEqual(p.house.todayL, 200);
+  assert.strictEqual(p.unknown.todayL, 150);
+  // This month: litres at the price, the house with half of November's base fee.
+  assert.strictEqual(p.house.monthCost, 20 + 15);
+  assert.strictEqual(p.shower.monthCost, 8);
+  // Last month: at its own price, the house with the whole fee.
+  assert.strictEqual(p.house.lastMonthL, 3000);
+  assert.strictEqual(p.house.lastMonthCost, 15 + 30);
+  assert.strictEqual(p.unknown.lastMonthL, 2000);
+  assert.strictEqual(p.unknown.lastMonthCost, 10);
+  // This year: January, October and November so far.
+  assert.strictEqual(p.house.yearL, 12000);
+  assert.strictEqual(p.house.yearCost, 35 + 45 + (16 + 30));
+  assert.strictEqual(p.shower.yearL, 4000);
+  assert.strictEqual(p.sink.yearL, 0);
+  // Last year: December only.
+  assert.strictEqual(p.house.lastYearL, 6000);
+  assert.strictEqual(p.house.lastYearCost, 24 + 30);
+  // No history: last month and last year are unknown.
+  const fresh = use.periods(use.rollover(null, '2026-11-15'), ['shower']);
+  assert.strictEqual(fresh.house.lastMonthL, null);
+  assert.strictEqual(fresh.shower.lastYearCost, null);
+  assert.strictEqual(fresh.house.monthCost, 0);
+});
+
+test('moveCategory: a use of a month that ended moves in its month in the history', () => {
+  const totals = use.rollover(use.addCategory(use.addLitres(null, '2026-11-30', 10), '2026-11-30', 'sink', 10), '2026-12-01');
+  const moved = use.moveCategory(totals, '2026-11-30', 'sink', 'shower', 10);
+  assert.deepStrictEqual(moved.history['2026-11'].cats, { sink: 0, shower: 10 });
 });
 
 test('addLitres: to today and the month, after the rollover; nothing for zero or invalid', () => {
-  const totals = { date: '2026-11-30', month: '2026-11', todayL: 300, monthL: 9000, cats: {} };
-  assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', 12), { date: '2026-11-30', month: '2026-11', todayL: 312, monthL: 9012, cats: {} });
-  assert.deepStrictEqual(use.addLitres(totals, '2026-12-01', 5), { date: '2026-12-01', month: '2026-12', todayL: 5, monthL: 5, cats: {} });
+  const totals = { date: '2026-11-30', month: '2026-11', todayL: 300, monthL: 9000, cats: {}, history: {}, pricing: null };
+  assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', 12), { ...totals, todayL: 312, monthL: 9012 });
+  const december = use.addLitres(totals, '2026-12-01', 5);
+  assert.deepStrictEqual([december.month, december.todayL, december.monthL], ['2026-12', 5, 5]);
   assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', NaN), totals);
   assert.deepStrictEqual(use.addLitres(totals, '2026-11-30', -3), totals);
 });
