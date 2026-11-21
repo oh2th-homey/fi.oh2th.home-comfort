@@ -139,20 +139,36 @@ module.exports = class waterMonitorDevice extends mainDevice {
     for (const cap of reorder) await this.removeCapability(cap).catch(this.error);
     const result = await updateCapabilities(this, capabilities, this.getCapabilities());
     if (result.added.includes(FLOW)) await this.setCapabilityOptions(FLOW, { title: { en: 'Flow' }, units: { en: 'l/min' }, decimals: 1 }).catch(this.error);
+    // Titles of the category tiles and buttons: set when added, and again when a category was renamed.
     for (const category of this.shownCategories()) {
       const caps = categoryCaps(category);
       const title = this.categoryTitle(category);
-      if (result.added.includes(caps.today)) await this.setCapabilityOptions(caps.today, { title: { en: `${title} today` }, units: { en: 'l' }, decimals: 0 }).catch(this.error);
-      if (result.added.includes(caps.month)) await this.setCapabilityOptions(caps.month, { title: { en: `${title} this month` }, units: { en: 'm³' }, decimals: 2 }).catch(this.error);
+      await this.setTitle(caps.today, { title: { en: `${title} today` }, units: { en: 'l' }, decimals: 0 }, result.added);
+      await this.setTitle(caps.month, { title: { en: `${title} this month` }, units: { en: 'm³' }, decimals: 2 }, result.added);
     }
     for (const category of this.categories()) {
-      const button = labelButton(category);
       const title = this.homey.__('monitor.last_use_was', { category: this.categoryTitle(category) });
-      if (result.added.includes(button)) await this.setCapabilityOptions(button, { title: { en: title } }).catch(this.error);
+      await this.setTitle(labelButton(category), { title: { en: title } }, result.added);
     }
     if (result.added.some((cap) => cap.startsWith('measure_monetary.'))) await this.applyCurrency();
     await this.setCapabilityListeners();
     return result;
+  }
+
+  /**
+   * @description A capability's options when it was just added or its title differs (a renamed category).
+   * setCapabilityOptions replaces the options: pass them all.
+   */
+  async setTitle(cap, options, added) {
+    let current = null;
+    try {
+      current = this.getCapabilityOptions(cap);
+    } catch (error) {
+      current = null;
+    }
+    const title = current && current.title && typeof current.title === 'object' ? current.title.en : current && current.title;
+    if (!added.includes(cap) && title === options.title.en) return;
+    await this.setCapabilityOptions(cap, options).catch(this.error);
   }
 
   /**

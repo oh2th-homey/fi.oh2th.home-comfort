@@ -14,7 +14,7 @@ apps (for example Aquaro) report it.
 - With the meter reading only, the litres are counted but there are no uses.
 - With the flow only, the litres are counted from the flow.
 
-Then tick the **Water uses** the home has: **Shower**, **Tap / sink**, **Toilet**, **Bath** and
+Then tick the **Water uses** the home has: **Shower**, **Sink** (a washroom or kitchen sink), **Toilet**, **Bath** and
 **Outdoor tap** (they need a meter with a flow). See [Categories](#categories).
 
 Pick another meter or change the water uses in the device's **Repair**. Today's and this month's
