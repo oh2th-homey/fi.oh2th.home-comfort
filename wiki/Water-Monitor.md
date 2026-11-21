@@ -94,7 +94,8 @@ last month, cost last month, water this year, cost this year, water last year an
 Each group has the house's tile first, then the categories in the pairing order, and Unknown last.
 The Last use was buttons come after them. Tiles can't be moved in the Homey
 app, so when a category is ticked later (or a water price is set after the categories), the
-device adds the tiles after it again in order; those tiles start a new insights history.
+device adds the tiles after it again in order. Their insights are kept: a tile added again
+continues its history.
 
 **Last use** starts with the category, for example *Shower 07:42 - 07:47, 38 l at 7.6 l/min*.
 
