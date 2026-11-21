@@ -51,5 +51,7 @@ mode), the price now and Boost (on, off, toggle). The app adds these:
 
 ## Water Monitor
 
-- Triggers: **Water use started** (flow), **Water use ended** (litres, minutes, average flow, cost).
+- Triggers: **Water use started** (flow), **Water use ended** (litres, minutes, average flow, cost,
+  category).
+- Action: **Last use was [category]**, for example from a button next to the shower.
   See [Water Monitor](Water-Monitor).

@@ -1819,6 +1819,35 @@
       },
       {
         "title": {
+          "en": "Last use was a category"
+        },
+        "titleFormatted": {
+          "en": "Last use was [[category]]"
+        },
+        "hint": {
+          "en": "Labels the use going on, or the last one when it ended at most 15 minutes ago, for example from a button next to the shower."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=water-monitor"
+          },
+          {
+            "type": "autocomplete",
+            "name": "category",
+            "title": {
+              "en": "Category"
+            },
+            "placeholder": {
+              "en": "Shower"
+            }
+          }
+        ],
+        "id": "water_last_use_was"
+      },
+      {
+        "title": {
           "en": "Ready at a time"
         },
         "titleFormatted": {
