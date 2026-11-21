@@ -44,7 +44,8 @@ is its litres at the water price, without the base fee.
 
 A use starts when water starts running and ends a minute after it stops: a short pause in a
 shower is still the same shower, while a washing machine's fills a few minutes apart are separate
-uses.
+uses. **Last use** shows the use as finished as soon as the water stops; it is counted, and
+**Water use ended** runs, after that minute.
 
 Some meters report a small flow while no water passes, for example an ultrasonic meter some time
 after a use. So a use counts only once the meter reading has moved by a litre: **Water use
@@ -58,7 +59,9 @@ count as one.
 
 A use is **Unknown** until it is labelled: press **Last use was Shower**, **Last use was Toilet**
 and so on (one button per ticked water use) during the use, or at most 15 minutes after it ended.
-Its litres move to that category, today and this month. Pressed again, it moves again.
+Its litres move to that category, today and this month. Pressed again, it moves again. Pressed
+while the water runs, **Last use** shows the category at once (*Shower running since 07:42 - 12 l*)
+and the litres move when the use ends, a minute after the water stops.
 
 Each category learns its pattern from its labelled uses: the litres, length, average and peak
 flow. After three labels of a category, a new use that clearly fits its pattern is counted in it

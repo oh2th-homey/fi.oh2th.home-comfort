@@ -178,6 +178,8 @@ module.exports = class waterMonitorDevice extends mainDevice {
     this.log(`${this.getName()} - onLabel - ${category}`);
     if (this.use && this.use.confirmed) {
       this.pendingLabel = { start: this.use.start, category };
+      // Shown at once in Last use; counted when the use ends.
+      await this.showLastUse(at);
       return;
     }
     const last = this.getStoreValue('lastUse');
@@ -494,7 +496,17 @@ module.exports = class waterMonitorDevice extends mainDevice {
 
   lastUseText(at) {
     const time = (ms) => localTime(this, new Date(ms)).time;
-    if (this.use && this.use.confirmed) return this.homey.__('monitor.last_use.running', { start: time(this.use.start), litres: Math.round(waterUse.runningLitres(this.use, at)) });
+    if (this.use && this.use.confirmed) {
+      const { use } = this;
+      // The flow stopped: shown as finished at once, though it ends (and is counted) only after the gap, in case the
+      // water runs again.
+      const text = Number.isFinite(use.zeroSince)
+        ? this.homey.__('monitor.last_use.ended', { start: time(use.start), end: time(use.zeroSince), litres: use.litres < 10 ? use.litres.toFixed(1) : String(Math.round(use.litres)), flow: (use.litres / Math.max(1 / 60, (use.zeroSince - use.start) / 60000)).toFixed(1) })
+        : this.homey.__('monitor.last_use.running', { start: time(use.start), litres: Math.round(waterUse.runningLitres(use, at)) });
+      // Labelled while it runs: the category shows at once.
+      const label = this.pendingLabel && this.pendingLabel.start === this.use.start ? this.pendingLabel.category : null;
+      return label ? `${this.categoryTitle(label)} ${Number.isFinite(use.zeroSince) ? text : `${text.charAt(0).toLowerCase()}${text.slice(1)}`}` : text;
+    }
     const last = this.getStoreValue('lastUse');
     if (!last) return this.homey.__('water.start.none');
     const litres = last.litres < 10 ? last.litres.toFixed(1) : String(Math.round(last.litres));
