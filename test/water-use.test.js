@@ -212,9 +212,8 @@ test('learnPatterns: a category is learned from MIN_SAMPLES labels, chosen categ
   const patterns = use.learnPatterns(samples, ['shower', 'toilet']);
   assert.deepStrictEqual(Object.keys(patterns), ['shower']);
   assert.strictEqual(patterns.shower.n, use.MIN_SAMPLES);
-  // Near-identical labels still get the smallest spread.
-  assert.ok(patterns.shower.spread.litres >= 0.2);
-  assert.ok(Math.abs(Math.exp(patterns.shower.mean.litres) - 45 * 0.95) < 1);
+  assert.strictEqual(patterns.shower.samples.length, use.MIN_SAMPLES);
+  assert.ok(Math.abs(Math.exp(patterns.shower.samples[0].litres) - 45) < 1e-9);
 });
 
 test('classify: Unknown until a learned pattern clearly fits', () => {
@@ -230,6 +229,9 @@ test('classify: Unknown until a learned pattern clearly fits', () => {
   // Fits two: Unknown.
   const both = use.learnPatterns([...labels('shower', 6, 45), ...labels('bath', 6, 45)], use.CATEGORIES);
   assert.strictEqual(use.classify(finished(6, 45), both), 'unknown');
+  // A use near samples of two categories: Unknown.
+  const close = use.learnPatterns([...labels('shower', 6, 45), ...labels('bath', 7, 50)], use.CATEGORIES);
+  assert.strictEqual(use.classify(finished(6.5, 47), close), 'unknown');
   // A use without a flow can't be compared.
   assert.strictEqual(use.classify({ start: 0, end: 0, litres: 0, average: 0, peak: 0 }, patterns), 'unknown');
 });
@@ -279,4 +281,24 @@ test('moveCategory: a relabelled use moves from one category to another, today a
   // A use that ended yesterday moves in the month only.
   assert.deepStrictEqual(use.moveCategory(totals, '2026-11-19', 'sink', 'shower', 10).cats.shower, { todayL: 0, monthL: 10 });
   assert.strictEqual(use.moveCategory(totals, '2026-11-20', 'sink', 'sink', 10), totals);
+});
+
+test('classify: a category learns several kinds of use (eco and full flush, with or without washing hands)', () => {
+  // Washroom visits: an eco flush 3 l, a full flush 6 l, and each with a hand wash (more litres, a higher peak).
+  const visits = [
+    ...labels('toilet', 0.6, 3),
+    ...labels('toilet', 1, 6),
+    ...labels('toilet', 0.8, 4, 2).map((v) => ({ ...v, peak: v.average * 1.6 })),
+    ...labels('toilet', 1.1, 7, 2).map((v) => ({ ...v, peak: v.average * 1.6 }))
+  ];
+  const patterns = use.learnPatterns([...visits, ...labels('sink', 0.4, 1.5), ...labels('shower', 6, 45)], use.CATEGORIES);
+  assert.strictEqual(use.classify(finished(0.6, 3.1), patterns), 'toilet');
+  assert.strictEqual(use.classify(finished(1, 6.2), patterns), 'toilet');
+  assert.strictEqual(use.classify(finished(0.8, 4, (4 / 0.8) * 1.6), patterns), 'toilet');
+  assert.strictEqual(use.classify(finished(1.1, 7, (7 / 1.1) * 1.6), patterns), 'toilet');
+  // A hand wash alone is a sink, a shower a shower.
+  assert.strictEqual(use.classify(finished(0.4, 1.5), patterns), 'sink');
+  assert.strictEqual(use.classify(finished(6, 44), patterns), 'shower');
+  // Between the kinds, near none of them: Unknown.
+  assert.strictEqual(use.classify(finished(3, 15), patterns), 'unknown');
 });

@@ -14,7 +14,8 @@ apps (for example Aquaro) report it.
 - With the meter reading only, the litres are counted but there are no uses.
 - With the flow only, the litres are counted from the flow.
 
-Then tick the **Water uses** the home has: **Shower**, **Sink** (a washroom or kitchen sink), **Toilet**, **Bath** and
+Then tick the **Water uses** the home has: **Shower**, **Sink** (a kitchen or utility room
+sink), **Washroom** (a toilet visit: the flush, and washing hands after it), **Bath** and
 **Outdoor tap** (they need a meter with a flow). See [Categories](#categories).
 
 Pick another meter or change the water uses in the device's **Repair**. Today's and this month's
@@ -57,15 +58,20 @@ count as one.
 
 ## Categories
 
-A use is **Unknown** until it is labelled: press **Last use was Shower**, **Last use was Toilet**
+A use is **Unknown** until it is labelled: press **Last use was Shower**, **Last use was Washroom**
 and so on (one button per ticked water use) during the use, or at most 15 minutes after it ended.
 Its litres move to that category, today and this month. Pressed again, it moves again. Pressed
 while the water runs, **Last use** shows the category at once (*Shower running since 07:42 - 12 l*)
 and the litres move when the use ends, a minute after the water stops.
 
-Each category learns its pattern from its labelled uses: the litres, length, average and peak
-flow. After three labels of a category, a new use that clearly fits its pattern is counted in it
-by itself. A use that fits no learned pattern, or fits two, stays Unknown until it is labelled.
+Each category learns from its labelled uses: the litres, length, average and peak flow. After
+three labels of a category, a new use that is like its nearest labelled uses, all of one category,
+is counted in it by itself. A use like none of them, or like uses of two categories, stays Unknown
+until it is labelled. A category can have several kinds of use: a washroom visit with an eco or a
+full flush, with or without washing hands, all learned under the one **Washroom** button.
+
+A washroom visit is one use: the cistern refills for about a minute, and washing hands meanwhile
+or right after (the water stopped for less than a minute) adds to the same use.
 
 An automatically counted use teaches its category too, so the patterns get better with use. If it
 went to the wrong category, move it with the buttons: it then teaches the right one instead. Pressing
@@ -86,7 +92,7 @@ tiles after it again in order; those tiles start a new insights history.
 ### A button next to the use point
 
 The flow action **Last use was [category]** does the same as the device's buttons. With a
-wireless button next to the shower or the toilet, a flow *When the button is pressed, then Last
+wireless button next to the shower or in the washroom, a flow *When the button is pressed, then Last
 use was Shower* labels the use without opening the Homey app.
 
 ## Flow cards
