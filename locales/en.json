@@ -351,7 +351,7 @@
     },
     "category": {
       "shower": "Shower",
-      "tap": "Sink",
+      "sink": "Sink",
       "toilet": "Toilet",
       "bath": "Bath",
       "outdoor": "Outdoor tap",

@@ -238,8 +238,8 @@ test('keepSample: a use once, its latest category, at most KEEP_SAMPLES per cate
   const sample = (start, category, extra = {}) => ({ start, end: start + M, litres: 5, average: 5, peak: 5, category, ...extra });
   let samples = use.keepSample([], sample(1, 'toilet', { auto: true }));
   // Relabelled: the use's sample is replaced.
-  samples = use.keepSample(samples, sample(1, 'tap', { labelled: true }));
-  assert.deepStrictEqual(samples.map((s) => [s.start, s.category]), [[1, 'tap']]);
+  samples = use.keepSample(samples, sample(1, 'sink', { labelled: true }));
+  assert.deepStrictEqual(samples.map((s) => [s.start, s.category]), [[1, 'sink']]);
   // Many toilets don't push out the one bath.
   samples = use.keepSample(samples, sample(0, 'bath'));
   for (let i = 2; i < 2 + use.KEEP_SAMPLES + 5; i++) samples = use.keepSample(samples, sample(i, 'toilet'));
@@ -256,27 +256,27 @@ test('chosenCategories: known ones only, in the pairing order', () => {
 test('addCategory and categoryTotals: Unknown is the house total less the chosen categories', () => {
   let totals = use.addLitres(null, '2026-11-20', 100);
   totals = use.addCategory(totals, '2026-11-20', 'shower', 40);
-  totals = use.addCategory(totals, '2026-11-20', 'tap', 5);
-  const sums = use.categoryTotals(totals, ['shower', 'tap', 'toilet']);
+  totals = use.addCategory(totals, '2026-11-20', 'sink', 5);
+  const sums = use.categoryTotals(totals, ['shower', 'sink', 'toilet']);
   assert.deepStrictEqual(sums.shower, { todayL: 40, monthL: 40 });
   assert.deepStrictEqual(sums.toilet, { todayL: 0, monthL: 0 });
   assert.deepStrictEqual(sums.unknown, { todayL: 55, monthL: 55 });
   // A category not chosen any more counts in Unknown; Unknown is never negative.
-  assert.deepStrictEqual(use.categoryTotals(totals, ['tap']).unknown, { todayL: 95, monthL: 95 });
+  assert.deepStrictEqual(use.categoryTotals(totals, ['sink']).unknown, { todayL: 95, monthL: 95 });
   assert.deepStrictEqual(use.categoryTotals(use.addCategory(totals, '2026-11-20', 'shower', 100), ['shower']).unknown, { todayL: 0, monthL: 0 });
 });
 
 test('moveCategory: a relabelled use moves from one category to another, today and this month', () => {
   let totals = use.addLitres(null, '2026-11-20', 100);
-  totals = use.addCategory(totals, '2026-11-20', 'tap', 30);
-  const moved = use.moveCategory(totals, '2026-11-20', 'tap', 'shower', 30);
-  assert.deepStrictEqual(moved.cats.tap, { todayL: 0, monthL: 0 });
+  totals = use.addCategory(totals, '2026-11-20', 'sink', 30);
+  const moved = use.moveCategory(totals, '2026-11-20', 'sink', 'shower', 30);
+  assert.deepStrictEqual(moved.cats.sink, { todayL: 0, monthL: 0 });
   assert.deepStrictEqual(moved.cats.shower, { todayL: 30, monthL: 30 });
   // From Unknown (or the old Other): only the new category grows; to Unknown: only the old one shrinks.
   assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'unknown', 'toilet', 6).cats.toilet, { todayL: 6, monthL: 6 });
   assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'other', 'toilet', 6).cats.toilet, { todayL: 6, monthL: 6 });
-  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'unknown', 10).cats.tap, { todayL: 20, monthL: 20 });
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'sink', 'unknown', 10).cats.sink, { todayL: 20, monthL: 20 });
   // A use that ended yesterday moves in the month only.
-  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-19', 'tap', 'shower', 10).cats.shower, { todayL: 0, monthL: 10 });
-  assert.strictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'tap', 10), totals);
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-19', 'sink', 'shower', 10).cats.shower, { todayL: 0, monthL: 10 });
+  assert.strictEqual(use.moveCategory(totals, '2026-11-20', 'sink', 'sink', 10), totals);
 });

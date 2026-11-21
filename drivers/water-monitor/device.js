@@ -37,6 +37,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
     this.use = null;
     this.dirty = false;
     await this.resetGuesses();
+    await this.renameTapToSink();
     await this.refreshMeter();
     await this.subscribeSources();
   }
@@ -78,6 +79,25 @@ module.exports = class waterMonitorDevice extends mainDevice {
     if (last && !last.labelled && last.category) await this.setStoreValue('lastUse', { ...last, category: waterUse.UNKNOWN }).catch(this.error);
     await this.setStoreValue('categoryRule', 'learned').catch(this.error);
     this.log(`${this.getName()} - resetGuesses - guessed categories back to Unknown`);
+  }
+
+  /**
+   * @description Once: the category tap was renamed sink (its capabilities too; the old ones are removed by
+   * checkCapabilities): the chosen categories, totals, last use, uses and samples follow.
+   */
+  async renameTapToSink() {
+    const chosen = this.getStoreValue('categories') || [];
+    if (!chosen.includes('tap')) return;
+    const rename = (item) => (item && item.category === 'tap' ? { ...item, category: 'sink' } : item);
+    await this.setStoreValue('categories', chosen.map((category) => (category === 'tap' ? 'sink' : category)));
+    if (this.totals && this.totals.cats && this.totals.cats.tap) {
+      const { tap, ...cats } = this.totals.cats;
+      this.totals = { ...this.totals, cats: { ...cats, sink: tap } };
+      await this.setStoreValue('totals', this.totals).catch(this.error);
+    }
+    await this.setStoreValue('lastUse', rename(this.getStoreValue('lastUse'))).catch(this.error);
+    for (const key of ['uses', 'labels']) await this.setStoreValue(key, (this.getStoreValue(key) || []).map(rename)).catch(this.error);
+    this.log(`${this.getName()} - renameTapToSink - done`);
   }
 
   async onDeleted() {
