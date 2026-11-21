@@ -202,19 +202,36 @@ function finished(minutes, litres, peak = null) {
   return { start: 0, end: minutes * M, litres, average, peak: peak === null ? average : peak };
 }
 
-test('classify: the first chosen category whose pattern fits, else Other', () => {
-  const all = use.CATEGORIES;
-  assert.strictEqual(use.classify(finished(6, 45), all), 'shower');
-  assert.strictEqual(use.classify(finished(0.4, 2.7, 7.3), all), 'tap');
-  assert.strictEqual(use.classify(finished(1, 6), all), 'toilet');
-  // An uneven short draw is a tap, not a toilet.
-  assert.strictEqual(use.classify(finished(1, 6, 12), all), 'tap');
-  assert.strictEqual(use.classify(finished(8, 120), all), 'bath');
-  assert.strictEqual(use.classify(finished(40, 300), all), 'outdoor');
-  // Not chosen: the next fitting one, or Other.
-  assert.strictEqual(use.classify(finished(1, 6), ['tap']), 'tap');
-  assert.strictEqual(use.classify(finished(6, 45), ['tap', 'toilet']), 'other');
-  assert.strictEqual(use.classify(finished(8, 120), ['shower']), 'other');
+// Labelled uses of a category around minutes and litres, a little apart.
+function labels(category, minutes, litres, count = 3) {
+  return Array.from({ length: count }, (_, i) => ({ ...finished(minutes * (1 + 0.05 * i), litres * (1 - 0.05 * i)), category }));
+}
+
+test('learnPatterns: a category is learned from MIN_SAMPLES labels, chosen categories only', () => {
+  const samples = [...labels('shower', 6, 45), ...labels('toilet', 1, 6, 2), ...labels('bath', 8, 120)];
+  const patterns = use.learnPatterns(samples, ['shower', 'toilet']);
+  assert.deepStrictEqual(Object.keys(patterns), ['shower']);
+  assert.strictEqual(patterns.shower.n, use.MIN_SAMPLES);
+  // Near-identical labels still get the smallest spread.
+  assert.ok(patterns.shower.spread.litres >= 0.2);
+  assert.ok(Math.abs(Math.exp(patterns.shower.mean.litres) - 45 * 0.95) < 1);
+});
+
+test('classify: Unknown until a learned pattern clearly fits', () => {
+  // Nothing labelled yet: everything is Unknown.
+  assert.strictEqual(use.classify(finished(6, 45), {}), 'unknown');
+  const patterns = use.learnPatterns([...labels('shower', 6, 45), ...labels('toilet', 1, 6)], use.CATEGORIES);
+  assert.strictEqual(use.classify(finished(6.5, 42), patterns), 'shower');
+  assert.strictEqual(use.classify(finished(1.1, 6), patterns), 'toilet');
+  // An uneven short draw doesn't fit a toilet's steady refill.
+  assert.strictEqual(use.classify(finished(1, 6, 12), patterns), 'unknown');
+  // Fits none.
+  assert.strictEqual(use.classify(finished(40, 300), patterns), 'unknown');
+  // Fits two: Unknown.
+  const both = use.learnPatterns([...labels('shower', 6, 45), ...labels('bath', 6, 45)], use.CATEGORIES);
+  assert.strictEqual(use.classify(finished(6, 45), both), 'unknown');
+  // A use without a flow can't be compared.
+  assert.strictEqual(use.classify({ start: 0, end: 0, litres: 0, average: 0, peak: 0 }, patterns), 'unknown');
 });
 
 test('chosenCategories: known ones only, in the pairing order', () => {
@@ -222,17 +239,17 @@ test('chosenCategories: known ones only, in the pairing order', () => {
   assert.deepStrictEqual(use.chosenCategories(null), []);
 });
 
-test('addCategory and categoryTotals: Other is the house total less the chosen categories', () => {
+test('addCategory and categoryTotals: Unknown is the house total less the chosen categories', () => {
   let totals = use.addLitres(null, '2026-11-20', 100);
   totals = use.addCategory(totals, '2026-11-20', 'shower', 40);
   totals = use.addCategory(totals, '2026-11-20', 'tap', 5);
   const sums = use.categoryTotals(totals, ['shower', 'tap', 'toilet']);
   assert.deepStrictEqual(sums.shower, { todayL: 40, monthL: 40 });
   assert.deepStrictEqual(sums.toilet, { todayL: 0, monthL: 0 });
-  assert.deepStrictEqual(sums.other, { todayL: 55, monthL: 55 });
-  // A category not chosen any more counts in Other; Other is never negative.
-  assert.deepStrictEqual(use.categoryTotals(totals, ['tap']).other, { todayL: 95, monthL: 95 });
-  assert.deepStrictEqual(use.categoryTotals(use.addCategory(totals, '2026-11-20', 'shower', 100), ['shower']).other, { todayL: 0, monthL: 0 });
+  assert.deepStrictEqual(sums.unknown, { todayL: 55, monthL: 55 });
+  // A category not chosen any more counts in Unknown; Unknown is never negative.
+  assert.deepStrictEqual(use.categoryTotals(totals, ['tap']).unknown, { todayL: 95, monthL: 95 });
+  assert.deepStrictEqual(use.categoryTotals(use.addCategory(totals, '2026-11-20', 'shower', 100), ['shower']).unknown, { todayL: 0, monthL: 0 });
 });
 
 test('moveCategory: a relabelled use moves from one category to another, today and this month', () => {
@@ -241,9 +258,10 @@ test('moveCategory: a relabelled use moves from one category to another, today a
   const moved = use.moveCategory(totals, '2026-11-20', 'tap', 'shower', 30);
   assert.deepStrictEqual(moved.cats.tap, { todayL: 0, monthL: 0 });
   assert.deepStrictEqual(moved.cats.shower, { todayL: 30, monthL: 30 });
-  // From Other: only the new category grows; to Other: only the old one shrinks.
+  // From Unknown (or the old Other): only the new category grows; to Unknown: only the old one shrinks.
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'unknown', 'toilet', 6).cats.toilet, { todayL: 6, monthL: 6 });
   assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'other', 'toilet', 6).cats.toilet, { todayL: 6, monthL: 6 });
-  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'other', 10).cats.tap, { todayL: 20, monthL: 20 });
+  assert.deepStrictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'unknown', 10).cats.tap, { todayL: 20, monthL: 20 });
   // A use that ended yesterday moves in the month only.
   assert.deepStrictEqual(use.moveCategory(totals, '2026-11-19', 'tap', 'shower', 10).cats.shower, { todayL: 0, monthL: 10 });
   assert.strictEqual(use.moveCategory(totals, '2026-11-20', 'tap', 'tap', 10), totals);

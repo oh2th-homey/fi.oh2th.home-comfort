@@ -56,38 +56,38 @@ count as one.
 
 ## Categories
 
-Each use is counted in one of the ticked water uses by its litres, length and flow:
+A use is **Unknown** until it is labelled: press **Last use was Shower**, **Last use was Toilet**
+and so on (one button per ticked water use) during the use, or at most 15 minutes after it ended.
+Its litres move to that category, today and this month. Pressed again, it moves again.
 
-| Category | Pattern |
-| --- | --- |
-| Bath | 80 l or more at over 10 l/min |
-| Outdoor tap | 30 minutes or more, or 10 minutes or more at over 12 l/min |
-| Shower | 3 minutes or more at 4-13 l/min |
-| Toilet | 3-10 l in under 2.5 minutes at a steady flow |
-| Tap / sink | under 3 minutes |
+Each category learns its pattern from its labelled uses: the litres, length, average and peak
+flow. After three labels of a category, a new use that clearly fits its pattern is counted in it
+by itself. A use that fits no learned pattern, or fits two, stays Unknown until it is labelled. An
+automatically counted use that went to the wrong category can be moved with the buttons too.
 
-The first ticked one that fits, in this order, wins. A use that fits none of them, and water the
-meter counts beyond the uses, is **Other**, so the categories add up to the house total. For each
-category and Other the device shows its water today and this month and, with a water price, its
-cost today and this month (litres at the water price; the base fee is only in the house's cost).
+Unknown also holds the water the meter counts beyond the uses, so the categories add up to the
+house total. For each category and Unknown the device shows its water today and this month and,
+with a water price, its cost today and this month (litres at the water price; the base fee is
+only in the house's cost).
 
 The tiles come in this order: the house's water and cost, Flow and Last use, then each category's
-four tiles in the order above, and Other last. Tiles can't be moved in the Homey app, so when a
+four tiles in the pairing order, and Unknown last. Tiles can't be moved in the Homey app, so when a
 category is ticked later (or a water price is set after the categories), the device adds the
 tiles after it again in order; those tiles start a new insights history.
 
 **Last use** starts with the category, for example *Shower 07:42 - 07:47, 38 l at 7.6 l/min*.
 
-### Correct a category
+### A button next to the use point
 
-The buttons **Last use was Shower**, **Last use was Toilet** and so on (one per ticked water use)
-correct the category: of the use going on, or of the last use when it ended at most 15 minutes ago.
-Its litres move to the new category, today and this month. Pressed again, it moves again. The
-corrections are kept to learn the home's own patterns later.
+The flow action **Last use was [category]** does the same as the device's buttons. With a
+wireless button next to the shower or the toilet, a flow *When the button is pressed, then Last
+use was Shower* labels the use without opening the Homey app.
 
 ## Flow cards
 
 - Trigger **Water use started** (flow).
 - Trigger **Water use ended** (litres, minutes, average flow, cost, category; cost 0 without a
   water price).
+- Action **Last use was [category]**: labels the use going on or the last one, see
+  [A button next to the use point](#a-button-next-to-the-use-point).
 - Homey's own cards for the water today and this month, the flow and the costs.

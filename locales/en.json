@@ -119,7 +119,7 @@
       "flow_only": "Litres and uses from the flow.",
       "no_meter": "Choose the house water meter.",
       "categories": "Water uses",
-      "categories_hint": "Tick the kinds of water use the home has. Each use is counted in one of them by its flow and length, the rest in Other. Correct a wrong one with the Last use was buttons. Needs a meter with a flow."
+      "categories_hint": "Tick the kinds of water use the home has. A use is Unknown until a Last use was button labels it; after a few labels, clear matches are counted by themselves. Needs a meter with a flow."
     }
   },
   "error": {
@@ -355,9 +355,10 @@
       "toilet": "Toilet",
       "bath": "Bath",
       "outdoor": "Outdoor tap",
-      "other": "Other"
+      "unknown": "Unknown"
     },
     "last_use_was": "Last use was __category__",
-    "no_recent_use": "No water use in the last 15 minutes"
+    "no_recent_use": "No water use in the last 15 minutes",
+    "not_ticked": "That water use is not ticked on this Water Monitor"
   }
 }

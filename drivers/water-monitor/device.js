@@ -14,7 +14,7 @@ const COST_MONTH = 'measure_monetary.month';
 const COST_TITLES = { [COST_TODAY]: { en: 'Water cost today' }, [COST_MONTH]: { en: 'Water cost this month' } };
 // A "Last use was …" button labels the use going on, or the last one when it ended at most this long ago.
 const LABEL_WINDOW_MS = 15 * 60 * 1000;
-// Per water use category (and Other): litres and cost today and this month, e.g. meter_water.shower_today.
+// Per water use category (and Unknown): litres and cost today and this month, e.g. meter_water.shower_today.
 const categoryCaps = (category) => ({
   today: `meter_water.${category}_today`,
   month: `meter_water.${category}_month`,
@@ -36,6 +36,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
     this.flowLast = null;
     this.use = null;
     this.dirty = false;
+    await this.resetGuesses();
     await this.refreshMeter();
     await this.subscribeSources();
   }
@@ -54,6 +55,29 @@ module.exports = class waterMonitorDevice extends mainDevice {
     } catch (error) {
       this.error(`${this.getName()} - refreshMeter - ${error}`);
     }
+  }
+
+  /**
+   * @description Once: categories used to be guessed from fixed patterns. Their litres go back to Unknown, and only the
+   * labelled uses of today and this month are counted in their categories again.
+   */
+  async resetGuesses() {
+    if (this.getStoreValue('categoryRule') === 'learned') return;
+    if (this.totals) {
+      let totals = { ...this.totals, cats: {} };
+      for (const label of this.getStoreValue('labels') || []) {
+        if (waterUse.monthOf(this.date(label.end)) !== totals.month) continue;
+        const date = this.date(label.end);
+        const sums = totals.cats[label.category] || { todayL: 0, monthL: 0 };
+        totals = { ...totals, cats: { ...totals.cats, [label.category]: { todayL: sums.todayL + (date === totals.date ? label.litres : 0), monthL: sums.monthL + label.litres } } };
+      }
+      this.totals = totals;
+      await this.setStoreValue('totals', this.totals).catch(this.error);
+    }
+    const last = this.getStoreValue('lastUse');
+    if (last && !last.labelled && last.category) await this.setStoreValue('lastUse', { ...last, category: waterUse.UNKNOWN }).catch(this.error);
+    await this.setStoreValue('categoryRule', 'learned').catch(this.error);
+    this.log(`${this.getName()} - resetGuesses - guessed categories back to Unknown`);
   }
 
   async onDeleted() {
@@ -79,11 +103,11 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description The categories shown: the chosen ones and Other, or none when none is chosen (uses need a flow).
+   * @description The categories shown: the chosen ones and Unknown, or none when none is chosen (uses need a flow).
    */
   shownCategories() {
     const chosen = this.meter().flow ? this.categories() : [];
-    return chosen.length ? [...chosen, waterUse.OTHER] : [];
+    return chosen.length ? [...chosen, waterUse.UNKNOWN] : [];
   }
 
   categoryTitle(category) {
@@ -158,7 +182,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
     }
     const last = this.getStoreValue('lastUse');
     if (!last || at - last.end > LABEL_WINDOW_MS) throw new Error(this.homey.__('monitor.no_recent_use'));
-    const from = last.category || waterUse.OTHER;
+    const from = last.category || waterUse.UNKNOWN;
     this.totals = waterUse.moveCategory(waterUse.rollover(this.totals, this.date(at)), this.date(last.end), from, category, last.litres);
     this.dirty = true;
     const labelled = { ...last, category, labelled: true };
@@ -167,6 +191,24 @@ module.exports = class waterMonitorDevice extends mainDevice {
     await this.setStoreValue('uses', uses).catch(this.error);
     await this.keepLabel(labelled, last.guessed || from);
     await this.show(at);
+  }
+
+  /**
+   * @description The ticked categories for the Last use was flow card, filtered by the typed text.
+   */
+  categoryChoices(query) {
+    const text = String(query || '').toLowerCase();
+    return this.categories()
+      .map((id) => ({ id, name: this.categoryTitle(id) }))
+      .filter((choice) => choice.name.toLowerCase().includes(text));
+  }
+
+  /**
+   * @description Flow action Last use was <category>, e.g. from a button next to the shower: as the device's button.
+   */
+  async onAction_WATER_LAST_USE_WAS(category) {
+    if (!this.categories().includes(category)) throw new Error(this.homey.__('monitor.not_ticked'));
+    await this.onLabel(category);
   }
 
   /**
@@ -351,15 +393,15 @@ module.exports = class waterMonitorDevice extends mainDevice {
     const minutes = Math.round(((ended.end - ended.start) / 60000) * 10) / 10;
     const litres = Math.round(ended.litres * 10) / 10;
     const cost = waterUse.cost(ended.litres, this.price());
-    // Its category from the chosen ones (Other is what the meter counts beyond them).
+    // Its category: the one learned pattern that fits it, else Unknown until a button labels it.
     const chosen = this.categories();
-    const guessed = chosen.length ? waterUse.classify(ended, chosen) : null;
+    const guessed = chosen.length ? waterUse.classify(ended, waterUse.learnPatterns(this.getStoreValue('labels'), chosen)) : null;
     // Labelled with a button while it ran.
     const label = this.pendingLabel && this.pendingLabel.start === ended.start ? this.pendingLabel.category : null;
     this.pendingLabel = null;
     const category = label || guessed;
     this.log(`${this.getName()} - use ended: ${category || 'use'} ${litres} l in ${minutes} min, peak ${ended.peak.toFixed(1)} l/min`);
-    if (category && category !== waterUse.OTHER) {
+    if (category && category !== waterUse.UNKNOWN) {
       this.totals = waterUse.addCategory(this.totals, this.date(ended.end), category, ended.litres);
       this.dirty = true;
       await this.showTotals();
@@ -481,7 +523,7 @@ module.exports = class waterMonitorDevice extends mainDevice {
 
   /**
    * @description Repair: the water meter and the categories. A meter's reading is a new starting point; today's and the
-   * month's litres stay, also per category (a category no longer chosen counts in Other).
+   * month's litres stay, also per category (a category no longer chosen counts in Unknown).
    */
   async onRepairMeter(meter, categories) {
     this.log(`${this.getName()} - onRepairMeter - ${meter.name}: meter ${meter.meter}, flow ${meter.flow}, categories ${categories.join(', ') || 'none'}`);
