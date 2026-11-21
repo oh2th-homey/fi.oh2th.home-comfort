@@ -85,5 +85,8 @@
   },
   "2.8.0": {
     "en": "NEW: Today and Tomorrow graphs of the plan and prices as camera images on the devices, and FIX: a Hot Tub or Water Heater no longer reports Heater problem after an app restart while its heater has stopped on its own."
+  },
+  "2.9.0": {
+    "en": "NEW: Water Monitor shows the home's water use and cost, today, by month and by year, split into uses such as showers and washroom visits."
   }
 }
