@@ -185,7 +185,9 @@ module.exports = class waterMonitorDevice extends mainDevice {
     const from = last.category || waterUse.UNKNOWN;
     this.totals = waterUse.moveCategory(waterUse.rollover(this.totals, this.date(at)), this.date(last.end), from, category, last.litres);
     this.dirty = true;
-    const labelled = { ...last, category, labelled: true };
+    // The same category as it was assigned by its pattern: a confirmation, the litres stay.
+    if (category === from) this.log(`${this.getName()} - onLabel - confirmed ${category}`);
+    const labelled = { ...last, category, labelled: true, auto: false };
     await this.setStoreValue('lastUse', labelled).catch(this.error);
     const uses = (this.getStoreValue('uses') || []).map((use) => (use.start === last.start ? labelled : use));
     await this.setStoreValue('uses', uses).catch(this.error);
@@ -212,11 +214,11 @@ module.exports = class waterMonitorDevice extends mainDevice {
   }
 
   /**
-   * @description A labelled use and what it was guessed as: the samples learning will use.
+   * @description A learning sample (lib/water-use.js keepSample): a labelled use, or one its pattern assigned, with what
+   * it was guessed as. A relabel replaces the use's sample, so a wrong assignment stops teaching its category.
    */
   async keepLabel(use, guessed) {
-    const others = (this.getStoreValue('labels') || []).filter((sample) => sample.start !== use.start);
-    await this.setStoreValue('labels', waterUse.keepUse(others, { ...use, guessed })).catch(this.error);
+    await this.setStoreValue('labels', waterUse.keepSample(this.getStoreValue('labels'), { ...use, guessed })).catch(this.error);
   }
 
   /**
@@ -406,10 +408,12 @@ module.exports = class waterMonitorDevice extends mainDevice {
       this.dirty = true;
       await this.showTotals();
     }
-    const last = { ...ended, cost, category, guessed, ...(label ? { labelled: true } : {}) };
+    const auto = !label && !!category && category !== waterUse.UNKNOWN;
+    const last = { ...ended, cost, category, guessed, ...(label ? { labelled: true } : {}), ...(auto ? { auto: true } : {}) };
     await this.setStoreValue('lastUse', last).catch(this.error);
     await this.setStoreValue('uses', waterUse.keepUse(this.getStoreValue('uses'), last)).catch(this.error);
-    if (label) await this.keepLabel(last, guessed);
+    // A labelled use teaches its category; so does one its pattern assigned, until a button moves it elsewhere.
+    if (label || auto) await this.keepLabel(last, guessed);
     await this.triggerFlow('water_use_ended', {
       litres,
       minutes,

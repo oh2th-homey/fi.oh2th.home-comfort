@@ -62,8 +62,11 @@ Its litres move to that category, today and this month. Pressed again, it moves 
 
 Each category learns its pattern from its labelled uses: the litres, length, average and peak
 flow. After three labels of a category, a new use that clearly fits its pattern is counted in it
-by itself. A use that fits no learned pattern, or fits two, stays Unknown until it is labelled. An
-automatically counted use that went to the wrong category can be moved with the buttons too.
+by itself. A use that fits no learned pattern, or fits two, stays Unknown until it is labelled.
+
+An automatically counted use teaches its category too, so the patterns get better with use. If it
+went to the wrong category, move it with the buttons: it then teaches the right one instead. Pressing
+the category it already has confirms it. Each category learns from its latest 30 uses.
 
 Unknown also holds the water the meter counts beyond the uses, so the categories add up to the
 house total. For each category and Unknown the device shows its water today and this month and,

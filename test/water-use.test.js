@@ -234,6 +234,20 @@ test('classify: Unknown until a learned pattern clearly fits', () => {
   assert.strictEqual(use.classify({ start: 0, end: 0, litres: 0, average: 0, peak: 0 }, patterns), 'unknown');
 });
 
+test('keepSample: a use once, its latest category, at most KEEP_SAMPLES per category', () => {
+  const sample = (start, category, extra = {}) => ({ start, end: start + M, litres: 5, average: 5, peak: 5, category, ...extra });
+  let samples = use.keepSample([], sample(1, 'toilet', { auto: true }));
+  // Relabelled: the use's sample is replaced.
+  samples = use.keepSample(samples, sample(1, 'tap', { labelled: true }));
+  assert.deepStrictEqual(samples.map((s) => [s.start, s.category]), [[1, 'tap']]);
+  // Many toilets don't push out the one bath.
+  samples = use.keepSample(samples, sample(0, 'bath'));
+  for (let i = 2; i < 2 + use.KEEP_SAMPLES + 5; i++) samples = use.keepSample(samples, sample(i, 'toilet'));
+  assert.strictEqual(samples.filter((s) => s.category === 'toilet').length, use.KEEP_SAMPLES);
+  assert.strictEqual(samples[0].category, 'bath');
+  assert.strictEqual(samples.filter((s) => s.category === 'toilet')[0].start, 7);
+});
+
 test('chosenCategories: known ones only, in the pairing order', () => {
   assert.deepStrictEqual(use.chosenCategories(['toilet', 'x', 'shower']), ['shower', 'toilet']);
   assert.deepStrictEqual(use.chosenCategories(null), []);
